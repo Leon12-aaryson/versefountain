@@ -36,7 +36,7 @@ export default function Navbar() {
           <div className="flex items-center">
             <Link href="/">
               <a className="text-neutral-cream font-display text-2xl md:text-3xl tracking-wider">
-                Kultiva
+                VerseFountain
               </a>
             </Link>
             <div className="hidden md:block ml-2 text-accent-light text-sm italic">

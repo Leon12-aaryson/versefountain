@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="container mx-auto px-4 md:px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           <div>
-            <div className="font-display text-2xl mb-4">Kultiva</div>
+            <div className="font-display text-2xl mb-4">VerseFountain</div>
             <p className="text-white text-opacity-70 text-sm mb-6">
               Preserving and celebrating cultural poetry and literature from around the world.
             </p>
@@ -124,7 +124,7 @@ export default function Footer() {
 
         <div className="flex flex-col md:flex-row justify-between items-center text-sm">
           <div className="text-white text-opacity-60 mb-4 md:mb-0">
-            &copy; {new Date().getFullYear()} Kultiva. All rights reserved.
+            &copy; {new Date().getFullYear()} VerseFountain. All rights reserved.
           </div>
           <div className="flex space-x-4 text-white text-opacity-60">
             <Link href="/privacy">
