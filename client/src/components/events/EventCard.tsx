@@ -44,10 +44,8 @@ export default function EventCard({ event }: EventCardProps) {
           <span className="mx-2">•</span>
           <Clock className="h-3 w-3 mr-1" /> {event.startTime} - {event.endTime}
         </div>
-        <Link href={`/events/${event.id}`}>
-          <a className="hover:underline">
-            <h3 className="font-display text-xl mb-2">{event.title}</h3>
-          </a>
+        <Link href={`/events/${event.id}`} className="hover:underline">
+          <h3 className="font-display text-xl mb-2">{event.title}</h3>
         </Link>
         <p className="text-sm text-gray-700 mb-4 line-clamp-2">{event.description}</p>
         <div className="flex items-center justify-between">

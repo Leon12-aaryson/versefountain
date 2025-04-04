@@ -25,10 +25,8 @@ export default function BookCard({ book }: BookCardProps) {
         </div>
       </div>
       <div className="mt-3">
-        <Link href={`/books/${book.id}`}>
-          <a className="hover:underline">
-            <h3 className="font-display text-lg leading-tight">{book.title}</h3>
-          </a>
+        <Link href={`/books/${book.id}`} className="hover:underline">
+          <h3 className="font-display text-lg leading-tight">{book.title}</h3>
         </Link>
         <p className="text-sm text-gray-600">By {book.author}</p>
         <div className="flex items-center mt-1">
