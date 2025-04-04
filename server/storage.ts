@@ -11,6 +11,8 @@ import {
   comments, type Comment, type InsertComment,
   ratings, type Rating, type InsertRating
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, and, desc, asc } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -824,4 +826,395 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  // User operations
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const userData = {
+      ...insertUser,
+      avatar: insertUser.avatar || null,
+      bio: insertUser.bio || null
+    };
+    const [user] = await db.insert(users).values(userData).returning();
+    return user;
+  }
+  
+  // Poem operations
+  async getPoems(limit?: number): Promise<Poem[]> {
+    const query = db.select().from(poems).orderBy(desc(poems.createdAt));
+    if (limit) {
+      query.limit(limit);
+    }
+    return await query;
+  }
+  
+  async getPoemById(id: number): Promise<Poem | undefined> {
+    const [poem] = await db.select().from(poems).where(eq(poems.id, id));
+    return poem || undefined;
+  }
+  
+  async getPoemsByCulturalOrigin(origin: string): Promise<Poem[]> {
+    return await db.select().from(poems).where(eq(poems.culturalOrigin, origin));
+  }
+  
+  async createPoem(insertPoem: InsertPoem): Promise<Poem> {
+    const poemData = {
+      ...insertPoem,
+      likes: 0,
+      comments: 0,
+      rating: 0,
+      ratingCount: 0,
+      coverImage: insertPoem.coverImage || null
+    };
+    const [poem] = await db.insert(poems).values(poemData).returning();
+    return poem;
+  }
+  
+  async updatePoemStats(id: number, likes?: number, comments?: number, rating?: number, ratingCount?: number): Promise<void> {
+    const updateValues: Partial<Poem> = {};
+    if (likes !== undefined) updateValues.likes = likes;
+    if (comments !== undefined) updateValues.comments = comments;
+    if (rating !== undefined) updateValues.rating = rating;
+    if (ratingCount !== undefined) updateValues.ratingCount = ratingCount;
+    
+    await db.update(poems)
+      .set(updateValues)
+      .where(eq(poems.id, id));
+  }
+  
+  // Book operations
+  async getBooks(limit?: number, category?: string): Promise<Book[]> {
+    let query = db.select().from(books);
+    
+    if (category && category !== 'All Categories') {
+      query = query.where(eq(books.category, category));
+    }
+    
+    query = query.orderBy(desc(books.createdAt));
+    
+    if (limit) {
+      query = query.limit(limit);
+    }
+    
+    return await query;
+  }
+  
+  async getBookById(id: number): Promise<Book | undefined> {
+    const [book] = await db.select().from(books).where(eq(books.id, id));
+    return book || undefined;
+  }
+  
+  async getBooksByCulturalOrigin(origin: string): Promise<Book[]> {
+    return await db.select().from(books).where(eq(books.culturalOrigin, origin));
+  }
+  
+  async createBook(insertBook: InsertBook): Promise<Book> {
+    const bookData = {
+      ...insertBook,
+      rating: 0,
+      ratingCount: 0,
+      coverImage: insertBook.coverImage || null,
+      culturalOrigin: insertBook.culturalOrigin || null,
+      description: insertBook.description || null
+    };
+    const [book] = await db.insert(books).values(bookData).returning();
+    return book;
+  }
+  
+  async updateBookRating(id: number, rating: number, ratingCount: number): Promise<void> {
+    await db.update(books)
+      .set({ rating, ratingCount })
+      .where(eq(books.id, id));
+  }
+  
+  // Discussion operations
+  async getDiscussions(limit?: number): Promise<Discussion[]> {
+    const query = db.select().from(discussions).orderBy(desc(discussions.createdAt));
+    if (limit) {
+      query.limit(limit);
+    }
+    return await query;
+  }
+  
+  async getDiscussionById(id: number): Promise<Discussion | undefined> {
+    const [discussion] = await db.select().from(discussions).where(eq(discussions.id, id));
+    return discussion || undefined;
+  }
+  
+  async createDiscussion(insertDiscussion: InsertDiscussion): Promise<Discussion> {
+    const discussionData = {
+      ...insertDiscussion,
+      replies: 0,
+      views: 0,
+      authorAvatar: insertDiscussion.authorAvatar || null
+    };
+    const [discussion] = await db.insert(discussions).values(discussionData).returning();
+    return discussion;
+  }
+  
+  async updateDiscussionStats(id: number, replies?: number, views?: number): Promise<void> {
+    const updateValues: Partial<Discussion> = {};
+    if (replies !== undefined) updateValues.replies = replies;
+    if (views !== undefined) updateValues.views = views;
+    
+    await db.update(discussions)
+      .set(updateValues)
+      .where(eq(discussions.id, id));
+  }
+  
+  // Chat message operations
+  async getChatMessages(limit?: number): Promise<ChatMessage[]> {
+    const query = db.select().from(chatMessages).orderBy(asc(chatMessages.createdAt));
+    if (limit) {
+      query.limit(limit);
+    }
+    return await query;
+  }
+  
+  async createChatMessage(insertMessage: InsertChatMessage): Promise<ChatMessage> {
+    const messageData = {
+      ...insertMessage,
+      userAvatar: insertMessage.userAvatar || null
+    };
+    const [message] = await db.insert(chatMessages).values(messageData).returning();
+    return message;
+  }
+  
+  // Event operations
+  async getEvents(limit?: number): Promise<Event[]> {
+    const query = db.select().from(events).orderBy(asc(events.date));
+    if (limit) {
+      query.limit(limit);
+    }
+    return await query;
+  }
+  
+  async getEventById(id: number): Promise<Event | undefined> {
+    const [event] = await db.select().from(events).where(eq(events.id, id));
+    return event || undefined;
+  }
+  
+  async createEvent(insertEvent: InsertEvent): Promise<Event> {
+    const eventData = {
+      ...insertEvent,
+      attendees: 0,
+      coverImage: insertEvent.coverImage || null,
+      isVirtual: insertEvent.isVirtual || false
+    };
+    const [event] = await db.insert(events).values(eventData).returning();
+    return event;
+  }
+  
+  async updateEventAttendees(id: number, attendees: number): Promise<void> {
+    await db.update(events)
+      .set({ attendees })
+      .where(eq(events.id, id));
+  }
+  
+  // Cultural category operations
+  async getCulturalCategories(): Promise<CulturalCategory[]> {
+    return await db.select().from(culturalCategories);
+  }
+  
+  async getCulturalCategoryByName(name: string): Promise<CulturalCategory | undefined> {
+    const [category] = await db.select().from(culturalCategories).where(eq(culturalCategories.name, name));
+    return category || undefined;
+  }
+  
+  async createCulturalCategory(insertCategory: InsertCulturalCategory): Promise<CulturalCategory> {
+    const categoryData = {
+      ...insertCategory,
+      workCount: 0,
+      imageUrl: insertCategory.imageUrl || null
+    };
+    const [category] = await db.insert(culturalCategories).values(categoryData).returning();
+    return category;
+  }
+  
+  async updateCategoryWorkCount(id: number, workCount: number): Promise<void> {
+    await db.update(culturalCategories)
+      .set({ workCount })
+      .where(eq(culturalCategories.id, id));
+  }
+  
+  // Academic resource operations
+  async getAcademicResources(type?: string): Promise<AcademicResource[]> {
+    let query = db.select().from(academicResources);
+    if (type) {
+      query = query.where(eq(academicResources.type, type));
+    }
+    return await query;
+  }
+  
+  async getAcademicResourceById(id: number): Promise<AcademicResource | undefined> {
+    const [resource] = await db.select().from(academicResources).where(eq(academicResources.id, id));
+    return resource || undefined;
+  }
+  
+  async createAcademicResource(insertResource: InsertAcademicResource): Promise<AcademicResource> {
+    const [resource] = await db.insert(academicResources).values(insertResource).returning();
+    return resource;
+  }
+  
+  // Reading progress operations
+  async getReadingProgress(userId: number, bookId: number): Promise<ReadingProgress | undefined> {
+    const [progress] = await db.select().from(readingProgress)
+      .where(and(
+        eq(readingProgress.userId, userId),
+        eq(readingProgress.bookId, bookId)
+      ));
+    return progress || undefined;
+  }
+  
+  async createOrUpdateReadingProgress(insertProgress: InsertReadingProgress): Promise<ReadingProgress> {
+    // Check if the progress already exists
+    const existingProgress = await this.getReadingProgress(insertProgress.userId, insertProgress.bookId);
+    
+    // Ensure currentPage has a value
+    const progressData = {
+      ...insertProgress,
+      currentPage: insertProgress.currentPage || 0  // Default to 0 if undefined
+    };
+    
+    if (existingProgress) {
+      // Update existing record
+      const [updated] = await db.update(readingProgress)
+        .set({ 
+          currentPage: progressData.currentPage,
+          lastRead: new Date()
+        })
+        .where(eq(readingProgress.id, existingProgress.id))
+        .returning();
+      return updated;
+    } else {
+      // Create new record
+      const [progress] = await db.insert(readingProgress).values({
+        ...progressData,
+        lastRead: new Date()
+      }).returning();
+      return progress;
+    }
+  }
+  
+  // Comment operations
+  async getCommentsByPoemId(poemId: number): Promise<Comment[]> {
+    return await db.select().from(comments)
+      .where(eq(comments.poemId, poemId))
+      .orderBy(asc(comments.createdAt));
+  }
+  
+  async getCommentsByBookId(bookId: number): Promise<Comment[]> {
+    return await db.select().from(comments)
+      .where(eq(comments.bookId, bookId))
+      .orderBy(asc(comments.createdAt));
+  }
+  
+  async getCommentsByDiscussionId(discussionId: number): Promise<Comment[]> {
+    return await db.select().from(comments)
+      .where(eq(comments.discussionId, discussionId))
+      .orderBy(asc(comments.createdAt));
+  }
+  
+  async createComment(insertComment: InsertComment): Promise<Comment> {
+    const commentData = {
+      ...insertComment,
+      userAvatar: insertComment.userAvatar || null,
+      bookId: insertComment.bookId || null,
+      poemId: insertComment.poemId || null,
+      discussionId: insertComment.discussionId || null
+    };
+    
+    const [comment] = await db.insert(comments).values(commentData).returning();
+    
+    // Update comment counts
+    if (comment.poemId) {
+      const [poem] = await db.select().from(poems).where(eq(poems.id, comment.poemId));
+      if (poem) {
+        await this.updatePoemStats(poem.id, undefined, poem.comments + 1);
+      }
+    } else if (comment.discussionId) {
+      const [discussion] = await db.select().from(discussions).where(eq(discussions.id, comment.discussionId));
+      if (discussion) {
+        await this.updateDiscussionStats(discussion.id, discussion.replies + 1);
+      }
+    }
+    
+    return comment;
+  }
+  
+  // Rating operations
+  async getRatingByUserAndPoem(userId: number, poemId: number): Promise<Rating | undefined> {
+    const [rating] = await db.select().from(ratings)
+      .where(and(
+        eq(ratings.userId, userId),
+        eq(ratings.poemId, poemId)
+      ));
+    return rating || undefined;
+  }
+  
+  async getRatingByUserAndBook(userId: number, bookId: number): Promise<Rating | undefined> {
+    const [rating] = await db.select().from(ratings)
+      .where(and(
+        eq(ratings.userId, userId),
+        eq(ratings.bookId, bookId)
+      ));
+    return rating || undefined;
+  }
+  
+  async createOrUpdateRating(insertRating: InsertRating): Promise<Rating> {
+    // Check if rating already exists
+    let existingRating: Rating | undefined;
+    
+    const ratingData = {
+      ...insertRating,
+      bookId: insertRating.bookId || null,
+      poemId: insertRating.poemId || null
+    };
+    
+    if (ratingData.poemId) {
+      existingRating = await this.getRatingByUserAndPoem(ratingData.userId, ratingData.poemId);
+    } else if (ratingData.bookId) {
+      existingRating = await this.getRatingByUserAndBook(ratingData.userId, ratingData.bookId);
+    }
+    
+    if (existingRating) {
+      // Update existing rating
+      const [updated] = await db.update(ratings)
+        .set({ rating: ratingData.rating })
+        .where(eq(ratings.id, existingRating.id))
+        .returning();
+      
+      await this.updateAggregateRating(updated);
+      return updated;
+    } else {
+      // Create new rating
+      const [rating] = await db.insert(ratings).values(ratingData).returning();
+      await this.updateAggregateRating(rating);
+      return rating;
+    }
+  }
+  
+  private async updateAggregateRating(rating: Rating): Promise<void> {
+    if (rating.poemId) {
+      const allRatings = await db.select().from(ratings).where(eq(ratings.poemId, rating.poemId));
+      const avgRating = allRatings.reduce((sum, r) => sum + r.rating, 0) / allRatings.length;
+      await this.updatePoemStats(rating.poemId, undefined, undefined, avgRating, allRatings.length);
+    } else if (rating.bookId) {
+      const allRatings = await db.select().from(ratings).where(eq(ratings.bookId, rating.bookId));
+      const avgRating = allRatings.reduce((sum, r) => sum + r.rating, 0) / allRatings.length;
+      await this.updateBookRating(rating.bookId, avgRating, allRatings.length);
+    }
+  }
+}
+
+// Change from MemStorage to DatabaseStorage
+export const storage = new DatabaseStorage();
