@@ -145,7 +145,13 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
     const now = new Date();
-    const user: User = { ...insertUser, id, createdAt: now };
+    const user: User = { 
+      ...insertUser, 
+      id, 
+      createdAt: now,
+      avatar: insertUser.avatar || null,
+      bio: insertUser.bio || null
+    };
     this.users.set(id, user);
     return user;
   }
@@ -177,7 +183,8 @@ export class MemStorage implements IStorage {
       comments: 0, 
       rating: 0, 
       ratingCount: 0, 
-      createdAt: now 
+      createdAt: now,
+      coverImage: insertPoem.coverImage || null
     };
     this.poems.set(id, poem);
     return poem;
@@ -224,7 +231,10 @@ export class MemStorage implements IStorage {
       id, 
       rating: 0, 
       ratingCount: 0, 
-      createdAt: now 
+      createdAt: now,
+      coverImage: insertBook.coverImage || null,
+      culturalOrigin: insertBook.culturalOrigin || null,
+      description: insertBook.description || null
     };
     this.books.set(id, book);
     return book;
@@ -258,7 +268,8 @@ export class MemStorage implements IStorage {
       id, 
       replies: 0, 
       views: 0, 
-      createdAt: now 
+      createdAt: now,
+      authorAvatar: insertDiscussion.authorAvatar || null
     };
     this.discussions.set(id, discussion);
     return discussion;
@@ -283,7 +294,12 @@ export class MemStorage implements IStorage {
   async createChatMessage(insertMessage: InsertChatMessage): Promise<ChatMessage> {
     const id = this.chatMessageIdCounter++;
     const now = new Date();
-    const message: ChatMessage = { ...insertMessage, id, createdAt: now };
+    const message: ChatMessage = { 
+      ...insertMessage, 
+      id, 
+      createdAt: now,
+      userAvatar: insertMessage.userAvatar || null 
+    };
     this.chatMessages.set(id, message);
     return message;
   }
@@ -306,7 +322,9 @@ export class MemStorage implements IStorage {
       ...insertEvent, 
       id, 
       attendees: 0, 
-      createdAt: now 
+      createdAt: now,
+      coverImage: insertEvent.coverImage || null,
+      isVirtual: insertEvent.isVirtual || false
     };
     this.events.set(id, event);
     return event;
@@ -336,7 +354,8 @@ export class MemStorage implements IStorage {
     const category: CulturalCategory = { 
       ...insertCategory, 
       id, 
-      workCount: 0 
+      workCount: 0,
+      imageUrl: insertCategory.imageUrl || null
     };
     this.culturalCategories.set(id, category);
     return category;
@@ -377,15 +396,20 @@ export class MemStorage implements IStorage {
   }
   
   async createOrUpdateReadingProgress(insertProgress: InsertReadingProgress): Promise<ReadingProgress> {
-    const id = insertProgress.id || this.readingProgressIdCounter++;
+    const progressId = 'id' in insertProgress ? insertProgress.id : this.readingProgressIdCounter++;
     const now = new Date();
-    const progress: ReadingProgress = { ...insertProgress, id, lastRead: now };
+    const progress: ReadingProgress = { 
+      ...insertProgress, 
+      id: progressId, 
+      lastRead: now,
+      currentPage: insertProgress.currentPage || 0
+    };
     
     // Use a composite key to ensure uniqueness per user/book combination
     this.readingProgresses.set(`${progress.userId}-${progress.bookId}`, progress);
     
-    if (!insertProgress.id) {
-      this.readingProgressIdCounter = id + 1;
+    if (!('id' in insertProgress)) {
+      this.readingProgressIdCounter = progressId + 1;
     }
     
     return progress;
@@ -413,7 +437,15 @@ export class MemStorage implements IStorage {
   async createComment(insertComment: InsertComment): Promise<Comment> {
     const id = this.commentIdCounter++;
     const now = new Date();
-    const comment: Comment = { ...insertComment, id, createdAt: now };
+    const comment: Comment = { 
+      ...insertComment, 
+      id, 
+      createdAt: now,
+      userAvatar: insertComment.userAvatar || null,
+      bookId: insertComment.bookId || null,
+      poemId: insertComment.poemId || null,
+      discussionId: insertComment.discussionId || null
+    };
     this.comments.set(id, comment);
     
     // Update comment counts
@@ -470,7 +502,13 @@ export class MemStorage implements IStorage {
       // Create new rating
       const id = this.ratingIdCounter++;
       const now = new Date();
-      const rating: Rating = { ...insertRating, id, createdAt: now };
+      const rating: Rating = { 
+        ...insertRating, 
+        id, 
+        createdAt: now,
+        bookId: insertRating.bookId || null,
+        poemId: insertRating.poemId || null
+      };
       this.ratings.set(id, rating);
       
       // Update aggregate rating

@@ -99,11 +99,11 @@ export default function Home() {
       {/* QuickNav - Mobile only */}
       <div className="sticky top-0 z-20 bg-neutral-cream border-b border-gray-200 py-3 px-4 mb-10 overflow-x-auto whitespace-nowrap md:hidden">
         <div className="flex space-x-6">
-          <Link href="/poetry"><a className="text-neutral-charcoal font-medium hover:text-primary transition-colors">Poetry</a></Link>
-          <Link href="/books"><a className="text-neutral-charcoal font-medium hover:text-primary transition-colors">Books</a></Link>
-          <Link href="/discussions"><a className="text-neutral-charcoal font-medium hover:text-primary transition-colors">Discussions</a></Link>
-          <Link href="/events"><a className="text-neutral-charcoal font-medium hover:text-primary transition-colors">Events</a></Link>
-          <Link href="/academics"><a className="text-neutral-charcoal font-medium hover:text-primary transition-colors">Academics</a></Link>
+          <Link href="/poetry" className="text-neutral-charcoal font-medium hover:text-primary transition-colors">Poetry</Link>
+          <Link href="/books" className="text-neutral-charcoal font-medium hover:text-primary transition-colors">Books</Link>
+          <Link href="/discussions" className="text-neutral-charcoal font-medium hover:text-primary transition-colors">Discussions</Link>
+          <Link href="/events" className="text-neutral-charcoal font-medium hover:text-primary transition-colors">Events</Link>
+          <Link href="/academics" className="text-neutral-charcoal font-medium hover:text-primary transition-colors">Academics</Link>
         </div>
       </div>
 
@@ -136,10 +136,8 @@ export default function Home() {
         </div>
         
         <div className="mt-8 text-center">
-          <Link href="/poetry">
-            <a className="inline-flex items-center font-sans text-primary hover:text-primary-dark transition-colors">
-              Explore all poetry <i className="fas fa-arrow-right ml-2"></i>
-            </a>
+          <Link href="/poetry" className="inline-flex items-center font-sans text-primary hover:text-primary-dark transition-colors">
+            Explore all poetry <i className="fas fa-arrow-right ml-2"></i>
           </Link>
         </div>
       </section>
@@ -178,35 +176,23 @@ export default function Home() {
         </div>
         
         <div className="flex flex-wrap justify-center mb-8 space-x-2">
-          <Link href="/books">
-            <a className="bg-primary text-white px-4 py-2 rounded-full text-sm mb-2">
-              All Categories
-            </a>
+          <Link href="/books" className="bg-primary text-white px-4 py-2 rounded-full text-sm mb-2">
+            All Categories
           </Link>
-          <Link href="/books?category=Cultural Studies">
-            <a className="bg-white hover:bg-gray-100 text-neutral-charcoal px-4 py-2 rounded-full text-sm mb-2">
-              Cultural Studies
-            </a>
+          <Link href="/books?category=Cultural Studies" className="bg-white hover:bg-gray-100 text-neutral-charcoal px-4 py-2 rounded-full text-sm mb-2">
+            Cultural Studies
           </Link>
-          <Link href="/books?category=Traditional Tales">
-            <a className="bg-white hover:bg-gray-100 text-neutral-charcoal px-4 py-2 rounded-full text-sm mb-2">
-              Traditional Tales
-            </a>
+          <Link href="/books?category=Traditional Tales" className="bg-white hover:bg-gray-100 text-neutral-charcoal px-4 py-2 rounded-full text-sm mb-2">
+            Traditional Tales
           </Link>
-          <Link href="/books?category=Poetry Collections">
-            <a className="bg-white hover:bg-gray-100 text-neutral-charcoal px-4 py-2 rounded-full text-sm mb-2">
-              Poetry Collections
-            </a>
+          <Link href="/books?category=Poetry Collections" className="bg-white hover:bg-gray-100 text-neutral-charcoal px-4 py-2 rounded-full text-sm mb-2">
+            Poetry Collections
           </Link>
-          <Link href="/books?category=Historical">
-            <a className="bg-white hover:bg-gray-100 text-neutral-charcoal px-4 py-2 rounded-full text-sm mb-2">
-              Historical
-            </a>
+          <Link href="/books?category=Historical" className="bg-white hover:bg-gray-100 text-neutral-charcoal px-4 py-2 rounded-full text-sm mb-2">
+            Historical
           </Link>
-          <Link href="/books?category=Modern Interpretations">
-            <a className="bg-white hover:bg-gray-100 text-neutral-charcoal px-4 py-2 rounded-full text-sm mb-2">
-              Modern Interpretations
-            </a>
+          <Link href="/books?category=Modern Interpretations" className="bg-white hover:bg-gray-100 text-neutral-charcoal px-4 py-2 rounded-full text-sm mb-2">
+            Modern Interpretations
           </Link>
         </div>
         
@@ -223,10 +209,8 @@ export default function Home() {
         </div>
         
         <div className="mt-10 text-center">
-          <Link href="/books">
-            <a className="inline-flex items-center font-sans text-primary hover:text-primary-dark transition-colors">
-              Browse all books <i className="fas fa-arrow-right ml-2"></i>
-            </a>
+          <Link href="/books" className="inline-flex items-center font-sans text-primary hover:text-primary-dark transition-colors">
+            Browse all books <i className="fas fa-arrow-right ml-2"></i>
           </Link>
         </div>
       </section>
@@ -268,10 +252,8 @@ export default function Home() {
               </div>
               
               <div className="p-4 bg-gray-50 border-t border-gray-200 text-center">
-                <Link href="/discussions">
-                  <a className="text-primary hover:text-primary-dark text-sm font-medium">
-                    View all discussions
-                  </a>
+                <Link href="/discussions" className="text-primary hover:text-primary-dark text-sm font-medium">
+                  View all discussions
                 </Link>
               </div>
             </div>
@@ -354,10 +336,8 @@ export default function Home() {
         </div>
         
         <div className="mt-8 text-center">
-          <Link href="/events">
-            <a className="inline-flex items-center font-sans text-primary hover:text-primary-dark transition-colors">
-              See all upcoming events <i className="fas fa-arrow-right ml-2"></i>
-            </a>
+          <Link href="/events" className="inline-flex items-center font-sans text-primary hover:text-primary-dark transition-colors">
+            See all upcoming events <i className="fas fa-arrow-right ml-2"></i>
           </Link>
         </div>
       </section>
