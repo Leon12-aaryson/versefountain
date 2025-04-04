@@ -28,28 +28,35 @@ export default function Navbar() {
             "url('https://images.unsplash.com/photo-1550399105-c4db5fb85c18?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80')",
         }}
       >
-        <div className="absolute inset-0 bg-neutral-charcoal bg-opacity-60"></div>
+        {/* Enhanced overlay for better visibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70"></div>
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1614850523060-8da1d56ae167?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')", backgroundRepeat: "repeat-space" }}></div>
 
-        {/* Navigation */}
-        <nav className="relative z-10 flex justify-between items-center px-4 md:px-12 py-6">
+        {/* Navigation with enhanced styling */}
+        <nav className="relative z-10 flex justify-between items-center px-4 md:px-12 py-6 border-b border-white/10 backdrop-blur-sm bg-black/20">
           <div className="flex items-center">
             <Link href="/">
-              <a className="text-neutral-cream font-display text-2xl md:text-3xl tracking-wider">
-                VerseFountain
-              </a>
+              <div className="group">
+                <span className="text-white font-display text-2xl md:text-3xl tracking-wider bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 bg-clip-text text-transparent drop-shadow-sm">
+                  VerseFountain
+                </span>
+                <div className="hidden md:block text-white text-sm font-medium mt-1">
+                  Poetry & Cultural Library
+                </div>
+                <div className="h-0.5 w-0 group-hover:w-full bg-gradient-to-r from-amber-200 to-amber-400 transition-all duration-300 mt-1"></div>
+              </div>
             </Link>
-            <div className="hidden md:block ml-2 text-accent-light text-sm italic">
-              Poetry & Cultural Library
-            </div>
           </div>
 
-          <div className="hidden md:flex items-center space-x-8 text-neutral-cream font-sans">
+          <div className="hidden md:flex items-center space-x-8 text-white font-sans">
             {navLinks.map((link) => (
               <Link key={link.path} href={link.path}>
-                <a className={`navbar-item hover:text-accent transition-colors ${location === link.path ? 'text-accent' : ''}`}>
-                  {link.name}
-                </a>
+                <div className="group relative">
+                  <span className={`navbar-item transition-colors ${location === link.path ? 'text-amber-300 font-medium' : 'text-white hover:text-amber-200'}`}>
+                    {link.name}
+                  </span>
+                  <div className={`h-0.5 ${location === link.path ? 'w-full bg-amber-300' : 'w-0 group-hover:w-full bg-amber-200'} transition-all duration-300 absolute bottom-0 left-0`}></div>
+                </div>
               </Link>
             ))}
           </div>
@@ -61,20 +68,20 @@ export default function Navbar() {
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="py-1 px-3 pr-8 rounded-full bg-white bg-opacity-20 text-neutral-cream placeholder:text-neutral-cream placeholder:opacity-70 border border-neutral-cream border-opacity-30 focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent text-sm w-36 md:w-48"
+                className="py-1 px-3 pr-8 rounded-full bg-white/15 text-white placeholder:text-white/70 border border-white/30 focus:outline-none focus:ring-1 focus:ring-amber-300 focus:border-amber-300 text-sm w-36 md:w-48 backdrop-blur-sm"
               />
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-cream opacity-70 h-4 w-4" />
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 h-4 w-4" />
             </div>
             
             <Link href="/profile">
-              <a className="text-neutral-cream hover:text-accent transition-colors">
+              <div className="text-white hover:text-amber-300 transition-colors p-2 rounded-full hover:bg-white/10">
                 <User className="h-5 w-5" />
-              </a>
+              </div>
             </Link>
             
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden text-neutral-cream hover:text-accent">
+                <Button variant="ghost" size="icon" className="md:hidden text-white hover:text-amber-300 hover:bg-white/10">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
@@ -82,9 +89,9 @@ export default function Navbar() {
                 <div className="flex flex-col space-y-4 mt-8">
                   {navLinks.map((link) => (
                     <Link key={link.path} href={link.path}>
-                      <a className={`text-lg font-medium ${location === link.path ? 'text-primary' : 'text-gray-700'}`}>
+                      <div className={`text-lg font-medium ${location === link.path ? 'text-amber-600' : 'text-gray-700 hover:text-amber-600'} transition-colors`}>
                         {link.name}
-                      </a>
+                      </div>
                     </Link>
                   ))}
                 </div>
@@ -93,31 +100,31 @@ export default function Navbar() {
           </div>
         </nav>
 
-        {/* Hero Content */}
+        {/* Hero Content with enhanced visibility */}
         <div className="relative z-10 h-[400px] md:h-[500px] px-6 md:px-16 flex flex-col justify-center">
-          <h1 className="font-display text-4xl md:text-6xl text-neutral-cream mb-4 leading-tight">
-            Preserving Culture<br />Through <span className="text-accent">Poetry</span>
+          <h1 className="font-display text-4xl md:text-6xl text-white mb-4 leading-tight drop-shadow-lg">
+            Preserving Culture<br />Through <span className="bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 bg-clip-text text-transparent">Poetry</span>
           </h1>
-          <div className="w-16 h-1 bg-primary mb-6"></div>
-          <p className="font-body text-lg md:text-xl text-neutral-cream max-w-lg opacity-90 mb-8">
+          <div className="w-16 h-1 bg-gradient-to-r from-amber-400 to-amber-200 mb-6"></div>
+          <p className="font-body text-lg md:text-xl text-white max-w-lg mb-8 drop-shadow">
             Discover traditional and local cultural expressions from across the world through poetry, literature and community.
           </p>
           <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
             <Link href="/poetry">
-              <a className="bg-primary hover:bg-primary-dark text-white py-3 px-6 rounded transition-colors font-sans font-medium text-sm md:text-base inline-flex items-center justify-center sm:justify-start">
+              <div className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white py-3 px-6 rounded-md transition-all duration-300 font-sans font-medium text-sm md:text-base inline-flex items-center justify-center sm:justify-start shadow-lg shadow-amber-700/20">
                 <i className="fas fa-book-open mr-2"></i> Explore Featured Poetry
-              </a>
+              </div>
             </Link>
             <Link href="/events">
-              <a className="bg-transparent border border-neutral-cream text-neutral-cream hover:bg-white hover:bg-opacity-10 py-3 px-6 rounded transition-colors font-sans font-medium text-sm md:text-base inline-flex items-center justify-center sm:justify-start">
+              <div className="bg-transparent border border-white text-white hover:bg-white/10 py-3 px-6 rounded-md transition-all duration-300 font-sans font-medium text-sm md:text-base inline-flex items-center justify-center sm:justify-start backdrop-blur-sm">
                 <i className="fas fa-calendar-alt mr-2"></i> Upcoming Events
-              </a>
+              </div>
             </Link>
           </div>
         </div>
 
-        {/* Cultural Border Design */}
-        <div className="absolute bottom-0 left-0 right-0 cultural-border"></div>
+        {/* Enhanced Cultural Border Design */}
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-r from-amber-800/30 via-amber-600/40 to-amber-800/30 backdrop-blur-sm"></div>
       </div>
     </header>
   );
