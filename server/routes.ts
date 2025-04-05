@@ -1,9 +1,10 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { insertUserSchema, insertPoemSchema, insertBookSchema, insertDiscussionSchema, insertChatMessageSchema, insertEventSchema, insertCulturalCategorySchema, insertAcademicResourceSchema, insertReadingProgressSchema, insertCommentSchema, insertRatingSchema } from "@shared/schema";
 import { z } from "zod";
+import { setupAuth } from "./auth";
 
 // WS clients
 const clients = new Map<string, WebSocket>();
@@ -21,6 +22,9 @@ function validateBody<T extends z.ZodTypeAny>(
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication
+  setupAuth(app);
+  
   const httpServer = createServer(app);
   
   // WebSocket server for chat functionality
@@ -464,6 +468,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const ratingData = validateBody(insertRatingSchema, req.body);
       const rating = await storage.createOrUpdateRating(ratingData);
       res.status(201).json(rating);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      res.status(400).json({ message });
+    }
+  });
+
+  // ==== PROTECTED ROUTES FOR AUTHENTICATED MEMBERS ONLY ====
+  // These routes are only accessible to users who are logged in
+  
+  // Authentication Middleware for Protected Routes
+  const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+    next();
+  };
+  
+  // Create new book (members only)
+  app.post('/api/create/book', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as Express.User;
+      const bookData = validateBody(insertBookSchema, {
+        ...req.body,
+        authorId: user.id,
+        authorName: user.displayName || user.username
+      });
+      
+      const book = await storage.createBook(bookData);
+      res.status(201).json(book);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      res.status(400).json({ message });
+    }
+  });
+  
+  // Create new poem (members only)
+  app.post('/api/create/poem', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as Express.User;
+      const poemData = validateBody(insertPoemSchema, {
+        ...req.body,
+        authorId: user.id,
+        authorName: user.displayName || user.username
+      });
+      
+      const poem = await storage.createPoem(poemData);
+      res.status(201).json(poem);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      res.status(400).json({ message });
+    }
+  });
+  
+  // Create new event (members only)
+  app.post('/api/create/event', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as Express.User;
+      // Add organizer information from authenticated user
+      const eventData = validateBody(insertEventSchema, {
+        ...req.body,
+        organizerId: user.id,
+        organizerName: user.displayName || user.username
+      });
+      
+      const event = await storage.createEvent(eventData);
+      res.status(201).json(event);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      res.status(400).json({ message });
+    }
+  });
+  
+  // Create new discussion (members only)
+  app.post('/api/create/discussion', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as Express.User;
+      // Add author information from authenticated user
+      const discussionData = validateBody(insertDiscussionSchema, {
+        ...req.body,
+        authorId: user.id,
+        authorName: user.displayName || user.username,
+        authorAvatar: user.avatar
+      });
+      
+      const discussion = await storage.createDiscussion(discussionData);
+      res.status(201).json(discussion);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      res.status(400).json({ message });
+    }
+  });
+  
+  // Create new cultural category (members only)
+  app.post('/api/create/cultural-category', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const categoryData = validateBody(insertCulturalCategorySchema, req.body);
+      const category = await storage.createCulturalCategory(categoryData);
+      res.status(201).json(category);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      res.status(400).json({ message });
+    }
+  });
+  
+  // Create new academic resource (members only)
+  app.post('/api/create/academic-resource', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as Express.User;
+      // Add author information
+      const resourceData = validateBody(insertAcademicResourceSchema, {
+        ...req.body,
+        authorId: user.id,
+        authorName: user.displayName || user.username
+      });
+      
+      const resource = await storage.createAcademicResource(resourceData);
+      res.status(201).json(resource);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       res.status(400).json({ message });

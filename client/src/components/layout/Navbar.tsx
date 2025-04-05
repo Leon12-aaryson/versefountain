@@ -3,7 +3,16 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Search, User } from "lucide-react";
+import { Menu, Search, User, Plus, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const navLinks = [
   { name: "Poetry", path: "/poetry" },
@@ -17,6 +26,7 @@ export default function Navbar() {
   const [location] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const { user, logoutMutation } = useAuth();
 
   return (
     <header className="relative">
@@ -73,11 +83,55 @@ export default function Navbar() {
               <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 h-4 w-4" />
             </div>
             
-            <Link href="/profile">
-              <div className="text-white hover:text-amber-300 transition-colors p-2 rounded-full hover:bg-white/10">
-                <User className="h-5 w-5" />
-              </div>
-            </Link>
+            {user ? (
+              <>
+                <Link href="/create">
+                  <Button variant="ghost" size="sm" className="text-white bg-amber-600/80 hover:bg-amber-700 hover:text-white hidden md:flex">
+                    <Plus className="mr-1 h-4 w-4" /> Create
+                  </Button>
+                </Link>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-white hover:text-amber-300 hover:bg-white/10 rounded-full">
+                      <User className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>
+                      <div className="font-medium">
+                        {user.username}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Member
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <Link href="/profile">
+                      <DropdownMenuItem>Profile</DropdownMenuItem>
+                    </Link>
+                    <Link href="/create">
+                      <DropdownMenuItem>Create Content</DropdownMenuItem>
+                    </Link>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => logoutMutation.mutate()}
+                      disabled={logoutMutation.isPending}
+                      className="text-red-500 focus:text-red-500"
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <Link href="/auth">
+                <Button variant="ghost" size="sm" className="text-white hover:text-amber-300 hover:bg-white/10">
+                  Login / Register
+                </Button>
+              </Link>
+            )}
             
             <Sheet>
               <SheetTrigger asChild>
@@ -94,6 +148,30 @@ export default function Navbar() {
                       </div>
                     </Link>
                   ))}
+                  
+                  <div className="border-t border-gray-200 pt-4 mt-4">
+                    {user ? (
+                      <>
+                        <Link href="/create">
+                          <div className="text-lg font-medium text-amber-600 hover:text-amber-700 transition-colors">
+                            Create Content
+                          </div>
+                        </Link>
+                        <div 
+                          className="text-lg font-medium text-red-500 hover:text-red-600 transition-colors mt-4 cursor-pointer"
+                          onClick={() => logoutMutation.mutate()}
+                        >
+                          Logout
+                        </div>
+                      </>
+                    ) : (
+                      <Link href="/auth">
+                        <div className="text-lg font-medium text-amber-600 hover:text-amber-700 transition-colors">
+                          Login / Register
+                        </div>
+                      </Link>
+                    )}
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>

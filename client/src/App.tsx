@@ -12,8 +12,12 @@ import Events from "@/pages/Events";
 import EventDetails from "@/pages/EventDetails";
 import EventTickets from "@/pages/EventTickets";
 import Academics from "@/pages/Academics";
+import AuthPage from "@/pages/auth-page";
+import CreateContentPage from "@/pages/create-content";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "@/lib/protected-route";
 
 function Router() {
   return (
@@ -27,6 +31,9 @@ function Router() {
       <Route path="/events/:id" component={EventDetails} />
       <Route path="/events/:id/tickets" component={EventTickets} />
       <Route path="/academics" component={Academics} />
+      <Route path="/auth" component={AuthPage} />
+      {/* Protected Routes - Require Authentication */}
+      <ProtectedRoute path="/create" component={CreateContentPage} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -35,14 +42,16 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen flex flex-col font-body bg-neutral-cream text-neutral-charcoal">
-        <Navbar />
-        <div className="flex-grow">
-          <Router />
+      <AuthProvider>
+        <div className="min-h-screen flex flex-col font-body bg-neutral-cream text-neutral-charcoal">
+          <Navbar />
+          <div className="flex-grow">
+            <Router />
+          </div>
+          <Footer />
         </div>
-        <Footer />
-      </div>
-      <Toaster />
+        <Toaster />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

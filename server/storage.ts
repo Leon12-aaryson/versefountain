@@ -13,8 +13,13 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc } from "drizzle-orm";
+import session from "express-session";
+import connectPg from "connect-pg-simple";
+import { pool } from "./db";
 
 export interface IStorage {
+  // Session store for authentication
+  sessionStore: session.Store;
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -90,6 +95,8 @@ export class MemStorage implements IStorage {
   private comments: Map<number, Comment>;
   private ratings: Map<number, Rating>;
   
+  readonly sessionStore: session.Store;
+  
   private userIdCounter: number;
   private poemIdCounter: number;
   private bookIdCounter: number;
@@ -103,6 +110,12 @@ export class MemStorage implements IStorage {
   private ratingIdCounter: number;
 
   constructor() {
+    // Initialize in-memory session store
+    const MemoryStore = require('memorystore')(session);
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000, // prune expired entries every 24h
+    });
+    
     this.users = new Map();
     this.poems = new Map();
     this.books = new Map();
@@ -865,6 +878,17 @@ export class MemStorage implements IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  readonly sessionStore: session.Store;
+  
+  constructor() {
+    // Initialize PostgreSQL session store
+    const PostgresSessionStore = connectPg(session);
+    this.sessionStore = new PostgresSessionStore({
+      pool,
+      createTableIfMissing: true
+    });
+  }
+  
   // User operations
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
