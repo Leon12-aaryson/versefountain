@@ -1,15 +1,25 @@
-import { pgTable, text, serial, integer, boolean, timestamp, real } from "drizzle-orm/pg-core";
+import {
+  mysqlTable,
+  text,
+  serial,
+  int,
+  tinyint,
+  timestamp,
+  float,
+  varchar,
+  boolean
+} from "drizzle-orm/mysql-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // User schema
-export const users = pgTable("users", {
+export const users = mysqlTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  email: text("email").notNull().unique(),
-  displayName: text("display_name").notNull(),
-  avatar: text("avatar"),
+  username: varchar("username", { length: 255 }).notNull().unique(),
+  password: varchar("password", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  displayName: varchar("display_name", { length: 255 }).notNull(),
+  avatar: varchar("avatar", { length: 255 }),
   bio: text("bio"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -20,19 +30,19 @@ export const insertUserSchema = createInsertSchema(users).omit({
 });
 
 // Poetry schema
-export const poems = pgTable("poems", {
+export const poems = mysqlTable("poems", {
   id: serial("id").primaryKey(),
-  title: text("title").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
   content: text("content").notNull(),
-  authorId: integer("author_id").references(() => users.id).notNull(),
-  authorName: text("author_name").notNull(),
-  culturalOrigin: text("cultural_origin").notNull(),
-  coverImage: text("cover_image"),
-  readTime: integer("read_time").notNull(), // in minutes
-  likes: integer("likes").default(0).notNull(),
-  comments: integer("comments").default(0).notNull(),
-  rating: real("rating").default(0).notNull(),
-  ratingCount: integer("rating_count").default(0).notNull(),
+  authorId: int("author_id").references(() => users.id).notNull(),
+  authorName: varchar("author_name", { length: 255 }).notNull(),
+  culturalOrigin: varchar("cultural_origin", { length: 255 }).notNull(),
+  coverImage: varchar("cover_image", { length: 255 }),
+  readTime: int("read_time").notNull(), // in minutes
+  likes: int("likes").default(0).notNull(),
+  comments: int("comments").default(0).notNull(),
+  rating: float("rating").default(0).notNull(),
+  ratingCount: int("rating_count").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -46,16 +56,16 @@ export const insertPoemSchema = createInsertSchema(poems).omit({
 });
 
 // Book schema
-export const books = pgTable("books", {
+export const books = mysqlTable("books", {
   id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  author: text("author").notNull(),
-  coverImage: text("cover_image"),
-  category: text("category").notNull(),
-  culturalOrigin: text("cultural_origin"),
+  title: varchar("title", { length: 255 }).notNull(),
+  author: varchar("author", { length: 255 }).notNull(),
+  coverImage: varchar("cover_image", { length: 255 }),
+  category: varchar("category", { length: 255 }).notNull(),
+  culturalOrigin: varchar("cultural_origin", { length: 255 }),
   description: text("description"),
-  rating: real("rating").default(0).notNull(),
-  ratingCount: integer("rating_count").default(0).notNull(),
+  rating: float("rating").default(0).notNull(),
+  ratingCount: int("rating_count").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -67,16 +77,16 @@ export const insertBookSchema = createInsertSchema(books).omit({
 });
 
 // Discussion schema
-export const discussions = pgTable("discussions", {
+export const discussions = mysqlTable("discussions", {
   id: serial("id").primaryKey(),
-  title: text("title").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
   content: text("content").notNull(),
-  authorId: integer("author_id").references(() => users.id).notNull(),
-  authorName: text("author_name").notNull(),
-  authorAvatar: text("author_avatar"),
-  replies: integer("replies").default(0).notNull(),
-  views: integer("views").default(0).notNull(),
-  status: text("status").notNull(), // "Active", "Hot", "New", etc.
+  authorId: int("author_id").references(() => users.id).notNull(),
+  authorName: varchar("author_name", { length: 255 }).notNull(),
+  authorAvatar: varchar("author_avatar", { length: 255 }),
+  replies: int("replies").default(0).notNull(),
+  views: int("views").default(0).notNull(),
+  status: varchar("status", { length: 50 }).notNull(), // "Active", "Hot", "New", etc.
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -88,12 +98,12 @@ export const insertDiscussionSchema = createInsertSchema(discussions).omit({
 });
 
 // Chat message schema
-export const chatMessages = pgTable("chat_messages", {
+export const chatMessages = mysqlTable("chat_messages", {
   id: serial("id").primaryKey(),
   content: text("content").notNull(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  username: text("username").notNull(),
-  userAvatar: text("user_avatar"),
+  userId: int("user_id").references(() => users.id).notNull(),
+  username: varchar("username", { length: 255 }).notNull(),
+  userAvatar: varchar("user_avatar", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -103,19 +113,19 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
 });
 
 // Event schema
-export const events = pgTable("events", {
+export const events = mysqlTable("events", {
   id: serial("id").primaryKey(),
-  title: text("title").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
   description: text("description").notNull(),
   date: timestamp("date").notNull(),
-  location: text("location").notNull(),
-  isVirtual: boolean("is_virtual").default(false).notNull(),
-  startTime: text("start_time").notNull(),
-  endTime: text("end_time").notNull(),
-  coverImage: text("cover_image"),
-  attendees: integer("attendees").default(0).notNull(),
-  month: text("month").notNull(),
-  day: text("day").notNull(),
+  location: varchar("location", { length: 255 }).notNull(),
+  isVirtual: tinyint("is_virtual").default(0).notNull(),
+  startTime: varchar("start_time", { length: 50 }).notNull(),
+  endTime: varchar("end_time", { length: 50 }).notNull(),
+  coverImage: varchar("cover_image", { length: 255 }),
+  attendees: int("attendees").default(0).notNull(),
+  month: varchar("month", { length: 20 }).notNull(),
+  day: varchar("day", { length: 10 }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -126,11 +136,11 @@ export const insertEventSchema = createInsertSchema(events).omit({
 });
 
 // Cultural Categories schema
-export const culturalCategories = pgTable("cultural_categories", {
+export const culturalCategories = mysqlTable("cultural_categories", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull().unique(),
-  imageUrl: text("image_url"),
-  workCount: integer("work_count").default(0).notNull(),
+  name: varchar("name", { length: 255 }).notNull().unique(),
+  imageUrl: varchar("image_url", { length: 255 }),
+  workCount: int("work_count").default(0).notNull(),
 });
 
 export const insertCulturalCategorySchema = createInsertSchema(culturalCategories).omit({
@@ -139,13 +149,13 @@ export const insertCulturalCategorySchema = createInsertSchema(culturalCategorie
 });
 
 // Academic Resources schema
-export const academicResources = pgTable("academic_resources", {
+export const academicResources = mysqlTable("academic_resources", {
   id: serial("id").primaryKey(),
-  title: text("title").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
   description: text("description").notNull(),
-  type: text("type").notNull(), // "Research Paper", "Video Lecture", etc.
-  icon: text("icon").notNull(),
-  link: text("link").notNull(),
+  type: varchar("type", { length: 100 }).notNull(), // "Research Paper", "Video Lecture", etc.
+  icon: varchar("icon", { length: 255 }).notNull(),
+  link: varchar("link", { length: 255 }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -155,12 +165,12 @@ export const insertAcademicResourceSchema = createInsertSchema(academicResources
 });
 
 // Book reading progress tracking
-export const readingProgress = pgTable("reading_progress", {
+export const readingProgress = mysqlTable("reading_progress", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  bookId: integer("book_id").references(() => books.id).notNull(),
-  currentPage: integer("current_page").default(0).notNull(),
-  totalPages: integer("total_pages").notNull(),
+  userId: int("user_id").references(() => users.id).notNull(),
+  bookId: int("book_id").references(() => books.id).notNull(),
+  currentPage: int("current_page").default(0).notNull(),
+  totalPages: int("total_pages").notNull(),
   lastRead: timestamp("last_read").defaultNow().notNull(),
 });
 
@@ -170,15 +180,15 @@ export const insertReadingProgressSchema = createInsertSchema(readingProgress).o
 });
 
 // Comments schema
-export const comments = pgTable("comments", {
+export const comments = mysqlTable("comments", {
   id: serial("id").primaryKey(),
   content: text("content").notNull(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  username: text("username").notNull(),
-  userAvatar: text("user_avatar"),
-  poemId: integer("poem_id").references(() => poems.id),
-  bookId: integer("book_id").references(() => books.id),
-  discussionId: integer("discussion_id").references(() => discussions.id),
+  userId: int("user_id").references(() => users.id).notNull(),
+  username: varchar("username", { length: 255 }).notNull(),
+  userAvatar: varchar("user_avatar", { length: 255 }),
+  poemId: int("poem_id").references(() => poems.id),
+  bookId: int("book_id").references(() => books.id),
+  discussionId: int("discussion_id").references(() => discussions.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -188,12 +198,12 @@ export const insertCommentSchema = createInsertSchema(comments).omit({
 });
 
 // Ratings schema
-export const ratings = pgTable("ratings", {
+export const ratings = mysqlTable("ratings", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  poemId: integer("poem_id").references(() => poems.id),
-  bookId: integer("book_id").references(() => books.id),
-  rating: integer("rating").notNull(), // 1-5
+  userId: int("user_id").references(() => users.id).notNull(),
+  poemId: int("poem_id").references(() => poems.id),
+  bookId: int("book_id").references(() => books.id),
+  rating: int("rating").notNull(), // 1-5
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

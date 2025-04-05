@@ -14,7 +14,7 @@ import {
 import { db } from "./db";
 import { eq, and, desc, asc } from "drizzle-orm";
 import session from "express-session";
-import connectPg from "connect-pg-simple";
+import MySQLStoreFactory from "express-mysql-session";
 import { pool } from "./db";
 
 export interface IStorage {
@@ -881,11 +881,15 @@ export class DatabaseStorage implements IStorage {
   readonly sessionStore: session.Store;
   
   constructor() {
-    // Initialize PostgreSQL session store
-    const PostgresSessionStore = connectPg(session);
-    this.sessionStore = new PostgresSessionStore({
-      pool,
-      createTableIfMissing: true
+    // Initialize MySQL session store
+    const MySQLStore = MySQLStoreFactory(session);
+    this.sessionStore = new MySQLStore({
+      host: process.env.MYSQL_HOST || 'localhost',
+      port: Number(process.env.MYSQL_PORT) || 3306,
+      user: process.env.MYSQL_USER || 'root',
+      password: process.env.MYSQL_PASSWORD || '',
+      database: process.env.MYSQL_DATABASE || 'versefountain',
+      createDatabaseTable: true
     });
   }
   

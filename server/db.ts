@@ -1,6 +1,5 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import mysql from 'mysql2/promise';
+import { drizzle } from 'drizzle-orm/mysql2';
 import * as schema from "@shared/schema";
 import dotenv from 'dotenv';
 import { log } from './vite';
@@ -8,26 +7,24 @@ import { log } from './vite';
 // Load environment variables from .env file
 dotenv.config();
 
-neonConfig.webSocketConstructor = ws;
-
-if (!process.env.DATABASE_URL) {
+if (!process.env.MYSQL_DATABASE_URL) {
   throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
+    "MYSQL_DATABASE_URL must be set. Did you forget to configure MySQL database?",
   );
 }
 
 // Log database connection info (without sensitive data)
-log(`Connecting to database at ${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`, 'database');
+log(`Connecting to MySQL database at ${process.env.MYSQL_HOST}:${process.env.MYSQL_PORT}/${process.env.MYSQL_DATABASE}`, 'database');
 
 // Configure connection pool with details from environment variables
-export const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
+export const pool = mysql.createPool({
+  uri: process.env.MYSQL_DATABASE_URL,
   // These are optional and will be used as fallbacks if included in the connection string
-  host: process.env.PGHOST,
-  port: Number(process.env.PGPORT),
-  database: process.env.PGDATABASE,
-  user: process.env.PGUSER,
-  password: process.env.PGPASSWORD
+  host: process.env.MYSQL_HOST,
+  port: Number(process.env.MYSQL_PORT),
+  database: process.env.MYSQL_DATABASE,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD
 });
 
-export const db = drizzle({ client: pool, schema });
+export const db = drizzle(pool, { mode: 'default' });
