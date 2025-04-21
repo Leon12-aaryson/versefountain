@@ -22,10 +22,10 @@ const Sidebar = ({ activeSection, user }: SidebarProps) => {
         <Link href="/">
           <span className={`flex items-center px-3 py-2 text-sm font-medium rounded-md cursor-pointer ${
             activeSection === 'home' 
-              ? 'bg-primary bg-opacity-10 text-primary' 
+              ? 'bg-primary text-white' 
               : 'text-gray-700 hover:bg-gray-50'
           }`}>
-            <Home className="h-5 w-5 mr-3" />
+            <Home className={`h-5 w-5 mr-3 ${activeSection === 'home' ? 'text-white' : 'text-gray-500'}`} />
             Home
           </span>
         </Link>
@@ -33,10 +33,10 @@ const Sidebar = ({ activeSection, user }: SidebarProps) => {
         <Link href="/poetry">
           <span className={`flex items-center px-3 py-2 text-sm font-medium rounded-md cursor-pointer ${
             activeSection === 'poetry' 
-              ? 'bg-primary bg-opacity-10 text-primary' 
+              ? 'bg-primary text-white' 
               : 'text-gray-700 hover:bg-gray-50'
           }`}>
-            <BookText className="h-5 w-5 mr-3 text-gray-500" />
+            <BookText className={`h-5 w-5 mr-3 ${activeSection === 'poetry' ? 'text-white' : 'text-gray-500'}`} />
             Poetry
           </span>
         </Link>
@@ -44,10 +44,10 @@ const Sidebar = ({ activeSection, user }: SidebarProps) => {
         <Link href="/books">
           <span className={`flex items-center px-3 py-2 text-sm font-medium rounded-md cursor-pointer ${
             activeSection === 'books' 
-              ? 'bg-primary bg-opacity-10 text-primary' 
+              ? 'bg-primary text-white' 
               : 'text-gray-700 hover:bg-gray-50'
           }`}>
-            <BookOpen className="h-5 w-5 mr-3 text-gray-500" />
+            <BookOpen className={`h-5 w-5 mr-3 ${activeSection === 'books' ? 'text-white' : 'text-gray-500'}`} />
             Books
           </span>
         </Link>
@@ -55,10 +55,10 @@ const Sidebar = ({ activeSection, user }: SidebarProps) => {
         <Link href="/academics">
           <span className={`flex items-center px-3 py-2 text-sm font-medium rounded-md cursor-pointer ${
             activeSection === 'academics' 
-              ? 'bg-primary bg-opacity-10 text-primary' 
+              ? 'bg-primary text-white' 
               : 'text-gray-700 hover:bg-gray-50'
           }`}>
-            <GraduationCap className="h-5 w-5 mr-3 text-gray-500" />
+            <GraduationCap className={`h-5 w-5 mr-3 ${activeSection === 'academics' ? 'text-white' : 'text-gray-500'}`} />
             Academics
           </span>
         </Link>
@@ -66,10 +66,10 @@ const Sidebar = ({ activeSection, user }: SidebarProps) => {
         <Link href="/chat">
           <span className={`flex items-center px-3 py-2 text-sm font-medium rounded-md cursor-pointer ${
             activeSection === 'chat' 
-              ? 'bg-primary bg-opacity-10 text-primary' 
+              ? 'bg-primary text-white' 
               : 'text-gray-700 hover:bg-gray-50'
           }`}>
-            <MessageSquare className="h-5 w-5 mr-3 text-gray-500" />
+            <MessageSquare className={`h-5 w-5 mr-3 ${activeSection === 'chat' ? 'text-white' : 'text-gray-500'}`} />
             Chat Rooms
           </span>
         </Link>
@@ -77,10 +77,10 @@ const Sidebar = ({ activeSection, user }: SidebarProps) => {
         <Link href="/events">
           <span className={`flex items-center px-3 py-2 text-sm font-medium rounded-md cursor-pointer ${
             activeSection === 'events' 
-              ? 'bg-primary bg-opacity-10 text-primary' 
+              ? 'bg-primary text-white' 
               : 'text-gray-700 hover:bg-gray-50'
           }`}>
-            <Calendar className="h-5 w-5 mr-3 text-gray-500" />
+            <Calendar className={`h-5 w-5 mr-3 ${activeSection === 'events' ? 'text-white' : 'text-gray-500'}`} />
             Events
           </span>
         </Link>
@@ -88,10 +88,10 @@ const Sidebar = ({ activeSection, user }: SidebarProps) => {
         <Link href="/tickets">
           <span className={`flex items-center px-3 py-2 text-sm font-medium rounded-md cursor-pointer ${
             activeSection === 'tickets' 
-              ? 'bg-primary bg-opacity-10 text-primary' 
+              ? 'bg-primary text-white' 
               : 'text-gray-700 hover:bg-gray-50'
           }`}>
-            <Ticket className="h-5 w-5 mr-3 text-gray-500" />
+            <Ticket className={`h-5 w-5 mr-3 ${activeSection === 'tickets' ? 'text-white' : 'text-gray-500'}`} />
             Tickets
           </span>
         </Link>

@@ -20,6 +20,9 @@ if (databaseUrl) {
   console.log('Connecting to database using DATABASE_URL');
   poolConfig = {
     connectionString: databaseUrl,
+    ssl: {
+      rejectUnauthorized: false, // Required for Neon
+    },
   };
 } else if (dbHost && dbPort && dbUser && dbPassword && dbName) {
   console.log('Connecting to database using individual connection parameters');
@@ -29,6 +32,7 @@ if (databaseUrl) {
     user: dbUser,
     password: dbPassword,
     database: dbName,
+    ssl: dbHost === 'localhost' || dbHost === '127.0.0.1' ? false : { rejectUnauthorized: false }, // Disable SSL for local
   };
 } else {
   throw new Error(
@@ -38,26 +42,52 @@ if (databaseUrl) {
 
 poolConfig = {
   ...poolConfig,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-  max: 5,
+  max: 10, // Increased to handle concurrent connections
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 15000,
+  connectionTimeoutMillis: 5000, // Reduced for faster failure
+  keepAlive: true, // Enable TCP keep-alive
 };
 
 export const pool = new Pool(poolConfig);
 
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle database client:', err.message);
+// Handle pool errors to prevent crashes
+pool.on('error', (err, client) => {
+  console.error('Unexpected error on idle database client:', err.message, err.stack);
+});
+
+pool.on('connect', () => {
+  console.log('Database pool connected');
+});
+
+pool.on('remove', () => {
+  console.log('Database pool connection removed');
 });
 
 export const db = drizzle(pool, { schema });
 
 console.log('Database connection initialized successfully');
 
-pool.connect().catch((err) => {
-  console.error('Failed to connect to database:', {
+// Test initial connection with retry
+async function connectWithRetry(attempts = 3, delay = 5000) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const client = await pool.connect();
+      console.log('Initial database connection successful');
+      client.release();
+      return;
+    } catch (err) {
+      console.error(`Connection attempt ${i + 1} failed:`, err.message, err.stack);
+      if (i < attempts - 1) {
+        console.log(`Retrying in ${delay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  }
+  console.error('Failed to connect to database after retries');
+}
+
+connectWithRetry().catch((err) => {
+  console.error('Connection retry failed:', {
     message: err.message,
     stack: err.stack,
     databaseUrl: databaseUrl ? databaseUrl.replace(/:\/\//, '://<redacted>@') : 'Not provided',

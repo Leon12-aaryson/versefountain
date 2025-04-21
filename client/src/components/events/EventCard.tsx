@@ -1,10 +1,11 @@
 import { format } from 'date-fns';
-import { Calendar } from 'lucide-react';
+import { Calendar, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EventBadge } from '@/components/ui/event-badge';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useQuery } from '@tanstack/react-query';
 
 interface EventCardProps {
   id: number;
@@ -31,12 +32,35 @@ const EventCard = ({
   const { toast } = useToast();
   const eventDate = new Date(date);
   
+  // Get the user's tickets to check if they're registered
+  const { data: userTickets } = useQuery({
+    queryKey: ['/api/tickets/user'],
+    queryFn: async () => {
+      const res = await fetch('/api/tickets/user');
+      if (res.status === 404) return []; // No tickets found
+      if (!res.ok) throw new Error('Failed to fetch tickets');
+      return res.json();
+    },
+    enabled: !!user, // Only run query if user is logged in
+  });
+  
+  // Check if user is already registered for this event
+  const isRegistered = userTickets?.some((ticket: {eventId: number}) => ticket.eventId === id);
+  
   const handleRegister = async () => {
     if (!user) {
       toast({
         title: "Authentication Required",
         description: "Please log in to register for events",
         variant: "destructive"
+      });
+      return;
+    }
+    
+    if (isRegistered) {
+      toast({
+        title: "Already Registered",
+        description: `You are already registered for ${title}`,
       });
       return;
     }
@@ -56,7 +80,8 @@ const EventCard = ({
       });
       
       // Invalidate tickets cache
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tickets/user'] });
     } catch (error) {
       toast({
         title: "Registration Failed",
@@ -104,11 +129,19 @@ const EventCard = ({
         </div>
         
         <Button 
-          variant="link" 
-          className="text-primary p-0 h-6 mt-2"
+          variant={isRegistered ? "outline" : "link"}
+          className={`p-0 h-6 mt-2 ${isRegistered ? 'text-green-600 cursor-default' : 'text-primary'}`}
           onClick={handleRegister}
+          disabled={isRegistered}
         >
-          Register Now
+          {isRegistered ? (
+            <span className="flex items-center">
+              <Check className="h-4 w-4 mr-1" />
+              Registered
+            </span>
+          ) : (
+            'Register Now'
+          )}
         </Button>
       </div>
     </div>

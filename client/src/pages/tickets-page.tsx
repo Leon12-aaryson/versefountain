@@ -60,7 +60,7 @@ export default function TicketsPage() {
   });
   
   useEffect(() => {
-    document.title = 'Versefountain - My Tickets';
+    document.title = 'eLibrary - My Tickets';
   }, []);
   
   const upcomingTickets = tickets?.filter(ticket => new Date(ticket.event.date) > new Date())

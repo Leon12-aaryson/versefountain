@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import MainLayout from '@/components/shared/MainLayout';
 import EventCard from '@/components/events/EventCard';
+import EventCreationForm from '@/components/events/EventCreationForm';
 import { Event } from '@shared/schema';
 import { 
   Card, 
@@ -14,10 +15,24 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, MapPin, Users, CalendarDays } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Calendar, MapPin, Users, CalendarDays, Check } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 export default function EventsPage() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  
   const { data: events, isLoading } = useQuery<Event[]>({
     queryKey: ['/api/events'],
     queryFn: async () => {
@@ -27,10 +42,22 @@ export default function EventsPage() {
     }
   });
   
+  // Get the user's tickets to check registration status
+  const { data: userTickets } = useQuery({
+    queryKey: ['/api/tickets/user'],
+    queryFn: async () => {
+      const res = await fetch('/api/tickets/user');
+      if (res.status === 404) return []; // No tickets found
+      if (!res.ok) throw new Error('Failed to fetch tickets');
+      return res.json();
+    },
+    enabled: !!user, // Only run query if user is logged in
+  });
+  
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
   
   useEffect(() => {
-    document.title = 'Versefountain - Events';
+    document.title = 'eLibrary - Events';
   }, []);
   
   const getUniqueMonths = () => {
@@ -53,7 +80,7 @@ export default function EventsPage() {
   const upcomingEvents = filteredEvents?.filter(event => new Date(event.date) > new Date())
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   
-  const featuredEvents = upcomingEvents?.filter(event => event.ticketPrice > 0).slice(0, 3);
+  const featuredEvents = upcomingEvents?.filter(event => (event.ticketPrice || 0) > 0).slice(0, 3);
 
   return (
     <MainLayout activeSection="events">
@@ -95,7 +122,7 @@ export default function EventsPage() {
                         <Badge variant="secondary" className="bg-green-100 text-green-800">Free Entry</Badge>
                       ) : (
                         <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                          ${(event.ticketPrice / 100).toFixed(2)}
+                          ${((event.ticketPrice || 0) / 100).toFixed(2)}
                         </Badge>
                       )}
                       
@@ -105,7 +132,71 @@ export default function EventsPage() {
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <Button className="w-full">Register Now</Button>
+                    {(() => {
+                      // Check if the user is already registered for this event
+                      const isRegistered = userTickets?.some((ticket: {eventId: number}) => ticket.eventId === event.id);
+                      
+                      const handleRegister = async () => {
+                        if (!user) {
+                          toast({
+                            title: "Authentication Required",
+                            description: "Please log in to register for events",
+                            variant: "destructive"
+                          });
+                          return;
+                        }
+                        
+                        if (isRegistered) {
+                          toast({
+                            title: "Already Registered",
+                            description: `You are already registered for ${event.title}`,
+                          });
+                          return;
+                        }
+                        
+                        try {
+                          const response = await apiRequest("POST", "/api/tickets/purchase", { eventId: event.id });
+                          const ticket = await response.json();
+                          
+                          toast({
+                            title: "Registration Successful",
+                            description: `You have successfully registered for ${event.title}`,
+                          });
+                          
+                          // Invalidate tickets cache
+                          queryClient.invalidateQueries({ queryKey: ['/api/tickets'] });
+                          queryClient.invalidateQueries({ queryKey: ['/api/tickets/user'] });
+                        } catch (error) {
+                          toast({
+                            title: "Registration Failed",
+                            description: error instanceof Error ? error.message : "Failed to register for event",
+                            variant: "destructive"
+                          });
+                        }
+                      };
+                      
+                      if (isRegistered) {
+                        return (
+                          <Button 
+                            className="w-full" 
+                            variant="outline" 
+                            disabled 
+                          >
+                            <Check className="h-4 w-4 mr-2" />
+                            Registered
+                          </Button>
+                        );
+                      }
+                      
+                      return (
+                        <Button 
+                          className="w-full" 
+                          onClick={handleRegister}
+                        >
+                          Register Now
+                        </Button>
+                      );
+                    })()}
                   </CardFooter>
                 </Card>
               ))
@@ -157,10 +248,10 @@ export default function EventsPage() {
                         id={event.id}
                         title={event.title}
                         date={event.date}
-                        location={event.location}
-                        isFree={event.isFree}
-                        isVirtual={event.isVirtual}
-                        price={event.ticketPrice}
+                        location={event.location || ""}
+                        isFree={event.isFree === null ? true : event.isFree}
+                        isVirtual={event.isVirtual === null ? false : event.isVirtual}
+                        price={event.ticketPrice || 0}
                       />
                     </div>
                   ))}
@@ -184,10 +275,25 @@ export default function EventsPage() {
                 <h2 className="text-lg font-semibold text-gray-800 mb-2">Host Your Own Literary Event</h2>
                 <p className="text-gray-600 mb-4">Are you organizing a poetry reading, book club meeting, or author workshop? Partner with us to list your event and sell tickets through our platform.</p>
                 <div className="flex space-x-4">
-                  <Button variant="default">
-                    <Users className="h-4 w-4 mr-2" />
-                    Become an Organizer
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="default">
+                        <Users className="h-4 w-4 mr-2" />
+                        Become an Organizer
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[600px]">
+                      <DialogHeader>
+                        <DialogTitle>Create New Event</DialogTitle>
+                        <DialogDescription>
+                          Fill out the form below to create a new literary event.
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <EventCreationForm />
+                      
+                    </DialogContent>
+                  </Dialog>
                   <Button variant="outline">Learn More</Button>
                 </div>
               </div>

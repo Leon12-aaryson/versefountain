@@ -115,10 +115,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/poems", isAuthenticated, async (req, res) => {
     try {
       const poemData = insertPoemSchema.parse(req.body);
+      console.log("Creating poem with data:", poemData);
+      console.log("User ID:", req.user.id);
       const poem = await storage.createPoem(poemData, req.user.id);
       
       res.status(201).json(poem);
     } catch (error) {
+      console.error("Error creating poem:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid poem data", errors: error.errors });
       }
@@ -243,19 +246,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/events", isAdmin, async (req, res) => {
-    try {
-      const eventData = insertEventSchema.parse(req.body);
-      const event = await storage.createEvent(eventData);
+  // app.post("/api/events", isAuthenticated, async (req, res) => {
+  //   try {
+  //     const requestData = { ...req.body };
+  //     if (requestData.date && typeof requestData.date === 'string') {
+  //       requestData.date = new Date(requestData.date);
+  //     }
       
+  //     const eventData = insertEventSchema.parse(req.body);
+  //     const event = await storage.createEvent(eventData);
+      
+  //     res.status(201).json(event);
+  //   } catch (error) {
+  //     console.error("Event creation error:", error);
+  //     if (error instanceof z.ZodError) {
+  //       return res.status(400).json({ message: "Invalid event data", errors: error.errors });
+  //     }
+  //     res.status(500).json({ message: "Error creating event" });
+  //   }
+  // });
+
+  app.post("/api/events", isAuthenticated, async (req, res) => {
+    // Clone and sanitize request body
+    const requestData = { ...req.body };
+  
+    // Convert string date to Date object if needed
+    if (requestData.date && typeof requestData.date === 'string') {
+      requestData.date = new Date(requestData.date);
+    }
+  
+    // Validate input using Zod
+    const result = insertEventSchema.safeParse(requestData);
+  
+    if (!result.success) {
+      console.error("Validation failed:", result.error.flatten());
+      return res.status(400).json({
+        message: "Invalid event data",
+        errors: result.error.errors,
+      });
+    }
+  
+    try {
+      // Insert validated event into storage
+      const event = await storage.createEvent(result.data);
       res.status(201).json(event);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid event data", errors: error.errors });
-      }
+      console.error("Event creation error:", error);
       res.status(500).json({ message: "Error creating event" });
     }
   });
+
   
   // Chat room routes
   app.get("/api/chat/rooms", async (req, res) => {

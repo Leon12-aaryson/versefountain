@@ -18,7 +18,7 @@ export const poems = pgTable("poems", {
   createdAt: timestamp("created_at").defaultNow(),
   isVideo: boolean("is_video").default(false),
   videoUrl: text("video_url"),
-  approved: boolean("approved").default(false),
+  approved: boolean("approved").default(true), // Auto-approve all poems
 });
 
 export const books = pgTable("books", {
@@ -29,7 +29,7 @@ export const books = pgTable("books", {
   coverImage: text("cover_image"),
   uploadedById: integer("uploaded_by_id").references(() => users.id),
   genre: text("genre"),
-  approved: boolean("approved").default(true),
+  approved: boolean("approved").default(true), // Auto-approve all books
 });
 
 export const events = pgTable("events", {
@@ -118,6 +118,9 @@ export const insertBookSchema = createInsertSchema(books).omit({
 
 export const insertEventSchema = createInsertSchema(events).omit({
   id: true,
+}).extend({
+  isVirtual: z.boolean().optional().default(false),
+  isFree: z.boolean().optional().default(true),
 });
 
 export const insertChatRoomSchema = createInsertSchema(chatRooms).omit({

@@ -4,7 +4,7 @@ import MainLayout from '@/components/shared/MainLayout';
 import PoetryCard from '@/components/poetry/PoetryCard';
 import VideoPoetryCard from '@/components/poetry/VideoPoetryCard';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PlusCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -58,6 +58,7 @@ export default function PoetryPage() {
     defaultValues: {
       title: '',
       content: '',
+      approved: true,
       isVideo: false,
       videoUrl: '',
     }
@@ -71,7 +72,7 @@ export default function PoetryPage() {
     onSuccess: () => {
       toast({
         title: 'Poetry Submitted',
-        description: 'Your poetry has been submitted successfully and is pending approval.',
+        description: 'Your poem has been created successfully',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/poems'] });
       poemForm.reset();
