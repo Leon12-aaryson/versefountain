@@ -1,100 +1,128 @@
-import { pgTable, text, serial, integer, boolean, timestamp, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// User schema
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  email: text("email").notNull().unique(),
-  displayName: text("display_name").notNull(),
-  avatar: text("avatar"),
-  bio: text("bio"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  email: text("email").notNull(),
+  isAdmin: boolean("is_admin").default(false),
 });
 
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
-});
-
-// Poetry schema
 export const poems = pgTable("poems", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   content: text("content").notNull(),
-  authorId: integer("author_id").references(() => users.id).notNull(),
-  authorName: text("author_name").notNull(),
-  culturalOrigin: text("cultural_origin").notNull(),
-  coverImage: text("cover_image"),
-  readTime: integer("read_time").notNull(), // in minutes
-  likes: integer("likes").default(0).notNull(),
-  comments: integer("comments").default(0).notNull(),
-  rating: real("rating").default(0).notNull(),
-  ratingCount: integer("rating_count").default(0).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  authorId: integer("author_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  isVideo: boolean("is_video").default(false),
+  videoUrl: text("video_url"),
+  approved: boolean("approved").default(false),
 });
 
-export const insertPoemSchema = createInsertSchema(poems).omit({
-  id: true,
-  likes: true,
-  comments: true,
-  rating: true,
-  ratingCount: true,
-  createdAt: true,
-});
-
-// Book schema
 export const books = pgTable("books", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   author: text("author").notNull(),
-  coverImage: text("cover_image"),
-  category: text("category").notNull(),
-  culturalOrigin: text("cultural_origin"),
   description: text("description"),
-  rating: real("rating").default(0).notNull(),
-  ratingCount: integer("rating_count").default(0).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  coverImage: text("cover_image"),
+  uploadedById: integer("uploaded_by_id").references(() => users.id),
+  genre: text("genre"),
+  approved: boolean("approved").default(true),
+});
+
+export const events = pgTable("events", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  date: timestamp("date").notNull(),
+  location: text("location").notNull(),
+  ticketPrice: integer("ticket_price").default(0),
+  organizer: text("organizer"),
+  isVirtual: boolean("is_virtual").default(false),
+  streamUrl: text("stream_url"),
+  isFree: boolean("is_free").default(false),
+});
+
+export const chatRooms = pgTable("chat_rooms", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  createdById: integer("created_by_id").references(() => users.id),
+  isPrivate: boolean("is_private").default(false),
+});
+
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  roomId: integer("room_id").notNull().references(() => chatRooms.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const academicResources = pgTable("academic_resources", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  type: text("type").notNull(), // e.g., "study_guide", "video", "career_guide"
+  subject: text("subject"),
+  gradeLevel: text("grade_level"),
+  language: text("language").default("English"),
+  resourceUrl: text("resource_url"),
+});
+
+export const tickets = pgTable("tickets", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").notNull().references(() => events.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  purchaseDate: timestamp("purchase_date").defaultNow(),
+  ticketCode: text("ticket_code").notNull().unique(),
+});
+
+export const userPoems = pgTable("user_poems", {
+  userId: integer("user_id").notNull().references(() => users.id),
+  poemId: integer("poem_id").notNull().references(() => poems.id),
+  rating: integer("rating"),
+  liked: boolean("liked").default(false),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.poemId] }),
+}));
+
+export const insertUserSchema = createInsertSchema(users).pick({
+  username: true,
+  password: true,
+  email: true,
+  isAdmin: true,
+}).extend({
+  confirmPassword: z.string(),
+});
+
+export const loginUserSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+export const insertPoemSchema = createInsertSchema(poems).omit({
+  id: true,
+  authorId: true,
+  createdAt: true,
+  approved: true,
 });
 
 export const insertBookSchema = createInsertSchema(books).omit({
   id: true,
-  rating: true,
-  ratingCount: true,
-  createdAt: true,
+  uploadedById: true,
+  approved: true,
 });
 
-// Discussion schema
-export const discussions = pgTable("discussions", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  content: text("content").notNull(),
-  authorId: integer("author_id").references(() => users.id).notNull(),
-  authorName: text("author_name").notNull(),
-  authorAvatar: text("author_avatar"),
-  replies: integer("replies").default(0).notNull(),
-  views: integer("views").default(0).notNull(),
-  status: text("status").notNull(), // "Active", "Hot", "New", etc.
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const insertDiscussionSchema = createInsertSchema(discussions).omit({
+export const insertEventSchema = createInsertSchema(events).omit({
   id: true,
-  replies: true,
-  views: true,
-  createdAt: true,
 });
 
-// Chat message schema
-export const chatMessages = pgTable("chat_messages", {
-  id: serial("id").primaryKey(),
-  content: text("content").notNull(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  username: text("username").notNull(),
-  userAvatar: text("user_avatar"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+export const insertChatRoomSchema = createInsertSchema(chatRooms).omit({
+  id: true,
+  createdById: true,
 });
 
 export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
@@ -102,136 +130,30 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
   createdAt: true,
 });
 
-// Event schema
-export const events = pgTable("events", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  date: timestamp("date").notNull(),
-  location: text("location").notNull(),
-  isVirtual: boolean("is_virtual").default(false).notNull(),
-  startTime: text("start_time").notNull(),
-  endTime: text("end_time").notNull(),
-  coverImage: text("cover_image"),
-  attendees: integer("attendees").default(0).notNull(),
-  month: text("month").notNull(),
-  day: text("day").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const insertEventSchema = createInsertSchema(events).omit({
-  id: true,
-  attendees: true,
-  createdAt: true,
-});
-
-// Cultural Categories schema
-export const culturalCategories = pgTable("cultural_categories", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull().unique(),
-  imageUrl: text("image_url"),
-  workCount: integer("work_count").default(0).notNull(),
-});
-
-export const insertCulturalCategorySchema = createInsertSchema(culturalCategories).omit({
-  id: true,
-  workCount: true,
-});
-
-// Academic Resources schema
-export const academicResources = pgTable("academic_resources", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  type: text("type").notNull(), // "Research Paper", "Video Lecture", etc.
-  icon: text("icon").notNull(),
-  link: text("link").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
 export const insertAcademicResourceSchema = createInsertSchema(academicResources).omit({
   id: true,
-  createdAt: true,
 });
 
-// Book reading progress tracking
-export const readingProgress = pgTable("reading_progress", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  bookId: integer("book_id").references(() => books.id).notNull(),
-  currentPage: integer("current_page").default(0).notNull(),
-  totalPages: integer("total_pages").notNull(),
-  lastRead: timestamp("last_read").defaultNow().notNull(),
-});
-
-export const insertReadingProgressSchema = createInsertSchema(readingProgress).omit({
+export const insertTicketSchema = createInsertSchema(tickets).omit({
   id: true,
-  lastRead: true,
+  purchaseDate: true,
+  ticketCode: true,
 });
 
-// Comments schema
-export const comments = pgTable("comments", {
-  id: serial("id").primaryKey(),
-  content: text("content").notNull(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  username: text("username").notNull(),
-  userAvatar: text("user_avatar"),
-  poemId: integer("poem_id").references(() => poems.id),
-  bookId: integer("book_id").references(() => books.id),
-  discussionId: integer("discussion_id").references(() => discussions.id),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const insertCommentSchema = createInsertSchema(comments).omit({
-  id: true,
-  createdAt: true,
-});
-
-// Ratings schema
-export const ratings = pgTable("ratings", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  poemId: integer("poem_id").references(() => poems.id),
-  bookId: integer("book_id").references(() => books.id),
-  rating: integer("rating").notNull(), // 1-5
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const insertRatingSchema = createInsertSchema(ratings).omit({
-  id: true,
-  createdAt: true,
-});
-
-// Type definitions
-export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
-
+export type LoginUser = z.infer<typeof loginUserSchema>;
+export type User = typeof users.$inferSelect;
 export type Poem = typeof poems.$inferSelect;
 export type InsertPoem = z.infer<typeof insertPoemSchema>;
-
 export type Book = typeof books.$inferSelect;
 export type InsertBook = z.infer<typeof insertBookSchema>;
-
-export type Discussion = typeof discussions.$inferSelect;
-export type InsertDiscussion = z.infer<typeof insertDiscussionSchema>;
-
-export type ChatMessage = typeof chatMessages.$inferSelect;
-export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
-
 export type Event = typeof events.$inferSelect;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
-
-export type CulturalCategory = typeof culturalCategories.$inferSelect;
-export type InsertCulturalCategory = z.infer<typeof insertCulturalCategorySchema>;
-
+export type ChatRoom = typeof chatRooms.$inferSelect;
+export type InsertChatRoom = z.infer<typeof insertChatRoomSchema>;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type AcademicResource = typeof academicResources.$inferSelect;
 export type InsertAcademicResource = z.infer<typeof insertAcademicResourceSchema>;
-
-export type ReadingProgress = typeof readingProgress.$inferSelect;
-export type InsertReadingProgress = z.infer<typeof insertReadingProgressSchema>;
-
-export type Comment = typeof comments.$inferSelect;
-export type InsertComment = z.infer<typeof insertCommentSchema>;
-
-export type Rating = typeof ratings.$inferSelect;
-export type InsertRating = z.infer<typeof insertRatingSchema>;
+export type Ticket = typeof tickets.$inferSelect;
+export type InsertTicket = z.infer<typeof insertTicketSchema>;

@@ -1,67 +1,118 @@
-import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Event } from "@shared/schema";
-import { MapPin, Clock, Users, Video } from "lucide-react";
+import { format } from 'date-fns';
+import { Calendar } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { EventBadge } from '@/components/ui/event-badge';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 interface EventCardProps {
-  event: Event;
+  id: number;
+  title: string;
+  date: string | Date;
+  location: string;
+  isFree: boolean;
+  isVirtual: boolean;
+  price?: number;
+  onRegister?: () => void;
 }
 
-export default function EventCard({ event }: EventCardProps) {
-  const getDateColor = () => {
-    if (event.isVirtual) {
-      return "bg-secondary";
+const EventCard = ({ 
+  id, 
+  title, 
+  date, 
+  location, 
+  isFree, 
+  isVirtual,
+  price = 0,
+  onRegister 
+}: EventCardProps) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const eventDate = new Date(date);
+  
+  const handleRegister = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to register for events",
+        variant: "destructive"
+      });
+      return;
     }
-    return "bg-primary";
+    
+    if (onRegister) {
+      onRegister();
+      return;
+    }
+    
+    try {
+      const response = await apiRequest("POST", "/api/tickets/purchase", { eventId: id });
+      const ticket = await response.json();
+      
+      toast({
+        title: "Registration Successful",
+        description: `You have successfully registered for ${title}`,
+      });
+      
+      // Invalidate tickets cache
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+    } catch (error) {
+      toast({
+        title: "Registration Failed",
+        description: error instanceof Error ? error.message : "Failed to register for event",
+        variant: "destructive"
+      });
+    }
   };
-
-  const handleAttend = (e: React.MouseEvent) => {
-    e.preventDefault();
-    window.location.href = `/events/${event.id}/tickets`;
+  
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2
+    }).format(price / 100);
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden">
-      <div className="h-48 overflow-hidden relative">
-        <img
-          src={event.coverImage}
-          alt={event.title}
-          className="w-full h-full object-cover"
-        />
-        <div className={`absolute top-0 left-0 ${getDateColor()} text-white px-3 py-2 font-sans font-medium`}>
-          <div className="text-xs uppercase">{event.month}</div>
-          <div className="text-xl leading-tight">{event.day}</div>
-        </div>
+    <div className="flex border-b border-gray-100 pb-4">
+      <div className="flex-shrink-0 flex flex-col items-center justify-center w-14 h-14 bg-primary bg-opacity-10 rounded-lg mr-4">
+        <span className="text-primary font-bold text-lg">
+          {format(eventDate, 'd')}
+        </span>
+        <span className="text-primary text-xs uppercase">
+          {format(eventDate, 'MMM')}
+        </span>
       </div>
-      <div className="p-6">
-        <div className="flex items-center text-xs text-gray-500 mb-3">
-          {event.isVirtual ? (
-            <Video className="h-3 w-3 mr-1" />
+      <div className="flex-1">
+        <h3 className="font-medium text-gray-800">{title}</h3>
+        <p className="text-sm text-gray-600 mt-1">
+          {isVirtual ? 'Virtual Event' : location} • {format(eventDate, 'h:mm a')}
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {isFree ? (
+            <EventBadge variant="success">Free Entry</EventBadge>
           ) : (
-            <MapPin className="h-3 w-3 mr-1" />
+            <EventBadge variant="info">
+              {formatPrice(price)}
+            </EventBadge>
           )}
-          {event.location}
-          <span className="mx-2">•</span>
-          <Clock className="h-3 w-3 mr-1" /> {event.startTime} - {event.endTime}
+          
+          {isVirtual && (
+            <EventBadge variant="secondary">Virtual</EventBadge>
+          )}
         </div>
-        <Link href={`/events/${event.id}`} className="hover:underline">
-          <h3 className="font-display text-xl mb-2">{event.title}</h3>
-        </Link>
-        <p className="text-sm text-gray-700 mb-4 line-clamp-2">{event.description}</p>
-        <div className="flex items-center justify-between">
-          <span className="inline-flex items-center bg-secondary bg-opacity-10 text-secondary px-3 py-1 rounded-full text-xs">
-            <Users className="h-3 w-3 mr-1" /> {event.attendees} Attending
-          </span>
-          <Button
-            variant="link"
-            size="sm"
-            className="text-primary hover:text-primary-dark font-medium"
-            onClick={handleAttend}
-          >
-            {event.isVirtual ? "Register" : "Get Tickets"}
-          </Button>
-        </div>
+        
+        <Button 
+          variant="link" 
+          className="text-primary p-0 h-6 mt-2"
+          onClick={handleRegister}
+        >
+          Register Now
+        </Button>
       </div>
     </div>
   );
-}
+};
+
+export default EventCard;

@@ -1,177 +1,331 @@
-import { useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Redirect } from "wouter";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from 'react';
+import { useLocation } from 'wouter';
+import { useAuth } from '@/hooks/use-auth';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, BookOpen, BookMarked, FileText, MessageCircle } from "lucide-react";
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+
+type LoginFormData = {
+  username: string;
+  password: string;
+};
+
+type RegisterFormData = {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+};
 
 // Login form schema
 const loginSchema = z.object({
-  username: z.string().min(3, {
-    message: "Username must be at least 3 characters",
-  }),
-  password: z.string().min(6, {
-    message: "Password must be at least 6 characters",
-  }),
+  username: z.string().min(1, 'Username is required'),
+  password: z.string().min(1, 'Password is required'),
 });
 
 // Registration form schema
 const registerSchema = z.object({
-  username: z.string().min(3, {
-    message: "Username must be at least 3 characters",
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email address",
-  }),
-  password: z.string().min(6, {
-    message: "Password must be at least 6 characters",
-  }),
+  username: z.string().min(3, 'Username must be at least 3 characters'),
+  email: z.string().email('Please enter a valid email'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string(),
-  fullName: z.string().optional(),
-  avatar: z.string().optional(),
-  bio: z.string().optional(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
+}).refine(data => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
 });
 
 export default function AuthPage() {
-  const { user, isLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState<string>("login");
+  const [, navigate] = useLocation();
+  const { user, loginMutation, registerMutation } = useAuth();
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('register');
 
-  // Redirect if already logged in
+  // Login form
+  const loginForm = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      username: '',
+      password: '',
+    },
+  });
+
+  // Register form
+  const registerForm = useForm({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+  });
+
+  useEffect(() => {
+    document.title = 'VerseFountain - Authentication';
+    
+    // Redirect if already logged in
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
+
+  const handleLogin = (data) => {
+    loginMutation.mutate(data, {
+      onSuccess: () => {
+        navigate('/');
+        toast({
+          title: 'Welcome back!',
+          description: 'You have been successfully logged in.',
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: 'Login Failed',
+          description: error.message || 'Invalid username or password',
+          variant: 'destructive',
+        });
+      }
+    });
+  };
+
+  const handleRegister = (data) => {
+    registerMutation.mutate(data, {
+      onSuccess: () => {
+        toast({
+          title: 'Registration Successful',
+          description: 'Your account has been created and you are now logged in.',
+        });
+        navigate('/');
+      },
+      onError: (error) => {
+        toast({
+          title: 'Registration Failed',
+          description: error.message || 'Could not register. Please try again.',
+          variant: 'destructive',
+        });
+      }
+    });
+  };
+
   if (user) {
-    return <Redirect to="/" />;
+    return null; // Prevents flicker while redirecting
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 py-12">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:gap-12">
-          {/* Form Column */}
-          <div className="w-full lg:w-1/2 space-y-6">
-            <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="register">Register</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="login" className="mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Welcome Back</CardTitle>
-                    <CardDescription>
-                      Login to your account to access your favorite cultural content.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <LoginForm />
-                  </CardContent>
-                  <CardFooter className="flex flex-col space-y-4">
-                    <div className="text-sm text-muted-foreground">
-                      Don't have an account?{" "}
-                      <Button variant="link" className="p-0" onClick={() => setActiveTab("register")}>
-                        Register here
-                      </Button>
-                    </div>
-                  </CardFooter>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="register" className="mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Create an Account</CardTitle>
-                    <CardDescription>
-                      Join our community to discover and share cultural content.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <RegisterForm />
-                  </CardContent>
-                  <CardFooter>
-                    <div className="text-sm text-muted-foreground">
-                      Already have an account?{" "}
-                      <Button variant="link" className="p-0" onClick={() => setActiveTab("login")}>
-                        Login here
-                      </Button>
-                    </div>
-                  </CardFooter>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 className="text-center text-3xl font-extrabold text-gray-900">
+          <span className="gradient-text">VerseFountain</span>
+        </h2>
+      </div>
 
-          {/* Hero Column */}
-          <div className="hidden lg:block lg:w-1/2 space-y-8">
-            <div className="space-y-4">
-              <h1 className="text-4xl font-bold tracking-tight text-amber-800">
-                <span className="bg-gradient-to-r from-amber-500 to-amber-700 bg-clip-text text-transparent">
-                  VerseFountain
-                </span>
-              </h1>
-              <p className="text-xl text-gray-700">
-                A digital sanctuary for traditional and local cultural expressions.
-              </p>
-              <div className="w-20 h-1 bg-gradient-to-r from-amber-400 to-amber-600"></div>
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-5xl">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Left Column - Auth Form */}
+            <div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Welcome to VerseFountain</CardTitle>
+                  <CardDescription>
+                    {activeTab === 'login' 
+                      ? 'Sign in to your account to continue' 
+                      : 'Create a new account to join our community'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-6">
+                      <TabsTrigger value="register">Register</TabsTrigger>
+                      <TabsTrigger value="login">Login</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="register">
+                      <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="register-username">Username</Label>
+                          <Input 
+                            id="register-username" 
+                            type="text" 
+                            placeholder="Choose a username"
+                            {...registerForm.register('username')} 
+                          />
+                          {registerForm.formState.errors.username && (
+                            <p className="text-sm text-red-500">{registerForm.formState.errors.username.message}</p>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="register-email">Email</Label>
+                          <Input 
+                            id="register-email" 
+                            type="email" 
+                            placeholder="you@example.com"
+                            {...registerForm.register('email')} 
+                          />
+                          {registerForm.formState.errors.email && (
+                            <p className="text-sm text-red-500">{registerForm.formState.errors.email.message}</p>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="register-password">Password</Label>
+                          <Input 
+                            id="register-password" 
+                            type="password" 
+                            placeholder="Create a password"
+                            {...registerForm.register('password')} 
+                          />
+                          {registerForm.formState.errors.password && (
+                            <p className="text-sm text-red-500">{registerForm.formState.errors.password.message}</p>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="register-confirm-password">Confirm Password</Label>
+                          <Input 
+                            id="register-confirm-password" 
+                            type="password" 
+                            placeholder="Confirm your password"
+                            {...registerForm.register('confirmPassword')} 
+                          />
+                          {registerForm.formState.errors.confirmPassword && (
+                            <p className="text-sm text-red-500">{registerForm.formState.errors.confirmPassword.message}</p>
+                          )}
+                        </div>
+                        
+                        <Button 
+                          type="submit" 
+                          className="w-full" 
+                          disabled={registerMutation.isPending}
+                        >
+                          {registerMutation.isPending ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Creating account...
+                            </>
+                          ) : (
+                            'Create Account'
+                          )}
+                        </Button>
+                      </form>
+                    </TabsContent>
+                    
+                    <TabsContent value="login">
+                      <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="login-username">Username</Label>
+                          <Input 
+                            id="login-username" 
+                            type="text" 
+                            placeholder="Enter your username"
+                            {...loginForm.register('username')} 
+                          />
+                          {loginForm.formState.errors.username && (
+                            <p className="text-sm text-red-500">{loginForm.formState.errors.username.message}</p>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="login-password">Password</Label>
+                          <Input 
+                            id="login-password" 
+                            type="password" 
+                            placeholder="Enter your password"
+                            {...loginForm.register('password')} 
+                          />
+                          {loginForm.formState.errors.password && (
+                            <p className="text-sm text-red-500">{loginForm.formState.errors.password.message}</p>
+                          )}
+                        </div>
+                        
+                        <Button 
+                          type="submit" 
+                          className="w-full" 
+                          disabled={loginMutation.isPending}
+                        >
+                          {loginMutation.isPending ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Signing in...
+                            </>
+                          ) : (
+                            'Sign In'
+                          )}
+                        </Button>
+                      </form>
+                    </TabsContent>
+                  </Tabs>
+
+
+                </CardContent>
+                <CardFooter>
+                  <p className="text-center text-xs text-gray-600 w-full">
+                    By signing in, you agree to our Terms of Service and Privacy Policy.
+                  </p>
+                </CardFooter>
+              </Card>
             </div>
             
-            <div className="space-y-6">
-              <p className="text-gray-600 leading-relaxed">
-                Join our growing community of cultural enthusiasts to discover, share, and preserve traditional
-                and local cultural expressions through poetry, literature, and academic resources.
-              </p>
+            {/* Right Column - Hero Section */}
+            <div className="hidden md:flex flex-col justify-center">
+              <div className="text-center mb-6">
+                <h2 className="text-3xl font-bold gradient-text mb-4">
+                  Discover the World of Poetry
+                </h2>
+                <p className="text-gray-600 max-w-md mx-auto">
+                  Join our community of readers and writers. Share your poetry, discover new books, and connect with like-minded literature enthusiasts.
+                </p>
+              </div>
               
-              <div className="grid grid-cols-2 gap-6">
-                <div className="flex items-start space-x-3">
-                  <BookOpen className="h-6 w-6 text-amber-600" />
+              <div className="flex flex-col space-y-4">
+                <div className="flex items-center bg-blue-50 rounded-lg p-4">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </div>
                   <div>
-                    <h3 className="font-medium text-gray-900">Diverse Library</h3>
-                    <p className="text-sm text-gray-500">Access culturally diverse books and poetry.</p>
+                    <h3 className="font-medium text-gray-800">Share Your Poetry</h3>
+                    <p className="text-sm text-gray-600">Publish your poems in text or video format</p>
                   </div>
                 </div>
                 
-                <div className="flex items-start space-x-3">
-                  <MessageCircle className="h-6 w-6 text-amber-600" />
+                <div className="flex items-center bg-purple-50 rounded-lg p-4">
+                  <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                  </div>
                   <div>
-                    <h3 className="font-medium text-gray-900">Community Discussions</h3>
-                    <p className="text-sm text-gray-500">Engage in meaningful cultural dialogues.</p>
+                    <h3 className="font-medium text-gray-800">Engage in Chat Rooms</h3>
+                    <p className="text-sm text-gray-600">Discuss literature with fellow enthusiasts</p>
                   </div>
                 </div>
                 
-                <div className="flex items-start space-x-3">
-                  <FileText className="h-6 w-6 text-amber-600" />
-                  <div>
-                    <h3 className="font-medium text-gray-900">Academic Resources</h3>
-                    <p className="text-sm text-gray-500">Explore scholarly materials on cultural heritage.</p>
+                <div className="flex items-center bg-green-50 rounded-lg p-4">
+                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
                   </div>
-                </div>
-                
-                <div className="flex items-start space-x-3">
-                  <BookMarked className="h-6 w-6 text-amber-600" />
                   <div>
-                    <h3 className="font-medium text-gray-900">Content Creation</h3>
-                    <p className="text-sm text-gray-500">Share your own cultural knowledge and stories.</p>
+                    <h3 className="font-medium text-gray-800">Explore Books</h3>
+                    <p className="text-sm text-gray-600">Access our vast collection of eBooks</p>
                   </div>
                 </div>
               </div>
@@ -180,212 +334,5 @@ export default function AuthPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-function LoginForm() {
-  const { loginMutation } = useAuth();
-
-  const form = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      username: "",
-      password: "",
-    },
-  });
-
-  function onSubmit(data: z.infer<typeof loginSchema>) {
-    loginMutation.mutate(data);
-  }
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter username" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" placeholder="Enter password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <Button type="submit" className="w-full bg-amber-600 hover:bg-amber-700" disabled={loginMutation.isPending}>
-          {loginMutation.isPending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Logging in...
-            </>
-          ) : (
-            "Login"
-          )}
-        </Button>
-      </form>
-    </Form>
-  );
-}
-
-function RegisterForm() {
-  const { registerMutation } = useAuth();
-
-  const form = useForm<z.infer<typeof registerSchema>>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      username: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      fullName: "",
-      avatar: "",
-      bio: "",
-    },
-  });
-
-  function onSubmit(data: z.infer<typeof registerSchema>) {
-    // Remove confirmPassword as it's not part of the User model
-    // Set displayName to fullName if provided, otherwise to username
-    const { confirmPassword, ...userData } = data;
-    registerMutation.mutate({
-      ...userData,
-      displayName: userData.fullName || userData.username
-    });
-  }
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="username"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Username*</FormLabel>
-                <FormControl>
-                  <Input placeholder="Choose a username" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email*</FormLabel>
-                <FormControl>
-                  <Input type="email" placeholder="Enter your email" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Password*</FormLabel>
-                <FormControl>
-                  <Input type="password" placeholder="Create a password" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="confirmPassword"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Confirm Password*</FormLabel>
-                <FormControl>
-                  <Input type="password" placeholder="Confirm your password" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        <FormField
-          control={form.control}
-          name="fullName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full Name (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter your full name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="avatar"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Avatar URL (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter avatar image URL" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="bio"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Bio (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="Tell us about yourself" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <Button type="submit" className="w-full bg-amber-600 hover:bg-amber-700" disabled={registerMutation.isPending}>
-          {registerMutation.isPending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating account...
-            </>
-          ) : (
-            "Register"
-          )}
-        </Button>
-      </form>
-    </Form>
   );
 }

@@ -2,38 +2,36 @@ import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "next-themes";
 import NotFound from "@/pages/not-found";
-import Home from "@/pages/Home";
-import Poetry from "@/pages/Poetry";
-import Books from "@/pages/Books";
-import BookDetails from "@/pages/BookDetails";
-import Discussions from "@/pages/Discussions";
-import Events from "@/pages/Events";
-import EventDetails from "@/pages/EventDetails";
-import EventTickets from "@/pages/EventTickets";
-import Academics from "@/pages/Academics";
+import HomePage from "@/pages/home-page";
 import AuthPage from "@/pages/auth-page";
-import CreateContentPage from "@/pages/create-content";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+import PoetryPage from "@/pages/poetry-page";
+import BooksPage from "@/pages/books-page";
+import AcademicsPage from "@/pages/academics-page";
+import ChatPage from "@/pages/chat-page";
+import EventsPage from "@/pages/events-page";
+import TicketsPage from "@/pages/tickets-page";
+import ProfilePage from "@/pages/profile-page";
+import AdminDashboard from "@/pages/admin-dashboard";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
+import { ChatProvider } from "@/contexts/ChatContext";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/poetry" component={Poetry} />
-      <Route path="/books" component={Books} />
-      <Route path="/books/:id" component={BookDetails} />
-      <Route path="/discussions" component={Discussions} />
-      <Route path="/events" component={Events} />
-      <Route path="/events/:id" component={EventDetails} />
-      <Route path="/events/:id/tickets" component={EventTickets} />
-      <Route path="/academics" component={Academics} />
+      <Route path="/" component={HomePage} />
       <Route path="/auth" component={AuthPage} />
-      {/* Protected Routes - Require Authentication */}
-      <ProtectedRoute path="/create" component={CreateContentPage} />
+      <Route path="/poetry" component={PoetryPage} />
+      <Route path="/books" component={BooksPage} />
+      <Route path="/academics" component={AcademicsPage} />
+      <ProtectedRoute path="/chat" component={ChatPage} />
+      <Route path="/events" component={EventsPage} />
+      <ProtectedRoute path="/tickets" component={TicketsPage} />
+      <ProtectedRoute path="/profile" component={ProfilePage} />
+      <ProtectedRoute path="/admin-dashboard" component={AdminDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -42,16 +40,16 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <div className="min-h-screen flex flex-col font-body bg-neutral-cream text-neutral-charcoal">
-          <Navbar />
-          <div className="flex-grow">
-            <Router />
-          </div>
-          <Footer />
-        </div>
-        <Toaster />
-      </AuthProvider>
+      <ThemeProvider attribute="class" defaultTheme="light">
+        <AuthProvider>
+          <ChatProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </ChatProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

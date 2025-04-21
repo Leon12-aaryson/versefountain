@@ -1,38 +1,62 @@
-import { Link } from "wouter";
-import { Rating } from "@/components/ui/rating";
-import { Button } from "@/components/ui/button";
-import { Book } from "@shared/schema";
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
 
 interface BookCardProps {
-  book: Book;
+  id: number;
+  title: string;
+  author: string;
+  coverImage?: string;
+  onRead?: () => void;
 }
 
-export default function BookCard({ book }: BookCardProps) {
+const BookCard = ({ id, title, author, coverImage, onRead }: BookCardProps) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  
+  const handleReadClick = () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to read books",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (onRead) {
+      onRead();
+    } else {
+      // Default behavior if no onRead handler is provided
+      toast({
+        title: "Book Opened",
+        description: `Now reading: ${title}`,
+      });
+    }
+  };
+
   return (
-    <div className="book-hover">
-      <div className="relative h-64 md:h-72 w-full rounded-md overflow-hidden shadow-lg transition-all duration-300">
-        <img
-          src={book.coverImage}
-          alt={`${book.title} cover`}
-          className="book-cover h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black bg-opacity-20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-          <Link href={`/books/${book.id}`}>
-            <Button className="bg-primary text-white py-2 px-4 rounded text-sm">
-              View Details
-            </Button>
-          </Link>
-        </div>
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col">
+      <img 
+        src={coverImage || `https://source.unsplash.com/featured/?book,${encodeURIComponent(title)}`} 
+        alt={`${title} cover`} 
+        className="w-full h-40 object-cover" 
+      />
+      <div className="p-3 flex-grow">
+        <h3 className="font-medium text-sm text-gray-800 line-clamp-2">{title}</h3>
+        <p className="text-xs text-gray-600 mt-1">{author}</p>
       </div>
-      <div className="mt-3">
-        <Link href={`/books/${book.id}`} className="hover:underline">
-          <h3 className="font-display text-lg leading-tight">{book.title}</h3>
-        </Link>
-        <p className="text-sm text-gray-600">By {book.author}</p>
-        <div className="flex items-center mt-1">
-          <Rating value={book.rating} count={book.ratingCount} size="sm" />
-        </div>
+      <div className="px-3 pb-3">
+        <Button 
+          variant="secondary"
+          className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-medium py-1.5"
+          onClick={handleReadClick}
+        >
+          Read Now
+        </Button>
       </div>
     </div>
   );
-}
+};
+
+export default BookCard;

@@ -1,33 +1,65 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
-import * as schema from "@shared/schema";
-import dotenv from 'dotenv';
-import { log } from './vite';
+import pg from 'pg';
+const {Pool} = pg;
 
-// Load environment variables from .env file
+import { drizzle } from 'drizzle-orm/node-postgres';
+import * as schema from '@shared/schema';
+import dotenv from 'dotenv';
+
 dotenv.config();
 
-neonConfig.webSocketConstructor = ws;
+const databaseUrl = process.env.DATABASE_URL;
+const dbHost = process.env.DB_HOST;
+const dbPort = process.env.DB_PORT;
+const dbUser = process.env.DB_USER;
+const dbPassword = process.env.DB_PASSWORD;
+const dbName = process.env.DB_NAME;
 
-if (!process.env.DATABASE_URL) {
+let poolConfig;
+
+if (databaseUrl) {
+  console.log('Connecting to database using DATABASE_URL');
+  poolConfig = {
+    connectionString: databaseUrl,
+  };
+} else if (dbHost && dbPort && dbUser && dbPassword && dbName) {
+  console.log('Connecting to database using individual connection parameters');
+  poolConfig = {
+    host: dbHost,
+    port: parseInt(dbPort),
+    user: dbUser,
+    password: dbPassword,
+    database: dbName,
+  };
+} else {
   throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
+    'Database configuration is incomplete. Please provide either DATABASE_URL or all individual connection parameters (DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME).'
   );
 }
 
-// Log database connection info (without sensitive data)
-log(`Connecting to database at ${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`, 'database');
+poolConfig = {
+  ...poolConfig,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+  max: 5,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 15000,
+};
 
-// Configure connection pool with details from environment variables
-export const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
-  // These are optional and will be used as fallbacks if included in the connection string
-  host: process.env.PGHOST,
-  port: Number(process.env.PGPORT),
-  database: process.env.PGDATABASE,
-  user: process.env.PGUSER,
-  password: process.env.PGPASSWORD
+export const pool = new Pool(poolConfig);
+
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle database client:', err.message);
 });
 
-export const db = drizzle({ client: pool, schema });
+export const db = drizzle(pool, { schema });
+
+console.log('Database connection initialized successfully');
+
+pool.connect().catch((err) => {
+  console.error('Failed to connect to database:', {
+    message: err.message,
+    stack: err.stack,
+    databaseUrl: databaseUrl ? databaseUrl.replace(/:\/\//, '://<redacted>@') : 'Not provided',
+  });
+});

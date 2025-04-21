@@ -1,593 +1,578 @@
-import type { Express, Request, Response, NextFunction } from "express";
+import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertPoemSchema, insertBookSchema, insertDiscussionSchema, insertChatMessageSchema, insertEventSchema, insertCulturalCategorySchema, insertAcademicResourceSchema, insertReadingProgressSchema, insertCommentSchema, insertRatingSchema } from "@shared/schema";
-import { z } from "zod";
 import { setupAuth } from "./auth";
-
-// WS clients
-const clients = new Map<string, WebSocket>();
-
-// Helper function to validate request body
-function validateBody<T extends z.ZodTypeAny>(
-  schema: T,
-  body: unknown
-): z.infer<T> {
-  const result = schema.safeParse(body);
-  if (!result.success) {
-    throw new Error(`Invalid request body: ${result.error.message}`);
-  }
-  return result.data;
-}
+import { setupWebSocketServer } from "./socketService";
+import { z } from "zod";
+import { 
+  insertPoemSchema, 
+  insertBookSchema, 
+  insertEventSchema,
+  insertChatRoomSchema,
+  insertChatMessageSchema,
+  insertAcademicResourceSchema 
+} from "@shared/schema";
+import { randomUUID } from "crypto";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup authentication
+  // Set up authentication routes
   setupAuth(app);
-  
+
   const httpServer = createServer(app);
   
-  // WebSocket server for chat functionality
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  // Set up WebSocket server for chat
+  setupWebSocketServer(httpServer);
   
-  wss.on('connection', (ws, req) => {
-    const id = Date.now().toString();
-    clients.set(id, ws);
-    
-    console.log(`WebSocket connected: ${id}`);
-    
-    ws.on('message', async (messageBuffer) => {
-      try {
-        const messageString = messageBuffer.toString();
-        const message = JSON.parse(messageString);
-        
-        if (message.type === 'chat') {
-          // Store the message in database
-          const chatMessage = await storage.createChatMessage({
-            content: message.content,
-            userId: message.userId,
-            username: message.username,
-            userAvatar: message.userAvatar
-          });
-          
-          // Broadcast to all connected clients
-          const outboundMessage = JSON.stringify({
-            type: 'chat',
-            message: chatMessage
-          });
-          
-          clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-              client.send(outboundMessage);
-            }
-          });
-        }
-      } catch (error) {
-        console.error('WebSocket message error:', error);
-      }
-    });
-    
-    ws.on('close', () => {
-      clients.delete(id);
-      console.log(`WebSocket disconnected: ${id}`);
-    });
-  });
-  
-  // User routes
-  app.post('/api/users', async (req: Request, res: Response) => {
-    try {
-      const userData = validateBody(insertUserSchema, req.body);
-      const user = await storage.createUser(userData);
-      res.status(201).json(user);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
+  // Check if user is authenticated middleware
+  const isAuthenticated = (req, res, next) => {
+    if (req.isAuthenticated()) {
+      return next();
     }
-  });
+    return res.status(401).json({ message: "You must be logged in to perform this action" });
+  };
   
-  app.get('/api/users/:id', async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      const user = await storage.getUser(id);
-      
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-      
-      res.json(user);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
+  // Check if user is an admin middleware
+  const isAdmin = (req, res, next) => {
+    if (req.isAuthenticated() && req.user.isAdmin) {
+      return next();
     }
-  });
-  
-  // Poem routes
-  app.get('/api/poems', async (req: Request, res: Response) => {
+    return res.status(403).json({ message: "You don't have permission to perform this action" });
+  };
+
+  // Poetry routes
+  app.get("/api/poems", async (req, res) => {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
       const poems = await storage.getPoems(limit);
-      res.json(poems);
+      
+      // Get author details for each poem
+      const poemsWithAuthors = await Promise.all(poems.map(async (poem) => {
+        const author = await storage.getUser(poem.authorId);
+        return {
+          ...poem,
+          author: author ? { 
+            id: author.id, 
+            username: author.username 
+          } : null
+        };
+      }));
+      
+      res.json(poemsWithAuthors);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
+      res.status(500).json({ message: "Error fetching poems" });
     }
   });
   
-  app.get('/api/poems/:id', async (req: Request, res: Response) => {
+  app.get("/api/poems/user", isAuthenticated, async (req, res) => {
+    try {
+      const poems = await storage.getPoemsByAuthorId(req.user.id);
+      
+      if (!poems || poems.length === 0) {
+        return res.status(404).json({ message: "Poem not found" });
+      }
+      
+      // Get author details for each poem
+      const poemsWithAuthors = await Promise.all(poems.map(async (poem) => {
+        const author = await storage.getUser(poem.authorId);
+        return {
+          ...poem,
+          author: author ? { 
+            id: author.id, 
+            username: author.username 
+          } : null
+        };
+      }));
+      
+      res.json(poemsWithAuthors);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching user poems" });
+    }
+  });
+
+  app.get("/api/poems/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const poem = await storage.getPoemById(id);
       
       if (!poem) {
-        return res.status(404).json({ message: 'Poem not found' });
+        return res.status(404).json({ message: "Poem not found" });
+      }
+      
+      const author = await storage.getUser(poem.authorId);
+      
+      res.json({
+        ...poem,
+        author: author ? { 
+          id: author.id, 
+          username: author.username 
+        } : null
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching poem" });
+    }
+  });
+  
+  app.post("/api/poems", isAuthenticated, async (req, res) => {
+    try {
+      const poemData = insertPoemSchema.parse(req.body);
+      const poem = await storage.createPoem(poemData, req.user.id);
+      
+      res.status(201).json(poem);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid poem data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Error creating poem" });
+    }
+  });
+  
+  app.post("/api/poems/:id/approve", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const poem = await storage.approvePoem(id);
+      
+      if (!poem) {
+        return res.status(404).json({ message: "Poem not found" });
       }
       
       res.json(poem);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
+      res.status(500).json({ message: "Error approving poem" });
     }
   });
   
-  app.get('/api/poems/culture/:origin', async (req: Request, res: Response) => {
+  app.post("/api/poems/:id/rate", isAuthenticated, async (req, res) => {
     try {
-      const origin = req.params.origin;
-      const poems = await storage.getPoemsByCulturalOrigin(origin);
-      res.json(poems);
+      const id = parseInt(req.params.id);
+      const rating = parseInt(req.body.rating);
+      
+      if (isNaN(rating) || rating < 1 || rating > 5) {
+        return res.status(400).json({ message: "Rating must be between 1 and 5" });
+      }
+      
+      await storage.ratePoem(id, req.user.id, rating);
+      res.sendStatus(200);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
+      res.status(500).json({ message: "Error rating poem" });
     }
   });
   
-  app.post('/api/poems', async (req: Request, res: Response) => {
+  app.post("/api/poems/:id/like", isAuthenticated, async (req, res) => {
     try {
-      const poemData = validateBody(insertPoemSchema, req.body);
-      const poem = await storage.createPoem(poemData);
-      res.status(201).json(poem);
+      const id = parseInt(req.params.id);
+      await storage.likePoem(id, req.user.id);
+      res.sendStatus(200);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
+      res.status(500).json({ message: "Error liking poem" });
+    }
+  });
+  
+  app.post("/api/poems/:id/unlike", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.unlikePoem(id, req.user.id);
+      res.sendStatus(200);
+    } catch (error) {
+      res.status(500).json({ message: "Error unliking poem" });
     }
   });
   
   // Book routes
-  app.get('/api/books', async (req: Request, res: Response) => {
+  app.get("/api/books", async (req, res) => {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
-      const category = req.query.category as string | undefined;
-      const books = await storage.getBooks(limit, category);
+      const books = await storage.getBooks(limit);
       res.json(books);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
+      res.status(500).json({ message: "Error fetching books" });
     }
   });
   
-  app.get('/api/books/:id', async (req: Request, res: Response) => {
+  app.get("/api/books/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const book = await storage.getBookById(id);
       
       if (!book) {
-        return res.status(404).json({ message: 'Book not found' });
+        return res.status(404).json({ message: "Book not found" });
       }
       
       res.json(book);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
+      res.status(500).json({ message: "Error fetching book" });
     }
   });
   
-  app.get('/api/books/culture/:origin', async (req: Request, res: Response) => {
+  app.post("/api/books", isAuthenticated, async (req, res) => {
     try {
-      const origin = req.params.origin;
-      const books = await storage.getBooksByCulturalOrigin(origin);
-      res.json(books);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-  
-  app.post('/api/books', async (req: Request, res: Response) => {
-    try {
-      const bookData = validateBody(insertBookSchema, req.body);
-      const book = await storage.createBook(bookData);
+      const bookData = insertBookSchema.parse(req.body);
+      const book = await storage.createBook(bookData, req.user.id);
+      
       res.status(201).json(book);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-  
-  // Discussion routes
-  app.get('/api/discussions', async (req: Request, res: Response) => {
-    try {
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
-      const discussions = await storage.getDiscussions(limit);
-      res.json(discussions);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-  
-  app.get('/api/discussions/:id', async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      const discussion = await storage.getDiscussionById(id);
-      
-      if (!discussion) {
-        return res.status(404).json({ message: 'Discussion not found' });
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid book data", errors: error.errors });
       }
-      
-      // Increment view count
-      await storage.updateDiscussionStats(id, undefined, discussion.views + 1);
-      
-      res.json({
-        ...discussion,
-        views: discussion.views + 1
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-  
-  app.post('/api/discussions', async (req: Request, res: Response) => {
-    try {
-      const discussionData = validateBody(insertDiscussionSchema, req.body);
-      const discussion = await storage.createDiscussion(discussionData);
-      res.status(201).json(discussion);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-  
-  // Chat message routes
-  app.get('/api/chat-messages', async (req: Request, res: Response) => {
-    try {
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
-      const messages = await storage.getChatMessages(limit);
-      res.json(messages);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-  
-  app.post('/api/chat-messages', async (req: Request, res: Response) => {
-    try {
-      const messageData = validateBody(insertChatMessageSchema, req.body);
-      const message = await storage.createChatMessage(messageData);
-      
-      // Broadcast to WebSocket clients
-      const outboundMessage = JSON.stringify({
-        type: 'chat',
-        message
-      });
-      
-      clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(outboundMessage);
-        }
-      });
-      
-      res.status(201).json(message);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
+      res.status(500).json({ message: "Error creating book" });
     }
   });
   
   // Event routes
-  app.get('/api/events', async (req: Request, res: Response) => {
+  app.get("/api/events", async (req, res) => {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
       const events = await storage.getEvents(limit);
       res.json(events);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
+      res.status(500).json({ message: "Error fetching events" });
     }
   });
   
-  app.get('/api/events/:id', async (req: Request, res: Response) => {
+  app.get("/api/events/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const event = await storage.getEventById(id);
       
       if (!event) {
-        return res.status(404).json({ message: 'Event not found' });
+        return res.status(404).json({ message: "Event not found" });
       }
       
       res.json(event);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
+      res.status(500).json({ message: "Error fetching event" });
     }
   });
   
-  app.post('/api/events', async (req: Request, res: Response) => {
+  app.post("/api/events", isAdmin, async (req, res) => {
     try {
-      const eventData = validateBody(insertEventSchema, req.body);
+      const eventData = insertEventSchema.parse(req.body);
       const event = await storage.createEvent(eventData);
+      
       res.status(201).json(event);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid event data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Error creating event" });
     }
   });
   
-  app.post('/api/events/:id/attend', async (req: Request, res: Response) => {
+  // Chat room routes
+  app.get("/api/chat/rooms", async (req, res) => {
+    try {
+      const rooms = await storage.getChatRooms();
+      res.json(rooms);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching chat rooms" });
+    }
+  });
+  
+  app.get("/api/chat/rooms/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const event = await storage.getEventById(id);
+      const room = await storage.getChatRoomById(id);
       
-      if (!event) {
-        return res.status(404).json({ message: 'Event not found' });
+      if (!room) {
+        return res.status(404).json({ message: "Chat room not found" });
       }
       
-      await storage.updateEventAttendees(id, event.attendees + 1);
+      res.json(room);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching chat room" });
+    }
+  });
+  
+  app.post("/api/chat/rooms", isAuthenticated, async (req, res) => {
+    try {
+      const roomData = insertChatRoomSchema.parse(req.body);
+      const room = await storage.createChatRoom(roomData, req.user.id);
       
-      res.json({
-        success: true,
-        attendees: event.attendees + 1
-      });
+      res.status(201).json(room);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid chat room data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Error creating chat room" });
     }
   });
   
-  // Cultural category routes
-  app.get('/api/cultural-categories', async (req: Request, res: Response) => {
+  app.get("/api/chat/rooms/:id/messages", isAuthenticated, async (req, res) => {
     try {
-      const categories = await storage.getCulturalCategories();
-      res.json(categories);
+      const roomId = parseInt(req.params.id);
+      const messages = await storage.getChatMessagesByRoomId(roomId);
+      
+      // Get user details for each message
+      const messagesWithUsers = await Promise.all(messages.map(async (message) => {
+        const user = await storage.getUser(message.userId);
+        return {
+          ...message,
+          user: user ? { 
+            id: user.id, 
+            username: user.username 
+          } : null
+        };
+      }));
+      
+      res.json(messagesWithUsers);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
+      res.status(500).json({ message: "Error fetching chat messages" });
     }
   });
   
-  app.post('/api/cultural-categories', async (req: Request, res: Response) => {
+  // Academic resources routes
+  app.get("/api/academic-resources", async (req, res) => {
     try {
-      const categoryData = validateBody(insertCulturalCategorySchema, req.body);
-      const category = await storage.createCulturalCategory(categoryData);
-      res.status(201).json(category);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-  
-  // Academic resource routes
-  app.get('/api/academic-resources', async (req: Request, res: Response) => {
-    try {
-      const type = req.query.type as string | undefined;
-      const resources = await storage.getAcademicResources(type);
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      const resources = await storage.getAcademicResources(limit);
       res.json(resources);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
+      res.status(500).json({ message: "Error fetching academic resources" });
     }
   });
   
-  app.post('/api/academic-resources', async (req: Request, res: Response) => {
+  app.get("/api/academic-resources/:id", async (req, res) => {
     try {
-      const resourceData = validateBody(insertAcademicResourceSchema, req.body);
-      const resource = await storage.createAcademicResource(resourceData);
-      res.status(201).json(resource);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-  
-  // Reading progress routes
-  app.get('/api/reading-progress/:userId/:bookId', async (req: Request, res: Response) => {
-    try {
-      const userId = parseInt(req.params.userId);
-      const bookId = parseInt(req.params.bookId);
-      const progress = await storage.getReadingProgress(userId, bookId);
+      const id = parseInt(req.params.id);
+      const resource = await storage.getAcademicResourceById(id);
       
-      if (!progress) {
-        return res.status(404).json({ message: 'Reading progress not found' });
+      if (!resource) {
+        return res.status(404).json({ message: "Academic resource not found" });
       }
       
-      res.json(progress);
+      res.json(resource);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
+      res.status(500).json({ message: "Error fetching academic resource" });
     }
   });
   
-  app.post('/api/reading-progress', async (req: Request, res: Response) => {
+  app.post("/api/academic-resources", isAdmin, async (req, res) => {
     try {
-      const progressData = validateBody(insertReadingProgressSchema, req.body);
-      const progress = await storage.createOrUpdateReadingProgress(progressData);
-      res.status(201).json(progress);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-  
-  // Comment routes
-  app.get('/api/comments/poem/:poemId', async (req: Request, res: Response) => {
-    try {
-      const poemId = parseInt(req.params.poemId);
-      const comments = await storage.getCommentsByPoemId(poemId);
-      res.json(comments);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-  
-  app.get('/api/comments/book/:bookId', async (req: Request, res: Response) => {
-    try {
-      const bookId = parseInt(req.params.bookId);
-      const comments = await storage.getCommentsByBookId(bookId);
-      res.json(comments);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-  
-  app.get('/api/comments/discussion/:discussionId', async (req: Request, res: Response) => {
-    try {
-      const discussionId = parseInt(req.params.discussionId);
-      const comments = await storage.getCommentsByDiscussionId(discussionId);
-      res.json(comments);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-  
-  app.post('/api/comments', async (req: Request, res: Response) => {
-    try {
-      const commentData = validateBody(insertCommentSchema, req.body);
-      const comment = await storage.createComment(commentData);
-      res.status(201).json(comment);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-  
-  // Rating routes
-  app.post('/api/ratings', async (req: Request, res: Response) => {
-    try {
-      const ratingData = validateBody(insertRatingSchema, req.body);
-      const rating = await storage.createOrUpdateRating(ratingData);
-      res.status(201).json(rating);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-
-  // ==== PROTECTED ROUTES FOR AUTHENTICATED MEMBERS ONLY ====
-  // These routes are only accessible to users who are logged in
-  
-  // Authentication Middleware for Protected Routes
-  const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-    next();
-  };
-  
-  // Create new book (members only)
-  app.post('/api/create/book', authMiddleware, async (req: Request, res: Response) => {
-    try {
-      const user = req.user as Express.User;
-      const bookData = validateBody(insertBookSchema, {
-        ...req.body,
-        authorId: user.id,
-        authorName: user.displayName || user.username
-      });
-      
-      const book = await storage.createBook(bookData);
-      res.status(201).json(book);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-  
-  // Create new poem (members only)
-  app.post('/api/create/poem', authMiddleware, async (req: Request, res: Response) => {
-    try {
-      const user = req.user as Express.User;
-      const poemData = validateBody(insertPoemSchema, {
-        ...req.body,
-        authorId: user.id,
-        authorName: user.displayName || user.username
-      });
-      
-      const poem = await storage.createPoem(poemData);
-      res.status(201).json(poem);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-  
-  // Create new event (members only)
-  app.post('/api/create/event', authMiddleware, async (req: Request, res: Response) => {
-    try {
-      const user = req.user as Express.User;
-      // Add organizer information from authenticated user
-      const eventData = validateBody(insertEventSchema, {
-        ...req.body,
-        organizerId: user.id,
-        organizerName: user.displayName || user.username
-      });
-      
-      const event = await storage.createEvent(eventData);
-      res.status(201).json(event);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-  
-  // Create new discussion (members only)
-  app.post('/api/create/discussion', authMiddleware, async (req: Request, res: Response) => {
-    try {
-      const user = req.user as Express.User;
-      // Add author information from authenticated user
-      const discussionData = validateBody(insertDiscussionSchema, {
-        ...req.body,
-        authorId: user.id,
-        authorName: user.displayName || user.username,
-        authorAvatar: user.avatar
-      });
-      
-      const discussion = await storage.createDiscussion(discussionData);
-      res.status(201).json(discussion);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-  
-  // Create new cultural category (members only)
-  app.post('/api/create/cultural-category', authMiddleware, async (req: Request, res: Response) => {
-    try {
-      const categoryData = validateBody(insertCulturalCategorySchema, req.body);
-      const category = await storage.createCulturalCategory(categoryData);
-      res.status(201).json(category);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
-    }
-  });
-  
-  // Create new academic resource (members only)
-  app.post('/api/create/academic-resource', authMiddleware, async (req: Request, res: Response) => {
-    try {
-      const user = req.user as Express.User;
-      // Add author information
-      const resourceData = validateBody(insertAcademicResourceSchema, {
-        ...req.body,
-        authorId: user.id,
-        authorName: user.displayName || user.username
-      });
-      
+      const resourceData = insertAcademicResourceSchema.parse(req.body);
       const resource = await storage.createAcademicResource(resourceData);
+      
       res.status(201).json(resource);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ message });
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid academic resource data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Error creating academic resource" });
+    }
+  });
+  
+  // Ticket routes
+  app.post("/api/tickets/purchase", isAuthenticated, async (req, res) => {
+    try {
+      const { eventId } = req.body;
+      
+      if (!eventId) {
+        return res.status(400).json({ message: "Event ID is required" });
+      }
+      
+      const event = await storage.getEventById(parseInt(eventId));
+      
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      
+      // Basic ticket creation (in a real app, this would involve payment processing)
+      const ticket = await storage.createTicket(parseInt(eventId), req.user.id);
+      
+      res.status(201).json(ticket);
+    } catch (error) {
+      res.status(500).json({ message: "Error purchasing ticket" });
+    }
+  });
+  
+  app.get("/api/tickets", isAuthenticated, async (req, res) => {
+    try {
+      const tickets = await storage.getTicketsByUserId(req.user.id);
+      
+      // Get event details for each ticket
+      const ticketsWithEvents = await Promise.all(tickets.map(async (ticket) => {
+        const event = await storage.getEventById(ticket.eventId);
+        return {
+          ...ticket,
+          event
+        };
+      }));
+      
+      res.json(ticketsWithEvents);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching tickets" });
+    }
+  });
+  
+  app.get("/api/tickets/user", isAuthenticated, async (req, res) => {
+    try {
+      const tickets = await storage.getTicketsByUserId(req.user.id);
+      
+      if (!tickets || tickets.length === 0) {
+        return res.status(404).json({ message: "Ticket not found" });
+      }
+      
+      // Get event details for each ticket
+      const ticketsWithEvents = await Promise.all(tickets.map(async (ticket) => {
+        const event = await storage.getEventById(ticket.eventId);
+        return {
+          ...ticket,
+          event
+        };
+      }));
+      
+      res.json(ticketsWithEvents);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching user tickets" });
+    }
+  });
+  
+  app.get("/api/tickets/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const ticket = await storage.getTicketById(id);
+      
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket not found" });
+      }
+      
+      // Check if the ticket belongs to the user
+      if (ticket.userId !== req.user.id && !req.user.isAdmin) {
+        return res.status(403).json({ message: "You don't have permission to view this ticket" });
+      }
+      
+      const event = await storage.getEventById(ticket.eventId);
+      
+      res.json({
+        ...ticket,
+        event
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching ticket" });
+    }
+  });
+  
+  // Admin dashboard routes
+  app.get("/api/admin/users", isAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+  
+  app.patch("/api/admin/users/:id", isAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const { isAdmin: makeAdmin } = req.body;
+      
+      if (typeof makeAdmin !== 'boolean') {
+        return res.status(400).json({ message: "Invalid request data" });
+      }
+      
+      // Don't allow changing own admin status to prevent lockout
+      if (userId === req.user.id && !makeAdmin) {
+        return res.status(400).json({ message: "You cannot remove your own admin privileges" });
+      }
+      
+      const updatedUser = await storage.updateUserAdminStatus(userId, makeAdmin);
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user admin status:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+  
+  app.delete("/api/admin/users/:id", isAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      
+      // Don't allow deleting own account
+      if (userId === req.user.id) {
+        return res.status(400).json({ message: "You cannot delete your own account" });
+      }
+      
+      const success = await storage.deleteUser(userId);
+      if (!success) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+  
+  app.get("/api/admin/pending/books", isAdmin, async (req, res) => {
+    try {
+      const pendingBooks = await storage.getPendingBooks();
+      res.json(pendingBooks);
+    } catch (error) {
+      console.error("Error fetching pending books:", error);
+      res.status(500).json({ message: "Failed to fetch pending books" });
+    }
+  });
+  
+  app.get("/api/admin/pending/poems", isAdmin, async (req, res) => {
+    try {
+      const pendingPoems = await storage.getPendingPoems();
+      res.json(pendingPoems);
+    } catch (error) {
+      console.error("Error fetching pending poems:", error);
+      res.status(500).json({ message: "Failed to fetch pending poems" });
+    }
+  });
+  
+  app.patch("/api/admin/books/:id/approve", isAdmin, async (req, res) => {
+    try {
+      const bookId = parseInt(req.params.id);
+      const book = await storage.approveBook(bookId);
+      
+      if (!book) {
+        return res.status(404).json({ message: "Book not found" });
+      }
+      
+      res.json(book);
+    } catch (error) {
+      console.error("Error approving book:", error);
+      res.status(500).json({ message: "Failed to approve book" });
+    }
+  });
+  
+  app.delete("/api/admin/books/:id", isAdmin, async (req, res) => {
+    try {
+      const bookId = parseInt(req.params.id);
+      const success = await storage.deleteBook(bookId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Book not found" });
+      }
+      
+      res.json({ message: "Book deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting book:", error);
+      res.status(500).json({ message: "Failed to delete book" });
+    }
+  });
+  
+  app.delete("/api/admin/poems/:id", isAdmin, async (req, res) => {
+    try {
+      const poemId = parseInt(req.params.id);
+      const success = await storage.deletePoem(poemId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Poem not found" });
+      }
+      
+      res.json({ message: "Poem deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting poem:", error);
+      res.status(500).json({ message: "Failed to delete poem" });
     }
   });
 
