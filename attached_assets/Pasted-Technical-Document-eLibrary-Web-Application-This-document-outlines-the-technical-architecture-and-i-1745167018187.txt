@@ -1,0 +1,149 @@
+Technical Document: eLibrary Web Application
+This document outlines the technical architecture and implementation details for a web-based eLibrary application designed to provide a comprehensive digital reading and poetry-sharing experience. The application emphasizes poetry as the primary product, with chat rooms as a core feature, and includes eBook collections, e-learning resources, book buffering, career guides, event management, and analytics. The platform will support subscriptions and ticketing via Paddle, require all events to be created within the application, and allow registered users to post poetry (text/word or video) and upload their own literature (e.g., books). Only registered users can interact with poetry through liking, chatrooms, or rating, while non-registered users are limited to reading and scrolling.
+
+Project Overview
+The eLibrary is a web-based platform that transitions from traditional book-focused libraries to a poetry-centric model, fostering a community-driven space for sharing and engaging with poetry and literature. It offers a subscription-based model, real-time chat rooms, web scraping for book recommendations, e-learning resources, and event ticketing. The application ensures accessibility, scalability, and a seamless user experience across devices.
+Objectives
+Enable registered users to post poetry in text/word or video formats and upload their own literature (e.g., books).
+Restrict poetry interactions (liking, chatroom participation, rating) to registered users, with non-registered users limited to reading and scrolling.
+Provide interactive features like chat rooms, e-learning, and event ticketing.
+Support subscription and ticketing payments via Paddle.
+Offer book buffering, career guides, and analytics for readers and writers.
+Create a platform that encourages diverse literary content without a heavy focus on cultural themes.
+
+Functional Requirements
+The application will be divided into six main sections: Academics, Poetry, Books, Discussions/Chat Rooms, Tickets, and Events. Below are the key features for each section and additional functionalities.
+1. Academics Section
+Curates educational resources, including textbooks, study guides, and e-learning videos.
+Supports filtering by subject, grade level, and language.
+Tracks video progress and quiz results for e-learning.
+Provides career guide tutorials (e.g., resume building, interview preparation).
+2. Poetry Section
+Allows registered users to post poetry in two formats:
+Text/Word Poetry: Submitted as plain text or uploaded as Word documents.
+Video Poetry: Uploaded as spoken word videos (e.g., MP4 files) for performance-based poetry.
+Enables registered users to rate, like, and comment on poems.
+Restricts non-registered users to reading and scrolling through poetry without interaction.
+Supports poet profiles displaying user-uploaded bios and links to their works.
+Implements an admin approval workflow for posted poetry to ensure content quality.
+3. Books Section
+Lists eBooks across genres, including user-uploaded literature (e.g., books in PDF or ePub formats) by registered users.
+Implements book buffering to track pages read and bookmarks.
+Offers recommendations based on user preferences and analytics.
+Provides options to request hard copies via integration with a third-party print-on-demand service.
+Restricts non-registered users to browsing book metadata (e.g., title, author) without access to full content.
+4. Discussions/Chat Rooms Section
+Enables real-time chat rooms for book and poetry discussions, accessible only to registered users.
+Supports public and private rooms (e.g., book clubs, study groups).
+Includes moderation tools (e.g., mute, ban) for administrators.
+Displays user profiles with badges for active contributors.
+Non-registered users cannot view or participate in chat rooms.
+5. Tickets Section
+Lists poetry and reading events with details (date, venue, price).
+Integrates Paddle for secure ticket purchases.
+Allows users to download e-tickets as PDFs.
+Supports partnerships with poetry organizers for event promotion.
+6. Events Section
+Requires all events to be created within the application by administrators or authorized organizers.
+Displays a calendar of upcoming reading and poetry events.
+Includes RSVP functionality and email reminders.
+Supports virtual event streaming for online attendees (via Zoom or a cloud-based service).
+Additional Features
+Subscription Service: Offers tiered subscription plans (e.g., free tier, premium) managed via Paddle. Includes access to exclusive content and higher usage quotas for registered users.
+User-Generated Content:
+Registered users can upload their own literature (e.g., books, essays) in addition to poetry.
+Uploaded content undergoes admin review to ensure compliance with platform guidelines.
+Web Scraping: Scrapes book data from online libraries (e.g., Amazon, Goodreads) to recommend diverse reading options.
+Book Locator: Provides a search engine combining scraped data and internal metadata, with filters for genre, language, and format.
+Analytics: Tracks user reading habits (e.g., genres, authors) and generates reports for writers (e.g., popular themes, reader engagement).
+Multilingual Content: Supports eBooks and poetry in multiple languages to appeal to a global audience.
+Accessible Design: Ensures WCAG 2.1 compliance (e.g., screen reader support, keyboard navigation) and offline reading capabilities.
+Partnerships: Enables poetry organizers to list events and manage ticket sales, with revenue sharing facilitated through Paddle.
+Marketing: Utilizes SEO, email campaigns, and social media (e.g., X posts) to promote content and events.
+
+Non-Functional Requirements
+Scalability: The application must handle thousands of concurrent users, with auto-scaling for peak traffic.
+Performance: Page load times should not exceed 2 seconds under normal conditions.
+Security: Implement secure authentication, data encryption, and compliance with GDPR for user data protection.
+Accessibility: Support cross-device compatibility (desktops, tablets, smartphones) and offline functionality.
+Reliability: Ensure 99.9% uptime with robust error handling and logging.
+
+Technical Architecture
+Tech Stack
+Front-End: React.js (dynamic UI), Tailwind CSS (styling), Axios (API calls).
+Back-End: Node.js with Express.js (API development), MongoDB (database).
+Web Scraping: Puppeteer or Cheerio (scraping book data).
+Authentication: Firebase Authentication (secure user login).
+Real-Time Chat: Socket.IO (chatroom functionality).
+Video Hosting: Cloudinary or AWS S3 (e-learning and video poetry).
+Payment Gateway: Paddle (subscriptions and ticketing).
+Analytics: Google Analytics and custom MongoDB queries.
+PDF Generation: pdfkit (e-tickets).
+Email Notifications: Nodemailer (event reminders, RSVPs).
+Deployment: AWS EC2 or Heroku (back-end), Netlify (front-end).
+System Components
+Front-End
+A single-page application (SPA) built with React.js for a responsive, user-friendly interface.
+Includes components for each section (Academics, Poetry, Books, etc.) with reusable UI elements.
+Provides forms for registered users to upload text/word poetry, video poetry, or literature.
+Restricts interaction features (liking, rating, chatrooms) to registered users via authentication checks.
+Supports offline reading by caching eBooks and poems locally.
+Integrates with Paddle’s client-side SDK for payment processing.
+Back-End
+Manages APIs for content retrieval, user authentication, chatroom messaging, and payment processing.
+Stores user data, eBooks, poems (text and video), user-uploaded literature, and event details in MongoDB.
+Handles web scraping tasks with rate limiting to avoid IP bans.
+Processes payments and revenue sharing via Paddle’s API.
+Generates e-tickets as PDFs and sends email notifications.
+Implements content moderation workflows for user-uploaded poetry and literature.
+Database
+Uses MongoDB for flexible, schema-based storage of content, user profiles, and analytics.
+Implements collections for poems (text and video), eBooks, user-uploaded literature, events, tickets, and chat histories.
+Supports indexing for fast search and filtering.
+Event Management
+Provides an admin portal for creating and managing events within the application.
+Stores event metadata (date, venue, organizer, streaming URL) in MongoDB.
+Restricts event creation to authorized users (e.g., admins, partnered organizers).
+Payment Processing
+Integrates Paddle for subscription billing and one-time ticket purchases.
+Supports secure payment flows with Paddle’s checkout and webhook systems.
+Manages revenue sharing for poetry organizers via Paddle’s seller tools.
+Analytics
+Tracks user interactions (e.g., pages read, genres preferred) using MongoDB queries.
+Integrates Google Analytics for website traffic and engagement metrics.
+Generates writer-focused reports on content performance (e.g., poem engagement, book downloads).
+
+Deployment and Scalability
+Front-End: Deployed on Netlify for fast CDN delivery and automatic scaling.
+Back-End: Hosted on AWS EC2 or Heroku with auto-scaling to handle traffic spikes.
+Database: Uses MongoDB Atlas for managed cloud hosting and replication.
+Monitoring: Implements logging with Winston and error tracking with Sentry.
+CI/CD: Configures GitHub Actions for automated testing and deployment.
+
+Security Considerations
+Authentication: Uses Firebase Authentication with multi-factor authentication to restrict interactions to registered users.
+Data Protection: Encrypted sensitive data (e.g., payment details, user uploads) at rest and in transit.
+API Security: Implements rate limiting, CORS, and JWT for secure API access.
+Content Moderation: Enforces admin review for user-uploaded poetry and literature to prevent inappropriate content.
+Compliance: Adheres to GDPR and CCPA for user data privacy.
+
+Assumptions and Constraints
+Assumptions:
+Users have access to modern browsers (Chrome, Firefox, Safari) for optimal performance.
+Paddle’s API supports all required payment and revenue-sharing functionalities.
+Third-party services (e.g., Cloudinary, Zoom) are available for video hosting and streaming.
+Users have the means to create and upload video poetry (e.g., recording devices).
+Constraints:
+Web scraping is subject to legal and ethical considerations, requiring compliance with target websites’ terms of service.
+Event creation is restricted to the application, limiting external integrations at launch.
+Non-registered users are limited to read-only access, which may impact initial user engagement.
+
+Future Enhancements
+Add support for audiobook uploads by registered users.
+Implement advanced content recommendation algorithms post-launch.
+Expand event creation to allow moderated user-generated events.
+Develop a mobile app for iOS and Android to complement the web platform.
+
+Conclusion
+This technical document outlines a robust, scalable architecture for the eLibrary web application, addressing all specified requirements. By enabling registered users to post text/word or video poetry and upload their own literature, restricting interactions to registered users, and using Paddle for payments, the platform fosters a community-driven literary experience. The chosen tech stack ensures flexibility, accessibility, and performance, with clear pathways for future enhancements. For further details or clarifications, please contact the development team.
+
