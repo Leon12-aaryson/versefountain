@@ -51,7 +51,7 @@ export default function HomePage() {
   });
 
   useEffect(() => {
-    document.title = 'eLibrary - Home';
+    document.title = 'Versefountain - Home';
   }, []);
 
   return (
@@ -66,7 +66,7 @@ export default function HomePage() {
               className="w-full h-48 md:h-64 lg:h-96 object-cover" 
             />
             <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent flex flex-col justify-end p-6 md:p-8">
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2">Welcome to eLibrary</h1>
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2">Welcome to Versefountain</h1>
               <p className="text-sm md:text-base text-gray-200 max-w-lg">Discover a world of poetry, books, and academic resources. Connect with a community of readers and writers.</p>
               <div className="mt-4 flex flex-wrap gap-3">
                 <Link href="/poetry">

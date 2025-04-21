@@ -38,7 +38,7 @@ export async function comparePasswords(supplied: string, stored: string): Promis
 
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || 'elibrary-secret-key',
+    secret: process.env.SESSION_SECRET || 'versefountain-secret-key',
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,

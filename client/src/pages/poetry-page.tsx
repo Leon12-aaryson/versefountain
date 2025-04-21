@@ -94,7 +94,7 @@ export default function PoetryPage() {
   };
 
   useEffect(() => {
-    document.title = 'eLibrary - Poetry';
+    document.title = 'Versefountain - Poetry';
   }, []);
 
   const togglePoetryType = () => {

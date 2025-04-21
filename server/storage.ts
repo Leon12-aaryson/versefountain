@@ -410,7 +410,7 @@ export class MemStorage implements IStorage {
       id: 1,
       username: 'admin',
       password: hashedPassword,
-      email: 'admin@elibrary.com',
+      email: 'admin@versefountain.com',
       isAdmin: true,
       createdAt: new Date().toISOString(),
     });
@@ -504,7 +504,7 @@ export class MemStorage implements IStorage {
       date: futureDate1,
       location: 'Virtual Event',
       ticketPrice: 0,
-      organizer: 'eLibrary Team',
+      organizer: 'Versefountain Team',
       isVirtual: true,
       streamUrl: 'https://zoom.us/j/123456789',
       isFree: true,

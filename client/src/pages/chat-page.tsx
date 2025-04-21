@@ -111,7 +111,7 @@ export default function ChatPage() {
   };
 
   useEffect(() => {
-    document.title = 'eLibrary - Chat Rooms';
+    document.title = 'Versefountain - Chat Rooms';
   }, []);
 
   if (!user) {

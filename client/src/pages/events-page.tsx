@@ -30,7 +30,7 @@ export default function EventsPage() {
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
   
   useEffect(() => {
-    document.title = 'eLibrary - Events';
+    document.title = 'Versefountain - Events';
   }, []);
   
   const getUniqueMonths = () => {

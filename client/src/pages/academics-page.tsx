@@ -51,7 +51,7 @@ export default function AcademicsPage() {
   });
   
   useEffect(() => {
-    document.title = 'eLibrary - Academic Resources';
+    document.title = 'Versefountain - Academic Resources';
   }, []);
   
   const handleSearch = (e: React.FormEvent) => {

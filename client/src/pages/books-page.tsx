@@ -113,7 +113,7 @@ export default function BooksPage() {
   };
 
   useEffect(() => {
-    document.title = 'eLibrary - Books';
+    document.title = 'Versefountain - Books';
   }, []);
 
   return (
