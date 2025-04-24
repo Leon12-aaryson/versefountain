@@ -246,25 +246,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // app.post("/api/events", isAuthenticated, async (req, res) => {
-  //   try {
-  //     const requestData = { ...req.body };
-  //     if (requestData.date && typeof requestData.date === 'string') {
-  //       requestData.date = new Date(requestData.date);
-  //     }
-      
-  //     const eventData = insertEventSchema.parse(req.body);
-  //     const event = await storage.createEvent(eventData);
-      
-  //     res.status(201).json(event);
-  //   } catch (error) {
-  //     console.error("Event creation error:", error);
-  //     if (error instanceof z.ZodError) {
-  //       return res.status(400).json({ message: "Invalid event data", errors: error.errors });
-  //     }
-  //     res.status(500).json({ message: "Error creating event" });
-  //   }
-  // });
 
   app.post("/api/events", isAuthenticated, async (req, res) => {
     // Clone and sanitize request body

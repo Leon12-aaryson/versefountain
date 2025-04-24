@@ -19,13 +19,6 @@ const ChatRoom = ({ roomId, roomName, onBack }: ChatRoomProps) => {
   const [messageText, setMessageText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // The room is already joined in the parent component (ChatPage)
-  // We don't need to call joinRoom here again, as it would create an infinite update loop
-  // useEffect(() => {
-  //   joinRoom(roomId);
-  // }, [roomId]);
-  
-  // This component assumes roomId is already joined
   
   useEffect(() => {
     scrollToBottom();
