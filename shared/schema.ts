@@ -18,7 +18,7 @@ export const poetFollowers = pgTable('poet_followers', {
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => {
   return {
-    followerPoetIndex: primaryKey({ columns: [table.followerId, table.poetId] }),
+    followerPoetIndex: uniqueIndex().on(table.followerId, table.poetId),
   };
 });
 
@@ -112,13 +112,16 @@ export const tickets = pgTable("tickets", {
 });
 
 export const userPoems = pgTable("user_poems", {
+  id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   poemId: integer("poem_id").notNull().references(() => poems.id),
   rating: integer("rating"),
   liked: boolean("liked").default(false),
-}, (t) => ({
-  pk: primaryKey({ columns: [t.userId, t.poemId] }),
-}));
+}, (table) => {
+  return {
+    userPoemIndex: uniqueIndex().on(table.userId, table.poemId),
+  };
+});
 
 export const userChatRooms = pgTable("user_chat_rooms", {
   id: serial("id").primaryKey(),

@@ -8,6 +8,20 @@
       "when": 1745192136012,
       "tag": "0000_fine_wither",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1745455712885,
+      "tag": "0001_fast_lockheed",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1745457732838,
+      "tag": "0002_true_ravenous",
+      "breakpoints": true
     }
   ]
 }
