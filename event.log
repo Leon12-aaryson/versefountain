@@ -1,0 +1,33 @@
+Note: Unnecessary use of -X or --request, POST is already inferred.
+* WARNING: failed to open cookie file "cookies.txt"
+* Host localhost:5000 was resolved.
+* IPv6: ::1
+* IPv4: 127.0.0.1
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying [::1]:5000...
+* connect to ::1 port 5000 from ::1 port 62317 failed: Connection refused
+*   Trying 127.0.0.1:5000...
+* Connected to localhost (127.0.0.1) port 5000
+> POST /api/events HTTP/1.1
+> Host: localhost:5000
+> User-Agent: curl/8.7.1
+> Accept: */*
+> Content-Type: application/json
+> Content-Length: 214
+> 
+} [214 bytes data]
+* upload completely sent off: 214 bytes
+< HTTP/1.1 401 Unauthorized
+< X-Powered-By: Express
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 58
+< ETag: W/"3a-e5ASziJlDQuGiNJNsx65bsBw7Ag"
+< Date: Mon, 21 Apr 2025 22:31:22 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+{ [58 bytes data]
+100   272  100    58  100   214  20329  75008 --:--:-- --:--:-- --:--:--  132k
+* Connection #0 to host localhost left intact
+{"message":"You must be logged in to perform this action"}

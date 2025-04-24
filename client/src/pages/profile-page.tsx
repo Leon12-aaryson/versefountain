@@ -25,16 +25,14 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("profile");
 
   const { data: userTickets = [], isLoading: isLoadingTickets } = useQuery({
-    queryKey: ['/api/tickets/user'],
+    queryKey: ['/api/tickets'],
     queryFn: async () => {
       if (!user) return [];
       try {
-        const response = await fetch('/api/tickets/user');
-        if (response.status === 404) {
-          return []; // Return empty array if no tickets found
-        }
+        const response = await fetch('/api/tickets');
         if (!response.ok) {
-          throw new Error('Failed to fetch tickets');
+          console.error('Failed to fetch tickets', response.status);
+          return []; // Return empty array on error
         }
         return response.json();
       } catch (error) {
@@ -208,22 +206,37 @@ export default function ProfilePage() {
                         </Button>
                       </div>
                     ) : (
-                      <div className="space-y-4">
-                        {userPoems.slice(0, 3).map((poem: any) => (
-                          <div key={poem.id} className="border rounded-lg p-4 hover:bg-muted/10 transition cursor-pointer">
-                            <h3 className="font-medium">{poem.title}</h3>
-                            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                              {poem.content.substring(0, 100)}...
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {userPoems.slice(0, 4).map((poem: any) => (
+                          <div 
+                            key={poem.id} 
+                            className="border rounded-lg p-4 hover:bg-muted/10 transition cursor-pointer"
+                            onClick={() => navigate(`/poetry?poemId=${poem.id}`)} 
+                          >
+                            <h3 className="font-medium text-sm md:text-base truncate">{poem.title}</h3>
+                            <p className="text-xs md:text-sm text-muted-foreground line-clamp-2 mt-1">
+                              {poem.content.substring(0, 80)}...
                             </p>
-                            <div className="flex justify-between items-center mt-2">
-                              <span className="text-xs text-muted-foreground">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 mt-2">
+                              <span className="text-xs text-muted-foreground mb-1 sm:mb-0">
                                 {new Date(poem.createdAt).toLocaleDateString()}
                               </span>
-                              <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                poem.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                              }`}>
-                                {poem.approved ? 'Published' : 'Pending Approval'}
-                              </span>
+                              <div className="flex flex-wrap gap-1">
+                                <span className={`inline-flex text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
+                                  poem.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                                }`}>
+                                  {poem.approved ? 'Published' : 'Pending'}
+                                </span>
+                                {poem.isVideo ? (
+                                  <span className="inline-flex text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                    Video
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                    Text
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -264,20 +277,40 @@ export default function ProfilePage() {
                         </Button>
                       </div>
                     ) : (
-                      <div className="space-y-4">
-                        {userTickets.slice(0, 3).map((ticket: any) => (
-                          <div key={ticket.id} className="border rounded-lg p-4 hover:bg-muted/10 transition cursor-pointer">
-                            <h3 className="font-medium">{ticket.event.title}</h3>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {new Date(ticket.event.date).toLocaleDateString()} • {ticket.event.location}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {userTickets.slice(0, 4).map((ticket: any) => (
+                          <div 
+                            key={ticket.id} 
+                            className="border rounded-lg p-4 hover:bg-muted/10 transition cursor-pointer"
+                            onClick={() => navigate(`/tickets?ticketId=${ticket.id}`)} 
+                          >
+                            <h3 className="font-medium text-sm md:text-base truncate">{ticket.event.title}</h3>
+                            <p className="text-xs md:text-sm text-muted-foreground mt-1 truncate">
+                              {new Date(ticket.event.date).toLocaleDateString()} • {ticket.event.isVirtual ? 'Virtual Event' : ticket.event.location}
                             </p>
-                            <div className="flex justify-between items-center mt-2">
-                              <span className="text-xs text-muted-foreground">
-                                Purchased on {new Date(ticket.purchaseDate).toLocaleDateString()}
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 mt-2">
+                              <span className="text-xs text-muted-foreground mb-1 sm:mb-0">
+                                {new Date(ticket.purchaseDate).toLocaleDateString()}
                               </span>
-                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-                                {ticket.ticketCode}
-                              </span>
+                              <div className="flex flex-wrap gap-1">
+                                {ticket.isRefunded && (
+                                  <span className="inline-flex text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                    Refunded
+                                  </span>
+                                )}
+                                {ticket.event.isFree ? (
+                                  <span className="inline-flex text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                    Free
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                    Paid
+                                  </span>
+                                )}
+                                <span className="inline-flex text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full whitespace-nowrap hidden md:inline-flex">
+                                  {ticket.ticketCode.substring(0, 8)}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         ))}

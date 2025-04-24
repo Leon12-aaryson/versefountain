@@ -13,8 +13,16 @@ import {
   InsertChatMessage,
   AcademicResource,
   InsertAcademicResource,
+  PoemComment,
+  InsertPoemComment,
+  Payment,
+  InsertPayment,
   Ticket,
-  InsertTicket
+  InsertTicket,
+  CommentReaction,
+  InsertCommentReaction,
+  PoetFollower,
+  InsertPoetFollower
 } from "@shared/schema";
 import createMemoryStore from "memorystore";
 import session from "express-session";
@@ -36,12 +44,28 @@ export interface IStorage {
   getPoemById(id: number): Promise<Poem | undefined>;
   getPoemsByAuthorId(authorId: number): Promise<Poem[]>;
   createPoem(poem: InsertPoem, authorId: number): Promise<Poem>;
+  updatePoem(id: number, updates: Partial<InsertPoem>): Promise<Poem | undefined>;
   approvePoem(id: number): Promise<Poem | undefined>;
   deletePoem(id: number): Promise<boolean>;
   getPendingPoems(): Promise<Poem[]>;
   ratePoem(poemId: number, userId: number, rating: number): Promise<void>;
   likePoem(poemId: number, userId: number): Promise<void>;
   unlikePoem(poemId: number, userId: number): Promise<void>;
+  getUserPoemStatus(poemId: number, userId: number): Promise<{ liked: boolean, rating: number | null }>;
+  getPoemLikeCount(poemId: number): Promise<number>;
+  
+  // Poem comments operations
+  getPoemComments(poemId: number): Promise<PoemComment[]>;
+  createPoemComment(comment: InsertPoemComment, userId: number): Promise<PoemComment>;
+  deletePoemComment(commentId: number): Promise<boolean>;
+  
+  // Comment reactions operations
+  getCommentReactions(commentId: number): Promise<CommentReaction[]>;
+  getUserCommentReaction(commentId: number, userId: number): Promise<CommentReaction | undefined>;
+  addCommentReaction(commentId: number, userId: number, reaction: string): Promise<CommentReaction>;
+  updateCommentReaction(commentId: number, userId: number, reaction: string): Promise<CommentReaction | undefined>;
+  removeCommentReaction(commentId: number, userId: number): Promise<boolean>;
+  getCommentReactionCounts(commentId: number): Promise<{[reaction: string]: number}>;
   
   // Book operations
   getBooks(limit?: number): Promise<Book[]>;
@@ -55,6 +79,7 @@ export interface IStorage {
   getEvents(limit?: number): Promise<Event[]>;
   getEventById(id: number): Promise<Event | undefined>;
   createEvent(event: InsertEvent): Promise<Event>;
+  updateEvent(id: number, event: InsertEvent): Promise<Event | undefined>;
   
   // Chat operations
   getChatRooms(): Promise<ChatRoom[]>;
@@ -62,19 +87,41 @@ export interface IStorage {
   createChatRoom(chatRoom: InsertChatRoom, createdById: number): Promise<ChatRoom>;
   getChatMessagesByRoomId(roomId: number): Promise<ChatMessage[]>;
   createChatMessage(message: InsertChatMessage, userId: number): Promise<ChatMessage>;
+  getUserChatRooms(userId: number): Promise<ChatRoom[]>;
+  joinChatRoom(userId: number, roomId: number): Promise<boolean>;
+  leaveChatRoom(userId: number, roomId: number): Promise<boolean>;
+  isUserInChatRoom(userId: number, roomId: number): Promise<boolean>;
   
   // Academic resources operations
   getAcademicResources(limit?: number): Promise<AcademicResource[]>;
   getAcademicResourceById(id: number): Promise<AcademicResource | undefined>;
   createAcademicResource(resource: InsertAcademicResource): Promise<AcademicResource>;
   
+  // Payment operations
+  createPayment(payment: InsertPayment): Promise<Payment>;
+  getPaymentById(id: number): Promise<Payment | undefined>;
+  getPaymentsByUserId(userId: number): Promise<Payment[]>;
+  updatePaymentStatus(id: number, status: string): Promise<Payment | undefined>;
+  updatePaymentRefundReason(id: number, reason: string): Promise<Payment | undefined>;
+  
   // Ticket operations
-  createTicket(eventId: number, userId: number): Promise<Ticket>;
+  createTicket(eventId: number, userId: number, paymentId?: number): Promise<Ticket>;
   getTicketsByUserId(userId: number): Promise<Ticket[]>;
   getTicketById(id: number): Promise<Ticket | undefined>;
+  updateTicketStatus(id: number, status: string): Promise<Ticket | undefined>;
+  markTicketRefunded(id: number): Promise<Ticket | undefined>;
+  getTicketsByEventId(eventId: number): Promise<Ticket[]>;
+  
+  // Poet follower operations
+  followPoet(followerId: number, poetId: number): Promise<PoetFollower>;
+  unfollowPoet(followerId: number, poetId: number): Promise<boolean>;
+  getPoetFollowers(poetId: number): Promise<User[]>;
+  getFollowedPoets(userId: number): Promise<User[]>;
+  isFollowingPoet(followerId: number, poetId: number): Promise<boolean>;
+  getFollowerCount(poetId: number): Promise<number>;
   
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: any; // Using any for session store due to type compatibility issues
 }
 
 export class MemStorage implements IStorage {
@@ -86,7 +133,11 @@ export class MemStorage implements IStorage {
   private chatMessages: Map<number, ChatMessage>;
   private academicResources: Map<number, AcademicResource>;
   private tickets: Map<number, Ticket>;
+  private payments: Map<number, Payment>;
   private userPoems: Map<string, { userId: number, poemId: number, rating?: number, liked: boolean }>;
+  private poemComments: Map<number, PoemComment>;
+  private commentReactions: Map<number, CommentReaction>;
+  private poetFollowers: Map<number, PoetFollower>;
   
   private userIdCounter: number;
   private poemIdCounter: number;
@@ -96,8 +147,12 @@ export class MemStorage implements IStorage {
   private chatMessageIdCounter: number;
   private academicResourceIdCounter: number;
   private ticketIdCounter: number;
+  private paymentIdCounter: number;
+  private poemCommentIdCounter: number;
+  private commentReactionIdCounter: number;
+  private poetFollowerIdCounter: number;
   
-  sessionStore: session.SessionStore;
+  sessionStore: any; // Using any for session store due to type compatibility issues
 
   constructor() {
     this.users = new Map();
@@ -108,7 +163,12 @@ export class MemStorage implements IStorage {
     this.chatMessages = new Map();
     this.academicResources = new Map();
     this.tickets = new Map();
+    this.payments = new Map();
     this.userPoems = new Map();
+    this.userChatRooms = new Map();
+    this.poemComments = new Map();
+    this.commentReactions = new Map();
+    this.poetFollowers = new Map();
     
     this.userIdCounter = 1;
     this.poemIdCounter = 1;
@@ -118,6 +178,10 @@ export class MemStorage implements IStorage {
     this.chatMessageIdCounter = 1;
     this.academicResourceIdCounter = 1;
     this.ticketIdCounter = 1;
+    this.paymentIdCounter = 1;
+    this.poemCommentIdCounter = 1;
+    this.commentReactionIdCounter = 1;
+    this.poetFollowerIdCounter = 1;
     
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000, // Prune expired entries every 24h
@@ -202,6 +266,23 @@ export class MemStorage implements IStorage {
     return newPoem;
   }
   
+  async updatePoem(id: number, updates: Partial<InsertPoem>): Promise<Poem | undefined> {
+    const poem = this.poems.get(id);
+    if (!poem) return undefined;
+    
+    const updatedPoem: Poem = {
+      ...poem,
+      ...updates,
+      id, // Ensure ID doesn't change
+      authorId: poem.authorId, // Ensure author doesn't change
+      createdAt: poem.createdAt, // Ensure creation date doesn't change
+      approved: poem.approved, // Ensure approval status doesn't change
+    };
+    
+    this.poems.set(id, updatedPoem);
+    return updatedPoem;
+  }
+  
   async approvePoem(id: number): Promise<Poem | undefined> {
     const poem = this.poems.get(id);
     if (poem) {
@@ -238,6 +319,127 @@ export class MemStorage implements IStorage {
     const key = `${userId}-${poemId}`;
     const userPoemEntry = this.userPoems.get(key) || { userId, poemId, rating: undefined };
     this.userPoems.set(key, { ...userPoemEntry, liked: false });
+  }
+  
+  async getUserPoemStatus(poemId: number, userId: number): Promise<{ liked: boolean, rating: number | null }> {
+    const key = `${userId}-${poemId}`;
+    const userPoemEntry = this.userPoems.get(key);
+    
+    if (userPoemEntry) {
+      return {
+        liked: userPoemEntry.liked || false,
+        rating: userPoemEntry.rating || null
+      };
+    }
+    
+    return { liked: false, rating: null };
+  }
+  
+  async getPoemLikeCount(poemId: number): Promise<number> {
+    // Count all entries where the poem ID matches and liked is true
+    let count = 0;
+    for (const [key, entry] of this.userPoems.entries()) {
+      if (entry.poemId === poemId && entry.liked) {
+        count++;
+      }
+    }
+    return count;
+  }
+  
+  // Poem comments operations
+  async getPoemComments(poemId: number): Promise<PoemComment[]> {
+    return Array.from(this.poemComments.values())
+      .filter(comment => comment.poemId === poemId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+  
+  async createPoemComment(comment: InsertPoemComment, userId: number): Promise<PoemComment> {
+    const id = this.poemCommentIdCounter++;
+    const newComment: PoemComment = {
+      ...comment,
+      id,
+      userId,
+      createdAt: new Date(),
+    };
+    this.poemComments.set(id, newComment);
+    return newComment;
+  }
+  
+  async deletePoemComment(commentId: number): Promise<boolean> {
+    return this.poemComments.delete(commentId);
+  }
+  
+  // Comment reactions operations
+  async getCommentReactions(commentId: number): Promise<CommentReaction[]> {
+    return Array.from(this.commentReactions.values())
+      .filter(reaction => reaction.commentId === commentId);
+  }
+  
+  async getUserCommentReaction(commentId: number, userId: number): Promise<CommentReaction | undefined> {
+    return Array.from(this.commentReactions.values())
+      .find(reaction => reaction.commentId === commentId && reaction.userId === userId);
+  }
+  
+  async addCommentReaction(commentId: number, userId: number, reaction: string): Promise<CommentReaction> {
+    // Check if user already has a reaction to this comment
+    const existingReaction = await this.getUserCommentReaction(commentId, userId);
+    
+    if (existingReaction) {
+      // If already has the same reaction, return it
+      if (existingReaction.reaction === reaction) {
+        return existingReaction;
+      }
+      
+      // Otherwise, update the reaction
+      return this.updateCommentReaction(commentId, userId, reaction) as Promise<CommentReaction>;
+    }
+    
+    // Create new reaction
+    const id = this.commentReactionIdCounter++;
+    const newReaction: CommentReaction = {
+      id,
+      commentId,
+      userId,
+      reaction,
+      createdAt: new Date()
+    };
+    
+    this.commentReactions.set(id, newReaction);
+    return newReaction;
+  }
+  
+  async updateCommentReaction(commentId: number, userId: number, reaction: string): Promise<CommentReaction | undefined> {
+    const existingReaction = await this.getUserCommentReaction(commentId, userId);
+    
+    if (!existingReaction) {
+      return undefined;
+    }
+    
+    const updatedReaction: CommentReaction = {
+      ...existingReaction,
+      reaction,
+    };
+    
+    this.commentReactions.set(existingReaction.id, updatedReaction);
+    return updatedReaction;
+  }
+  
+  async removeCommentReaction(commentId: number, userId: number): Promise<boolean> {
+    const reaction = await this.getUserCommentReaction(commentId, userId);
+    if (!reaction) return false;
+    
+    return this.commentReactions.delete(reaction.id);
+  }
+  
+  async getCommentReactionCounts(commentId: number): Promise<{[reaction: string]: number}> {
+    const reactions = await this.getCommentReactions(commentId);
+    const counts: {[reaction: string]: number} = {};
+    
+    for (const reaction of reactions) {
+      counts[reaction.reaction] = (counts[reaction.reaction] || 0) + 1;
+    }
+    
+    return counts;
   }
   
   // Book operations
@@ -312,6 +514,19 @@ export class MemStorage implements IStorage {
     return newEvent;
   }
   
+  async updateEvent(id: number, event: InsertEvent): Promise<Event | undefined> {
+    const existingEvent = this.events.get(id);
+    if (!existingEvent) return undefined;
+    
+    const updatedEvent: Event = {
+      ...existingEvent,
+      ...event,
+      id
+    };
+    this.events.set(id, updatedEvent);
+    return updatedEvent;
+  }
+  
   // Chat operations
   async getChatRooms(): Promise<ChatRoom[]> {
     return Array.from(this.chatRooms.values());
@@ -350,6 +565,49 @@ export class MemStorage implements IStorage {
     return newMessage;
   }
   
+  // User chat room membership
+  private userChatRooms: Map<string, { userId: number, roomId: number, joinedAt: Date }>;
+  
+  async getUserChatRooms(userId: number): Promise<ChatRoom[]> {
+    // Find all entries where this user is a member
+    const userRoomIds = Array.from(this.userChatRooms.values())
+      .filter(entry => entry.userId === userId)
+      .map(entry => entry.roomId);
+    
+    // Return the corresponding chat rooms
+    return Array.from(this.chatRooms.values())
+      .filter(room => userRoomIds.includes(room.id));
+  }
+  
+  async joinChatRoom(userId: number, roomId: number): Promise<boolean> {
+    // Check if room exists
+    const room = this.chatRooms.get(roomId);
+    if (!room) return false;
+    
+    // Check if already a member
+    const key = `${userId}-${roomId}`;
+    if (this.userChatRooms.has(key)) return true;
+    
+    // Add to membership
+    this.userChatRooms.set(key, {
+      userId,
+      roomId,
+      joinedAt: new Date()
+    });
+    
+    return true;
+  }
+  
+  async leaveChatRoom(userId: number, roomId: number): Promise<boolean> {
+    const key = `${userId}-${roomId}`;
+    return this.userChatRooms.delete(key);
+  }
+  
+  async isUserInChatRoom(userId: number, roomId: number): Promise<boolean> {
+    const key = `${userId}-${roomId}`;
+    return this.userChatRooms.has(key);
+  }
+  
   // Academic resources operations
   async getAcademicResources(limit?: number): Promise<AcademicResource[]> {
     const resources = Array.from(this.academicResources.values());
@@ -374,8 +632,61 @@ export class MemStorage implements IStorage {
     return newResource;
   }
   
+  // Payment operations
+  async createPayment(payment: InsertPayment): Promise<Payment> {
+    const id = this.paymentIdCounter++;
+    const newPayment: Payment = {
+      ...payment,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      paddlePaymentId: null,
+      paddleTransactionId: null,
+      refundReason: null,
+    };
+    
+    this.payments.set(id, newPayment);
+    return newPayment;
+  }
+  
+  async getPaymentById(id: number): Promise<Payment | undefined> {
+    return this.payments.get(id);
+  }
+  
+  async getPaymentsByUserId(userId: number): Promise<Payment[]> {
+    return Array.from(this.payments.values())
+      .filter(payment => payment.userId === userId);
+  }
+  
+  async updatePaymentStatus(id: number, status: string): Promise<Payment | undefined> {
+    const payment = this.payments.get(id);
+    if (!payment) return undefined;
+    
+    const updatedPayment = { 
+      ...payment, 
+      status, 
+      updatedAt: new Date() 
+    };
+    this.payments.set(id, updatedPayment);
+    return updatedPayment;
+  }
+  
+  async updatePaymentRefundReason(id: number, reason: string): Promise<Payment | undefined> {
+    const payment = this.payments.get(id);
+    if (!payment) return undefined;
+    
+    const updatedPayment = { 
+      ...payment, 
+      refundReason: reason,
+      status: 'refunded',
+      updatedAt: new Date() 
+    };
+    this.payments.set(id, updatedPayment);
+    return updatedPayment;
+  }
+  
   // Ticket operations
-  async createTicket(eventId: number, userId: number): Promise<Ticket> {
+  async createTicket(eventId: number, userId: number, paymentId?: number): Promise<Ticket> {
     const id = this.ticketIdCounter++;
     const ticketCode = `TICKET-${randomUUID().substring(0, 8)}`;
     
@@ -385,6 +696,9 @@ export class MemStorage implements IStorage {
       userId,
       purchaseDate: new Date(),
       ticketCode,
+      status: 'active',
+      paymentId: paymentId || null,
+      isRefunded: false,
     };
     
     this.tickets.set(id, newTicket);
@@ -398,6 +712,33 @@ export class MemStorage implements IStorage {
   
   async getTicketById(id: number): Promise<Ticket | undefined> {
     return this.tickets.get(id);
+  }
+  
+  async getTicketsByEventId(eventId: number): Promise<Ticket[]> {
+    return Array.from(this.tickets.values())
+      .filter(ticket => ticket.eventId === eventId);
+  }
+  
+  async updateTicketStatus(id: number, status: string): Promise<Ticket | undefined> {
+    const ticket = this.tickets.get(id);
+    if (!ticket) return undefined;
+    
+    const updatedTicket = { ...ticket, status };
+    this.tickets.set(id, updatedTicket);
+    return updatedTicket;
+  }
+  
+  async markTicketRefunded(id: number): Promise<Ticket | undefined> {
+    const ticket = this.tickets.get(id);
+    if (!ticket) return undefined;
+    
+    const updatedTicket = { 
+      ...ticket, 
+      status: 'refunded',
+      isRefunded: true 
+    };
+    this.tickets.set(id, updatedTicket);
+    return updatedTicket;
   }
   
   // Seed initial data for demonstration
@@ -523,6 +864,94 @@ export class MemStorage implements IStorage {
       isFree: false,
     });
     this.eventIdCounter = 3;
+  }
+  
+  // Poet follower operations
+  async followPoet(followerId: number, poetId: number): Promise<PoetFollower> {
+    // Check if already following
+    const isAlreadyFollowing = await this.isFollowingPoet(followerId, poetId);
+    if (isAlreadyFollowing) {
+      // Find the existing follow relationship and return it
+      const existingFollower = Array.from(this.poetFollowers.values())
+        .find(pf => pf.followerId === followerId && pf.poetId === poetId);
+      if (existingFollower) {
+        return existingFollower;
+      }
+    }
+    
+    // Create new follow relationship
+    const id = this.poetFollowerIdCounter++;
+    const poetFollower: PoetFollower = {
+      id,
+      followerId,
+      poetId,
+      createdAt: new Date()
+    };
+    
+    this.poetFollowers.set(id, poetFollower);
+    return poetFollower;
+  }
+  
+  async unfollowPoet(followerId: number, poetId: number): Promise<boolean> {
+    // Find the follow relationship
+    const poetFollower = Array.from(this.poetFollowers.values())
+      .find(pf => pf.followerId === followerId && pf.poetId === poetId);
+    
+    if (!poetFollower) {
+      return false; // Not following
+    }
+    
+    // Remove the follow relationship
+    return this.poetFollowers.delete(poetFollower.id);
+  }
+  
+  async getPoetFollowers(poetId: number): Promise<User[]> {
+    // Find all followers of the specified poet
+    const followerIds = Array.from(this.poetFollowers.values())
+      .filter(pf => pf.poetId === poetId)
+      .map(pf => pf.followerId);
+    
+    // Get the user details for each follower
+    const followers: User[] = [];
+    for (const followerId of followerIds) {
+      const user = this.users.get(followerId);
+      if (user) {
+        followers.push(user);
+      }
+    }
+    
+    return followers;
+  }
+  
+  async getFollowedPoets(userId: number): Promise<User[]> {
+    // Find all poets that the user is following
+    const poetIds = Array.from(this.poetFollowers.values())
+      .filter(pf => pf.followerId === userId)
+      .map(pf => pf.poetId);
+    
+    // Get the user details for each poet
+    const poets: User[] = [];
+    for (const poetId of poetIds) {
+      const user = this.users.get(poetId);
+      if (user) {
+        poets.push(user);
+      }
+    }
+    
+    return poets;
+  }
+  
+  async isFollowingPoet(followerId: number, poetId: number): Promise<boolean> {
+    // Check if the follower is following the poet
+    return Array.from(this.poetFollowers.values())
+      .some(pf => pf.followerId === followerId && pf.poetId === poetId);
+  }
+  
+  async getFollowerCount(poetId: number): Promise<number> {
+    // Count the number of followers for a poet
+    return Array.from(this.poetFollowers.values())
+      .filter(pf => pf.poetId === poetId)
+      .length;
   }
 }
 

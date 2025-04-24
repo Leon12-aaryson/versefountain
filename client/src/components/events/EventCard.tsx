@@ -1,10 +1,25 @@
 import { format } from 'date-fns';
-import { Calendar } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Calendar, Check, Edit, Users, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EventBadge } from '@/components/ui/event-badge';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { usePayment } from '@/contexts/PaymentContext';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import EventEditForm from './EventEditForm';
+
+import { Event } from "@shared/schema";
 
 interface EventCardProps {
   id: number;
@@ -14,7 +29,12 @@ interface EventCardProps {
   isFree: boolean;
   isVirtual: boolean;
   price?: number;
+  organizer?: string;
+  createdById?: number;
+  description?: string;
+  streamUrl?: string;
   onRegister?: () => void;
+  fullEvent?: Event; // For the edit form
 }
 
 const EventCard = ({ 
@@ -25,12 +45,41 @@ const EventCard = ({
   isFree, 
   isVirtual,
   price = 0,
-  onRegister 
+  organizer,
+  createdById,
+  description,
+  streamUrl,
+  onRegister,
+  fullEvent
 }: EventCardProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { startCheckout, userTickets: paymentTickets, initializePaddle } = usePayment();
   const eventDate = new Date(date);
+  const [_, navigate] = useLocation();
   
+  // Get the user's tickets to check if they're registered
+  const { data: userTickets } = useQuery({
+    queryKey: ['/api/tickets/user'],
+    queryFn: async () => {
+      const res = await fetch('/api/tickets/user');
+      if (res.status === 404) return []; // No tickets found
+      if (!res.ok) throw new Error('Failed to fetch tickets');
+      return res.json();
+    },
+    enabled: !!user, // Only run query if user is logged in
+  });
+  
+  // Check if user is already registered for this event
+  const isRegistered = userTickets?.some((ticket: {eventId: number}) => ticket.eventId === id);
+  
+  // Initialize Paddle on component mount
+  useEffect(() => {
+    if (user && !isFree && price > 0) {
+      initializePaddle();
+    }
+  }, [user, isFree, price, initializePaddle]);
+
   const handleRegister = async () => {
     if (!user) {
       toast({
@@ -41,13 +90,62 @@ const EventCard = ({
       return;
     }
     
+    if (isRegistered) {
+      toast({
+        title: "Already Registered",
+        description: `You are already registered for ${title}`,
+      });
+      return;
+    }
+    
     if (onRegister) {
       onRegister();
       return;
     }
     
+    // For paid events, use the payment system
+    if (!isFree && price > 0) {
+      try {
+        // Create an event object that matches what startCheckout expects
+        const event = {
+          id,
+          title,
+          date: eventDate,
+          location: location || '',
+          isFree: isFree as boolean | null,
+          isVirtual: isVirtual as boolean | null,
+          description: description || null,
+          ticketPrice: price,
+          organizer: organizer || null,
+          streamUrl: streamUrl || null,
+          createdById: createdById || null,
+          category: fullEvent?.category || 'general'
+        };
+        
+        // Start the Paddle checkout flow
+        await startCheckout(event);
+        return;
+      } catch (error) {
+        toast({
+          title: "Payment Error",
+          description: error instanceof Error ? error.message : "Failed to process payment",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+    
+    // For free events, create a ticket directly
     try {
-      const response = await apiRequest("POST", "/api/tickets/purchase", { eventId: id });
+      const response = await apiRequest("POST", "/api/tickets", { 
+        eventId: id,
+        userId: user.id 
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to register for event");
+      }
+      
       const ticket = await response.json();
       
       toast({
@@ -56,7 +154,8 @@ const EventCard = ({
       });
       
       // Invalidate tickets cache
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tickets/user'] });
     } catch (error) {
       toast({
         title: "Registration Failed",
@@ -75,21 +174,33 @@ const EventCard = ({
   };
 
   return (
-    <div className="flex border-b border-gray-100 pb-4">
-      <div className="flex-shrink-0 flex flex-col items-center justify-center w-14 h-14 bg-primary bg-opacity-10 rounded-lg mr-4">
-        <span className="text-primary font-bold text-lg">
+    <div className="flex flex-col sm:flex-row border-b border-gray-100 pb-4 gap-3 sm:gap-4">
+      {/* Date box - slightly smaller on mobile */}
+      <div className="flex-shrink-0 flex flex-col items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-primary bg-opacity-10 rounded-lg">
+        <span className="text-primary font-bold text-base sm:text-lg">
           {format(eventDate, 'd')}
         </span>
         <span className="text-primary text-xs uppercase">
           {format(eventDate, 'MMM')}
         </span>
       </div>
+      
       <div className="flex-1">
-        <h3 className="font-medium text-gray-800">{title}</h3>
-        <p className="text-sm text-gray-600 mt-1">
+        {/* Event title - easier to read on mobile */}
+        <h3 
+          className="font-medium text-gray-800 hover:text-primary hover:underline cursor-pointer text-sm sm:text-base"
+          onClick={() => navigate(`/events/${id}`)}
+        >
+          {title}
+        </h3>
+        
+        {/* Event details - smaller on mobile */}
+        <p className="text-xs sm:text-sm text-gray-600 mt-1">
           {isVirtual ? 'Virtual Event' : location} • {format(eventDate, 'h:mm a')}
         </p>
-        <div className="mt-2 flex flex-wrap gap-2">
+        
+        {/* Event badges */}
+        <div className="mt-2 flex flex-wrap gap-1 sm:gap-2">
           {isFree ? (
             <EventBadge variant="success">Free Entry</EventBadge>
           ) : (
@@ -103,13 +214,66 @@ const EventCard = ({
           )}
         </div>
         
-        <Button 
-          variant="link" 
-          className="text-primary p-0 h-6 mt-2"
-          onClick={handleRegister}
-        >
-          Register Now
-        </Button>
+        {/* Action buttons - mobile-friendly layout */}
+        <div className="flex flex-wrap gap-3 mt-3">
+          {/* Register button */}
+          <Button 
+            variant={isRegistered ? "outline" : "default"}
+            size="sm"
+            className={`${isRegistered ? 'text-green-600 border-green-200 bg-green-50' : 'text-white'} 
+                        text-xs sm:text-sm h-7 sm:h-8 px-2 sm:px-3`}
+            onClick={handleRegister}
+            disabled={isRegistered}
+          >
+            {isRegistered ? (
+              <span className="flex items-center">
+                <Check className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                Registered
+              </span>
+            ) : (
+              <span className="flex items-center">
+                <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                Register Now
+              </span>
+            )}
+          </Button>
+          
+          {/* Event details button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3 text-primary"
+            onClick={() => navigate(`/events/${id}`)}
+          >
+            <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+            View Details
+          </Button>
+          
+          {/* Edit button for event creators */}
+          {user && createdById && user.id === createdById && fullEvent && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3"
+                >
+                  <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                  Edit
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Edit Event</DialogTitle>
+                  <DialogDescription>
+                    Make changes to your event details
+                  </DialogDescription>
+                </DialogHeader>
+                <EventEditForm event={fullEvent} />
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
       </div>
     </div>
   );

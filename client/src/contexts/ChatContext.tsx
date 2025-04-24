@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { getWebSocketUrl } from '@/lib/netlifyConfig';
 
 interface ChatMessage {
   type: string;
@@ -24,10 +26,15 @@ interface ChatContextType {
   connected: boolean;
   activeRoom: number | null;
   rooms: ChatRoom[];
+  userRooms: ChatRoom[];
   messages: ChatMessage[];
   joinRoom: (roomId: number) => void;
+  joinChatRoom: (roomId: number) => Promise<void>;
+  leaveChatRoom: (roomId: number) => Promise<void>;
   sendMessage: (message: string) => void;
   leaveRoom: () => void;
+  isMemberOf: (roomId: number) => boolean;
+  loadingMembership: boolean;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -40,9 +47,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [activeRoom, setActiveRoom] = useState<number | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
+  const [membershipCache, setMembershipCache] = useState<Record<number, boolean>>({});
+  const [loadingMembership, setLoadingMembership] = useState(false);
   const maxReconnectAttempts = 5;
   
-  // Query for chat rooms
+  // Query for all chat rooms
   const { data: rooms = [] } = useQuery<ChatRoom[]>({
     queryKey: ['/api/chat/rooms'],
     queryFn: async () => {
@@ -52,6 +61,24 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       }
       return response.json();
     },
+    staleTime: 30000, // 30 seconds
+    refetchOnWindowFocus: false,
+  });
+  
+  // Query for user's joined chat rooms
+  const { data: userRooms = [] } = useQuery<ChatRoom[]>({
+    queryKey: ['/api/user/chat/rooms'],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const response = await fetch('/api/user/chat/rooms');
+      if (response.status === 401) return [];
+      if (!response.ok) {
+        throw new Error('Failed to fetch user chat rooms');
+      }
+      return response.json();
+    },
+    enabled: !!user,
     staleTime: 30000, // 30 seconds
     refetchOnWindowFocus: false,
   });
@@ -68,12 +95,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       if (isUnmounting) return;
       
       if (reconnectAttempts >= maxReconnectAttempts) {
-        console.log("Max reconnect attempts reached. Please reload the page.");
-        toast({
-          title: "Connection Failed",
-          description: "Unable to connect to chat server. Please reload the page.",
-          variant: "destructive",
-        });
+        console.error("Max reconnect attempts reached. Please reload the page.");
         return;
       }
       
@@ -89,9 +111,15 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       }
       
       try {
-        // Use direct path instead of calculating one
-        const url = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${url}//${window.location.host}/ws`;
+        // Get WebSocket URL from the Netlify configuration
+        const wsUrl = getWebSocketUrl();
+        
+        // If wsUrl is null, it means we're in production on Netlify without WebSocket support
+        if (wsUrl === null) {
+          console.log('WebSocket not available in this environment. Using polling fallback.');
+          setConnected(false);
+          return;
+        }
         
         console.log(`Connecting to WebSocket at: ${wsUrl} (Attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`);
         
@@ -162,11 +190,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
                 break;
                 
               case 'error':
-                toast({
-                  title: "Chat Error",
-                  description: data.message,
-                  variant: "destructive",
-                });
+                console.error("Chat Error:", data.message);
                 break;
             }
           } catch (err) {
@@ -182,13 +206,9 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
           
           if (isUnmounting) return;
           
-          // Show toast after initial attempts (but not too frequently)
+          // Log reconnection attempts (but not too frequently)
           if (reconnectAttempts > 2 && reconnectAttempts % 3 === 0) {
-            toast({
-              title: "Chat Connection Issue",
-              description: "Connection to chat server lost. Reconnecting...",
-              variant: "destructive",
-            });
+            console.error("Chat Connection Issue: Connection to chat server lost. Reconnecting...");
           }
           
           // Exponential backoff with a maximum delay
@@ -252,11 +272,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         }));
       } catch (err) {
         console.error(`Error auto-joining room ${activeRoom}:`, err);
-        toast({
-          title: "Connection Error",
-          description: "Failed to join chat room. Please try again.",
-          variant: "destructive",
-        });
       }
     }
   }, [socket, user, activeRoom, toast]);
@@ -264,11 +279,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   // Join a chat room
   const joinRoom = (roomId: number) => {
     if (!user) {
-      toast({
-        title: "Cannot Join Room",
-        description: "You must be logged in to join a chat room",
-        variant: "destructive",
-      });
+      console.error("Cannot Join Room: You must be logged in to join a chat room");
       return;
     }
     
@@ -292,22 +303,13 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       }));
     } catch (err) {
       console.error("Error sending join message:", err);
-      toast({
-        title: "Connection Error",
-        description: "Failed to join chat room. Please try again.",
-        variant: "destructive",
-      });
     }
   };
   
   // Send a message to the active room
   const sendMessage = (message: string) => {
     if (!socket || socket.readyState !== WebSocket.OPEN || !user || !activeRoom) {
-      toast({
-        title: "Cannot Send Message",
-        description: "You must be logged in and in a chat room",
-        variant: "destructive",
-      });
+      console.error("Cannot Send Message: You must be logged in and in a chat room");
       return;
     }
     
@@ -319,18 +321,104 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       }));
     } catch (err) {
       console.error("Error sending chat message:", err);
-      toast({
-        title: "Message Failed",
-        description: "Failed to send your message. Please try again.",
-        variant: "destructive",
-      });
     }
   };
   
-  // Leave the active room
+  // Leave the active viewing room (doesn't remove user from room membership)
   const leaveRoom = () => {
     setActiveRoom(null);
     setMessages([]);
+  };
+  
+  // Check if user is a member of a specific chat room
+  const isMemberOf = (roomId: number): boolean => {
+    // First check the cache
+    if (membershipCache[roomId] !== undefined) {
+      return membershipCache[roomId];
+    }
+    
+    // Otherwise check if the room is in userRooms
+    return userRooms.some(room => room.id === roomId);
+  };
+  
+  // API call to join a chat room (persistent membership)
+  const joinChatRoomMutation = useMutation({
+    mutationFn: async (roomId: number) => {
+      const response = await apiRequest('POST', `/api/chat/rooms/${roomId}/join`);
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user/chat/rooms'] });
+    },
+    onError: (error: Error) => {
+      console.error("Failed to join room:", error.message);
+    }
+  });
+  
+  // API call to leave a chat room (remove membership)
+  const leaveChatRoomMutation = useMutation({
+    mutationFn: async (roomId: number) => {
+      const response = await apiRequest('POST', `/api/chat/rooms/${roomId}/leave`);
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user/chat/rooms'] });
+    },
+    onError: (error: Error) => {
+      console.error("Failed to leave room:", error.message);
+    }
+  });
+  
+  // Helper function to join a chat room with API call
+  const joinChatRoom = async (roomId: number): Promise<void> => {
+    if (!user) {
+      console.error("Authentication Required: You must be logged in to join chat rooms");
+      return;
+    }
+    
+    setLoadingMembership(true);
+    try {
+      await joinChatRoomMutation.mutateAsync(roomId);
+      // Update local cache
+      setMembershipCache(prev => ({
+        ...prev,
+        [roomId]: true
+      }));
+      
+      toast({
+        title: "Joined Chat Room",
+        description: "You are now a member of this chat room",
+      });
+    } finally {
+      setLoadingMembership(false);
+    }
+  };
+  
+  // Helper function to leave a chat room with API call
+  const leaveChatRoom = async (roomId: number): Promise<void> => {
+    if (!user) return;
+    
+    setLoadingMembership(true);
+    try {
+      await leaveChatRoomMutation.mutateAsync(roomId);
+      // Update local cache
+      setMembershipCache(prev => ({
+        ...prev,
+        [roomId]: false
+      }));
+      
+      // If currently viewing this room, exit the view
+      if (activeRoom === roomId) {
+        leaveRoom();
+      }
+      
+      toast({
+        title: "Left Chat Room",
+        description: "You have left this chat room",
+      });
+    } finally {
+      setLoadingMembership(false);
+    }
   };
   
   return (
@@ -338,10 +426,15 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       connected,
       activeRoom,
       rooms,
+      userRooms,
       messages,
       joinRoom,
+      joinChatRoom,
+      leaveChatRoom,
       sendMessage,
-      leaveRoom
+      leaveRoom,
+      isMemberOf,
+      loadingMembership
     }}>
       {children}
     </ChatContext.Provider>

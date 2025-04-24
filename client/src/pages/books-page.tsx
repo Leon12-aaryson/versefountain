@@ -39,6 +39,8 @@ export default function BooksPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const booksPerPage = 8; // More books on desktop, fewer on mobile
   
   const { data: books, isLoading } = useQuery<Book[]>({
     queryKey: ['/api/books'],
@@ -60,9 +62,64 @@ export default function BooksPage() {
     }
   });
   
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadedCoverPath, setUploadedCoverPath] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  
+  // File upload mutation
+  const uploadFileMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('coverImage', file);
+      
+      setIsUploading(true);
+      const res = await fetch('/api/upload/bookcover', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      
+      if (!res.ok) {
+        throw new Error('Failed to upload file');
+      }
+      
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setUploadedCoverPath(data.filePath);
+      setIsUploading(false);
+      toast({
+        title: 'File Uploaded',
+        description: 'Cover image uploaded successfully',
+      });
+    },
+    onError: (error) => {
+      setIsUploading(false);
+      toast({
+        title: 'Upload Failed',
+        description: error instanceof Error ? error.message : 'Failed to upload cover image',
+        variant: 'destructive',
+      });
+    }
+  });
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setUploadedFile(file);
+      uploadFileMutation.mutate(file);
+    }
+  };
+
   const createBookMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await apiRequest('POST', '/api/books', data);
+      // Use the uploaded cover path if available, or the URL entered in the form
+      const bookData = {
+        ...data,
+        coverImage: uploadedCoverPath || data.coverImage,
+      };
+      
+      const res = await apiRequest('POST', '/api/books', bookData);
       return res.json();
     },
     onSuccess: () => {
@@ -72,6 +129,8 @@ export default function BooksPage() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/books'] });
       bookForm.reset();
+      setUploadedFile(null);
+      setUploadedCoverPath(null);
       setDialogOpen(false);
     },
     onError: (error) => {
@@ -105,6 +164,16 @@ export default function BooksPage() {
     
     return matchesSearch && matchesGenre;
   });
+  
+  // Calculate pagination
+  const totalBooks = filteredBooks?.length || 0;
+  const totalPages = Math.ceil(totalBooks / booksPerPage);
+  
+  // Get current books page
+  const currentBooks = filteredBooks?.slice(
+    (currentPage - 1) * booksPerPage,
+    currentPage * booksPerPage
+  );
   
   const getGenres = () => {
     if (!books) return [];
@@ -195,27 +264,100 @@ export default function BooksPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Genre</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter the book genre" {...field} />
-                          </FormControl>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a genre" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="fiction">Fiction</SelectItem>
+                              <SelectItem value="non-fiction">Non-Fiction</SelectItem>
+                              <SelectItem value="mystery">Mystery</SelectItem>
+                              <SelectItem value="science-fiction">Science Fiction</SelectItem>
+                              <SelectItem value="fantasy">Fantasy</SelectItem>
+                              <SelectItem value="romance">Romance</SelectItem>
+                              <SelectItem value="thriller">Thriller</SelectItem>
+                              <SelectItem value="horror">Horror</SelectItem>
+                              <SelectItem value="biography">Biography</SelectItem>
+                              <SelectItem value="history">History</SelectItem>
+                              <SelectItem value="poetry">Poetry</SelectItem>
+                              <SelectItem value="self-help">Self-Help</SelectItem>
+                              <SelectItem value="children">Children's</SelectItem>
+                              <SelectItem value="young-adult">Young Adult</SelectItem>
+                              <SelectItem value="academic">Academic</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                     
-                    <FormField
-                      control={bookForm.control}
-                      name="coverImage"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Cover Image URL</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter URL to the book cover image" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="space-y-4">
+                      <div>
+                        <FormLabel>Cover Image</FormLabel>
+                        <div className="mt-2">
+                          <div className="flex items-center gap-4">
+                            <Input 
+                              type="file" 
+                              id="cover-upload"
+                              accept="image/*"
+                              onChange={handleFileChange}
+                              className="max-w-sm"
+                            />
+                            {isUploading && 
+                              <div className="text-sm text-gray-500">
+                                Uploading...
+                              </div>
+                            }
+                          </div>
+                          {uploadedCoverPath && (
+                            <div className="mt-2">
+                              <div className="text-sm text-green-600 mb-2 flex items-center gap-1">
+                                <svg 
+                                  xmlns="http://www.w3.org/2000/svg" 
+                                  className="h-4 w-4" 
+                                  fill="none" 
+                                  viewBox="0 0 24 24" 
+                                  stroke="currentColor"
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                Cover image uploaded successfully
+                              </div>
+                              <div className="border rounded-md p-2 max-w-xs">
+                                <img 
+                                  src={uploadedCoverPath} 
+                                  alt="Uploaded Cover" 
+                                  className="max-h-40 object-contain mx-auto" 
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          Or provide a URL to an existing image:
+                        </div>
+                      </div>
+                      
+                      <FormField
+                        control={bookForm.control}
+                        name="coverImage"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="sr-only">Cover Image URL</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Alternative: enter URL to the book cover image" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     
                     <DialogFooter>
                       <Button type="submit" disabled={createBookMutation.isPending}>
@@ -266,21 +408,23 @@ export default function BooksPage() {
         </Card>
         
         {/* Book Categories */}
-        <Tabs defaultValue="all" className="mb-6">
-          <TabsList>
-            <TabsTrigger value="all">All Books</TabsTrigger>
-            <TabsTrigger value="fiction">Fiction</TabsTrigger>
-            <TabsTrigger value="nonfiction">Non-Fiction</TabsTrigger>
-            <TabsTrigger value="poetry">Poetry Collections</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="overflow-x-auto pb-2 mb-4">
+          <Tabs defaultValue="all" className="mb-2">
+            <TabsList className="inline-flex h-9 min-w-full w-auto">
+              <TabsTrigger value="all" className="whitespace-nowrap text-xs md:text-sm">All Books</TabsTrigger>
+              <TabsTrigger value="fiction" className="whitespace-nowrap text-xs md:text-sm">Fiction</TabsTrigger>
+              <TabsTrigger value="nonfiction" className="whitespace-nowrap text-xs md:text-sm">Non-Fiction</TabsTrigger>
+              <TabsTrigger value="poetry" className="whitespace-nowrap text-xs md:text-sm">Poetry Collections</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
         
-        {/* Books Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        {/* Books Grid - More responsive with fewer columns on mobile */}
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {isLoading ? (
             <div className="col-span-full text-center py-10">Loading books...</div>
-          ) : filteredBooks && filteredBooks.length > 0 ? (
-            filteredBooks.map(book => (
+          ) : currentBooks && currentBooks.length > 0 ? (
+            currentBooks.map(book => (
               <BookCard
                 key={book.id}
                 id={book.id}
@@ -297,6 +441,60 @@ export default function BooksPage() {
             </div>
           )}
         </div>
+        
+        {/* Pagination Controls */}
+        {filteredBooks && filteredBooks.length > 0 && (
+          <div className="mt-8 flex flex-col sm:flex-row justify-between items-center">
+            <div className="text-sm text-gray-600 mb-4 sm:mb-0">
+              Showing {Math.min(totalBooks, 1 + (currentPage - 1) * booksPerPage)}-{Math.min(currentPage * booksPerPage, totalBooks)} of {totalBooks} books
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                disabled={currentPage <= 1}
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                className="h-8 w-8 p-0"
+              >
+                &lt;
+              </Button>
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                // Show pages around current page
+                let pageToShow;
+                if (totalPages <= 5) {
+                  pageToShow = i + 1;
+                } else if (currentPage <= 3) {
+                  pageToShow = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageToShow = totalPages - 4 + i;
+                } else {
+                  pageToShow = currentPage - 2 + i;
+                }
+                
+                return (
+                  <Button
+                    key={pageToShow}
+                    variant={currentPage === pageToShow ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(pageToShow)}
+                    className="h-8 w-8 p-0"
+                  >
+                    {pageToShow}
+                  </Button>
+                );
+              })}
+              <Button 
+                variant="outline" 
+                size="sm"
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                className="h-8 w-8 p-0"
+              >
+                &gt;
+              </Button>
+            </div>
+          </div>
+        )}
         
         {/* Featured Collections Section */}
         <div className="mt-12 mb-8">
