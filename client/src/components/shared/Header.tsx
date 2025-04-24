@@ -50,7 +50,7 @@ const Header = ({ user, toggleMobileMenu, isMobileMenuOpen }: HeaderProps) => {
         {/* Logo */}
         <div className="flex items-center space-x-2">
           <Link href="/">
-            <span className="text-primary text-2xl font-bold cursor-pointer">Versefountain</span>
+            <span className="text-primary text-2xl font-bold cursor-pointer">eLibrary</span>
           </Link>
         </div>
 

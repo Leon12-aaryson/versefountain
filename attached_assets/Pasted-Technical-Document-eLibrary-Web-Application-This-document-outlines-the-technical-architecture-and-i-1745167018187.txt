@@ -1,8 +1,8 @@
-Technical Document: Versefountain Web Application
+Technical Document: eLibrary Web Application
 This document outlines the technical architecture and implementation details for a web-based eLibrary application designed to provide a comprehensive digital reading and poetry-sharing experience. The application emphasizes poetry as the primary product, with chat rooms as a core feature, and includes eBook collections, e-learning resources, book buffering, career guides, event management, and analytics. The platform will support subscriptions and ticketing via Paddle, require all events to be created within the application, and allow registered users to post poetry (text/word or video) and upload their own literature (e.g., books). Only registered users can interact with poetry through liking, chatrooms, or rating, while non-registered users are limited to reading and scrolling.
 
 Project Overview
-The Versefountain is a web-based platform that transitions from traditional book-focused libraries to a poetry-centric model, fostering a community-driven space for sharing and engaging with poetry and literature. It offers a subscription-based model, real-time chat rooms, web scraping for book recommendations, e-learning resources, and event ticketing. The application ensures accessibility, scalability, and a seamless user experience across devices.
+The eLibrary is a web-based platform that transitions from traditional book-focused libraries to a poetry-centric model, fostering a community-driven space for sharing and engaging with poetry and literature. It offers a subscription-based model, real-time chat rooms, web scraping for book recommendations, e-learning resources, and event ticketing. The application ensures accessibility, scalability, and a seamless user experience across devices.
 Objectives
 Enable registered users to post poetry in text/word or video formats and upload their own literature (e.g., books).
 Restrict poetry interactions (liking, chatroom participation, rating) to registered users, with non-registered users limited to reading and scrolling.
@@ -145,5 +145,5 @@ Expand event creation to allow moderated user-generated events.
 Develop a mobile app for iOS and Android to complement the web platform.
 
 Conclusion
-This technical document outlines a robust, scalable architecture for the Versefountain web application, addressing all specified requirements. By enabling registered users to post text/word or video poetry and upload their own literature, restricting interactions to registered users, and using Paddle for payments, the platform fosters a community-driven literary experience. The chosen tech stack ensures flexibility, accessibility, and performance, with clear pathways for future enhancements. For further details or clarifications, please contact the development team.
+This technical document outlines a robust, scalable architecture for the eLibrary web application, addressing all specified requirements. By enabling registered users to post text/word or video poetry and upload their own literature, restricting interactions to registered users, and using Paddle for payments, the platform fosters a community-driven literary experience. The chosen tech stack ensures flexibility, accessibility, and performance, with clear pathways for future enhancements. For further details or clarifications, please contact the development team.
 

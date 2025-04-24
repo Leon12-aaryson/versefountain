@@ -16,11 +16,11 @@ const MobileNavigation = ({ activeSection }: MobileNavigationProps) => {
   const { user } = useAuth();
   
   return (
-    <nav className="md:hidden bg-white border-t border-gray-200 fixed bottom-0 left-0 right-0 z-40">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 bg-white shadow-lg">
       <div className="flex justify-around items-center h-16">
         <Link href="/">
           <span className={`flex flex-col items-center justify-center cursor-pointer ${
-            activeSection === 'home' ? 'text-primary' : 'text-gray-500'
+            activeSection === 'home' ? 'text-primary font-medium' : 'text-gray-500'
           }`}>
             <Home className="h-6 w-6" />
             <span className="text-xs mt-1">Home</span>
@@ -29,7 +29,7 @@ const MobileNavigation = ({ activeSection }: MobileNavigationProps) => {
         
         <Link href="/poetry">
           <span className={`flex flex-col items-center justify-center cursor-pointer ${
-            activeSection === 'poetry' ? 'text-primary' : 'text-gray-500'
+            activeSection === 'poetry' ? 'text-primary font-medium' : 'text-gray-500'
           }`}>
             <BookText className="h-6 w-6" />
             <span className="text-xs mt-1">Poetry</span>
@@ -38,7 +38,7 @@ const MobileNavigation = ({ activeSection }: MobileNavigationProps) => {
         
         <Link href="/books">
           <span className={`flex flex-col items-center justify-center cursor-pointer ${
-            activeSection === 'books' ? 'text-primary' : 'text-gray-500'
+            activeSection === 'books' ? 'text-primary font-medium' : 'text-gray-500'
           }`}>
             <BookOpen className="h-6 w-6" />
             <span className="text-xs mt-1">Books</span>
@@ -47,7 +47,7 @@ const MobileNavigation = ({ activeSection }: MobileNavigationProps) => {
         
         <Link href="/chat">
           <span className={`flex flex-col items-center justify-center cursor-pointer ${
-            activeSection === 'chat' ? 'text-primary' : 'text-gray-500'
+            activeSection === 'chat' ? 'text-primary font-medium' : 'text-gray-500'
           }`}>
             <MessageSquare className="h-6 w-6" />
             <span className="text-xs mt-1">Chat</span>
@@ -56,7 +56,7 @@ const MobileNavigation = ({ activeSection }: MobileNavigationProps) => {
         
         <Link href={user ? "/profile" : "/auth"}>
           <span className={`flex flex-col items-center justify-center cursor-pointer ${
-            activeSection === 'profile' ? 'text-primary' : 'text-gray-500'
+            activeSection === 'profile' ? 'text-primary font-medium' : 'text-gray-500'
           }`}>
             <User className="h-6 w-6" />
             <span className="text-xs mt-1">Profile</span>

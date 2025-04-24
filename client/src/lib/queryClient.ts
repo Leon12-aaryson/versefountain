@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { getApiBaseUrl } from "./netlifyConfig";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -7,12 +8,20 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Get the API base URL based on environment
+const apiBase = getApiBaseUrl();
+
 export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
+  // Prepend API base URL if url starts with /api
+  const fullUrl = url.startsWith('/api') 
+    ? `${apiBase}${url.substring(4)}` // Remove /api prefix
+    : url;
+    
+  const res = await fetch(fullUrl, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
@@ -29,7 +38,12 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
+    // Prepend API base URL if queryKey starts with /api
+    const url = (queryKey[0] as string).startsWith('/api')
+      ? `${apiBase}${(queryKey[0] as string).substring(4)}`
+      : queryKey[0] as string;
+      
+    const res = await fetch(url, {
       credentials: "include",
     });
 

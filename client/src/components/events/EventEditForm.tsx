@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { insertEventSchema, InsertEvent } from "@shared/schema";
+import { insertEventSchema, Event } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 import { Button } from "@/components/ui/button";
@@ -28,13 +28,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { DialogClose } from "@/components/ui/dialog";
 
@@ -59,7 +52,12 @@ const eventFormSchema = insertEventSchema.extend({
 
 type EventFormData = z.infer<typeof eventFormSchema>;
 
-export default function EventCreationForm() {
+interface EventEditFormProps {
+  event: Event;
+  onSuccess?: () => void;
+}
+
+export default function EventEditForm({ event, onSuccess }: EventEditFormProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,16 +66,15 @@ export default function EventCreationForm() {
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventFormSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      date: new Date(),
-      location: "",
-      isVirtual: false,
-      isFree: true,
-      ticketPrice: 0,
-      organizer: user?.username || "",
-      streamUrl: "",
-      category: "general",
+      title: event.title || "",
+      description: event.description || "",
+      date: new Date(event.date),
+      location: event.location || "",
+      isVirtual: event.isVirtual || false,
+      isFree: event.isFree || false,
+      ticketPrice: event.ticketPrice ? event.ticketPrice / 100 : 0, // Convert cents to dollars for display
+      organizer: event.organizer || user?.username || "",
+      streamUrl: event.streamUrl || "",
     },
   } as any);
 
@@ -88,7 +85,7 @@ export default function EventCreationForm() {
     if (!user) {
       toast({
         title: "Authentication Required",
-        description: "You must be logged in to create an event",
+        description: "You must be logged in to edit an event",
         variant: "destructive",
       });
       return;
@@ -98,29 +95,36 @@ export default function EventCreationForm() {
 
     try {
       // Convert price from dollars to cents for storage
-      const eventData: InsertEvent = {
+      const eventData = {
         ...data,
         ticketPrice: isFree ? 0 : (data.ticketPrice || 0) * 100,
-        streamUrl: isVirtual ? data.streamUrl || "" : undefined,
-        createdById: user.id,
+        streamUrl: isVirtual ? data.streamUrl || "" : null,
       };
 
-      const response = await apiRequest("POST", "/api/events", eventData);
-      const newEvent = await response.json();
+      const response = await apiRequest("PUT", `/api/events/${event.id}`, eventData);
+      
+      if (!response.ok) {
+        throw new Error("Failed to update event");
+      }
+      
+      const updatedEvent = await response.json();
 
       toast({
-        title: "Event Created",
-        description: "Your event has been successfully created",
+        title: "Event Updated",
+        description: "Your event has been successfully updated",
       });
 
       // Update the events cache
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });
 
       setFormSubmitted(true);
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       toast({
-        title: "Failed to Create Event",
-        description: error instanceof Error ? error.message : "An error occurred while creating the event",
+        title: "Failed to Update Event",
+        description: error instanceof Error ? error.message : "An error occurred while updating the event",
         variant: "destructive",
       });
     } finally {
@@ -136,8 +140,8 @@ export default function EventCreationForm() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h3 className="text-lg font-medium">Event Created Successfully!</h3>
-        <p className="text-gray-500 mt-2 mb-6">Your event has been added to our calendar.</p>
+        <h3 className="text-lg font-medium">Event Updated Successfully!</h3>
+        <p className="text-gray-500 mt-2 mb-6">Your event has been updated in our calendar.</p>
         <DialogClose asChild>
           <Button>Close</Button>
         </DialogClose>
@@ -231,34 +235,6 @@ export default function EventCreationForm() {
             )}
           />
         </div>
-
-        <FormField
-          control={form.control}
-          name="category"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Event Category</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select event category" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="poetry">Poetry</SelectItem>
-                  <SelectItem value="book_launch">Book Launch</SelectItem>
-                  <SelectItem value="workshop">Workshop</SelectItem>
-                  <SelectItem value="lecture">Lecture</SelectItem>
-                  <SelectItem value="general">General</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                Select the category that best describes your event
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
@@ -368,7 +344,7 @@ export default function EventCreationForm() {
           </DialogClose>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create Event
+            Update Event
           </Button>
         </div>
       </form>

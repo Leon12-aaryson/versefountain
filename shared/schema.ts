@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, primaryKey, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -8,6 +8,18 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   email: text("email").notNull(),
   isAdmin: boolean("is_admin").default(false),
+});
+
+// Table for tracking poet followers
+export const poetFollowers = pgTable('poet_followers', {
+  id: serial("id").primaryKey(),
+  followerId: integer("follower_id").notNull().references(() => users.id),
+  poetId: integer("poet_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => {
+  return {
+    followerPoetIndex: primaryKey({ columns: [table.followerId, table.poetId] }),
+  };
 });
 
 export const poems = pgTable("poems", {
@@ -43,6 +55,8 @@ export const events = pgTable("events", {
   isVirtual: boolean("is_virtual").default(false),
   streamUrl: text("stream_url"),
   isFree: boolean("is_free").default(false),
+  createdById: integer("created_by_id").references(() => users.id),
+  category: text("category").default("general"), // Added categories: poetry, book_launch, workshop, lecture, general
 });
 
 export const chatRooms = pgTable("chat_rooms", {
@@ -72,12 +86,29 @@ export const academicResources = pgTable("academic_resources", {
   resourceUrl: text("resource_url"),
 });
 
+export const payments = pgTable("payments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  eventId: integer("event_id").notNull().references(() => events.id),
+  amount: integer("amount").notNull(),
+  currency: text("currency").default("USD"),
+  status: text("status").notNull(), // "pending", "completed", "refunded", "failed"
+  paddlePaymentId: text("paddle_payment_id"),
+  paddleTransactionId: text("paddle_transaction_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  refundReason: text("refund_reason"),
+});
+
 export const tickets = pgTable("tickets", {
   id: serial("id").primaryKey(),
   eventId: integer("event_id").notNull().references(() => events.id),
   userId: integer("user_id").notNull().references(() => users.id),
   purchaseDate: timestamp("purchase_date").defaultNow(),
   ticketCode: text("ticket_code").notNull().unique(),
+  status: text("status").default("active").notNull(), // "active", "cancelled", "used"
+  paymentId: integer("payment_id").references(() => payments.id),
+  isRefunded: boolean("is_refunded").default(false),
 });
 
 export const userPoems = pgTable("user_poems", {
@@ -88,6 +119,29 @@ export const userPoems = pgTable("user_poems", {
 }, (t) => ({
   pk: primaryKey({ columns: [t.userId, t.poemId] }),
 }));
+
+export const userChatRooms = pgTable("user_chat_rooms", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  roomId: integer("room_id").notNull().references(() => chatRooms.id),
+  joinedAt: timestamp("joined_at").defaultNow(),
+});
+
+export const poemComments = pgTable("poem_comments", {
+  id: serial("id").primaryKey(),
+  poemId: integer("poem_id").notNull().references(() => poems.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const commentReactions = pgTable("poem_comment_reactions", {
+  id: serial("id").primaryKey(),
+  commentId: integer("comment_id").notNull().references(() => poemComments.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  reaction: text("reaction").notNull(), // e.g., "like", "love", "laugh", "angry"
+  createdAt: timestamp("created_at").defaultNow(),
+});
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -121,6 +175,7 @@ export const insertEventSchema = createInsertSchema(events).omit({
 }).extend({
   isVirtual: z.boolean().optional().default(false),
   isFree: z.boolean().optional().default(true),
+  category: z.enum(['poetry', 'book_launch', 'workshop', 'lecture', 'general']).default('general'),
 });
 
 export const insertChatRoomSchema = createInsertSchema(chatRooms).omit({
@@ -137,10 +192,38 @@ export const insertAcademicResourceSchema = createInsertSchema(academicResources
   id: true,
 });
 
+export const insertPaymentSchema = createInsertSchema(payments).omit({
+  id: true,
+  paddlePaymentId: true,
+  paddleTransactionId: true,
+  createdAt: true,
+  updatedAt: true,
+  refundReason: true,
+});
+
 export const insertTicketSchema = createInsertSchema(tickets).omit({
   id: true,
   purchaseDate: true,
   ticketCode: true,
+  status: true,
+  isRefunded: true,
+});
+
+export const insertPoemCommentSchema = createInsertSchema(poemComments).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+});
+
+export const insertCommentReactionSchema = createInsertSchema(commentReactions).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+});
+
+export const insertPoetFollowerSchema = createInsertSchema(poetFollowers).omit({
+  id: true,
+  createdAt: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -158,5 +241,14 @@ export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type AcademicResource = typeof academicResources.$inferSelect;
 export type InsertAcademicResource = z.infer<typeof insertAcademicResourceSchema>;
+export type Payment = typeof payments.$inferSelect;
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 export type Ticket = typeof tickets.$inferSelect;
 export type InsertTicket = z.infer<typeof insertTicketSchema>;
+export type UserChatRoom = typeof userChatRooms.$inferSelect;
+export type PoemComment = typeof poemComments.$inferSelect;
+export type InsertPoemComment = z.infer<typeof insertPoemCommentSchema>;
+export type CommentReaction = typeof commentReactions.$inferSelect;
+export type InsertCommentReaction = z.infer<typeof insertCommentReactionSchema>;
+export type PoetFollower = typeof poetFollowers.$inferSelect;
+export type InsertPoetFollower = z.infer<typeof insertPoetFollowerSchema>;

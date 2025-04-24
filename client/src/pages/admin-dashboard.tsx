@@ -43,6 +43,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Loader2, UserCircle, Book, ScrollText, Calendar, MessageCircle, GraduationCap, Ticket, Plus, Check, X, Edit, Trash2, Eye } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -484,12 +491,34 @@ function BookManagement() {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="genre" className="text-right">Genre</Label>
-                <Input 
-                  id="genre" 
-                  value={newBook.genre} 
-                  onChange={(e) => setNewBook({...newBook, genre: e.target.value})}
-                  className="col-span-3" 
-                />
+                <div className="col-span-3">
+                  <Select
+                    value={newBook.genre}
+                    onValueChange={(value) => setNewBook({...newBook, genre: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a genre" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="fiction">Fiction</SelectItem>
+                      <SelectItem value="non-fiction">Non-Fiction</SelectItem>
+                      <SelectItem value="mystery">Mystery</SelectItem>
+                      <SelectItem value="science-fiction">Science Fiction</SelectItem>
+                      <SelectItem value="fantasy">Fantasy</SelectItem>
+                      <SelectItem value="romance">Romance</SelectItem>
+                      <SelectItem value="thriller">Thriller</SelectItem>
+                      <SelectItem value="horror">Horror</SelectItem>
+                      <SelectItem value="biography">Biography</SelectItem>
+                      <SelectItem value="history">History</SelectItem>
+                      <SelectItem value="poetry">Poetry</SelectItem>
+                      <SelectItem value="self-help">Self-Help</SelectItem>
+                      <SelectItem value="children">Children's</SelectItem>
+                      <SelectItem value="young-adult">Young Adult</SelectItem>
+                      <SelectItem value="academic">Academic</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="coverImage" className="text-right">Cover URL</Label>
@@ -498,7 +527,11 @@ function BookManagement() {
                   value={newBook.coverImage} 
                   onChange={(e) => setNewBook({...newBook, coverImage: e.target.value})}
                   className="col-span-3" 
+                  placeholder="Enter a URL or upload using the book page dialog"
                 />
+                <div className="col-span-4 text-xs text-muted-foreground text-right">
+                  For file uploads, please use the Upload Book dialog on the main Books page
+                </div>
               </div>
             </div>
             <DialogFooter>
