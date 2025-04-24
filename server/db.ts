@@ -1,14 +1,10 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 import dotenv from 'dotenv';
 
 // Load environment variables
 dotenv.config();
-
-// Set up WebSocket for Neon DB connections
-neonConfig.webSocketConstructor = ws;
 
 // Get database configuration from environment variables
 const databaseUrl = process.env.DATABASE_URL;

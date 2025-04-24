@@ -1,80 +1,123 @@
-# VerseFountain
+# VerseFountain: Digital Literary Platform
 
 VerseFountain is a comprehensive digital library platform that empowers poets, readers, and literature enthusiasts to discover, share, and engage with creative content through advanced technological integrations and user-centric design.
 
 ## Features
 
-- **Poetry Repository**: Browse, create, and interact with poetry content including text and video poems
-- **eBooks Library**: Access and upload digital books with categorization
-- **Academic Resources**: Find scholarly articles and educational materials
-- **Events Management**: Discover, register for, and manage virtual and physical events
-- **Real-time Chat**: Engage with the community through topic-based chat rooms
-- **User Authentication**: Secure login and registration system
-- **Admin Dashboard**: Comprehensive platform management for administrators
-- **Payment Integration**: Process payments for paid events with Paddle
-- **Ticket System**: Generate and manage event tickets with QR codes
+- **Digital Library**: Extensive collection of books, poetry, and academic resources
+- **Poetry Community**: Share, rate, and comment on poetry content
+- **Event Management**: Create, browse, and register for literary events
+- **Real-time Chat**: Join thematic chat rooms to discuss literary topics
+- **Ticketing System**: Generate event tickets with QR codes
+- **Payment Processing**: Handle paid event registrations
+- **User Management**: Authentication and personalized profiles
 
 ## Tech Stack
 
-- React with TypeScript for the frontend
-- Express.js backend with Node.js
-- PostgreSQL database with Drizzle ORM
-- WebSocket for real-time chat functionality
-- React Query for state management
-- Shadcn UI components with Tailwind CSS
-- Zod for schema validation
-- Paddle for payment processing
-- Session-based authentication
+- **Frontend**: React, TypeScript, TailwindCSS, shadcn/ui
+- **Backend**: Express.js, Node.js
+- **Database**: PostgreSQL (Neon)
+- **State Management**: TanStack Query
+- **Real-time Communication**: WebSockets
+- **Authentication**: Session-based auth with Passport.js
+- **Payment Processing**: Paddle
+- **Deployment**: Netlify
 
-## Deployment Instructions
+## Development Setup
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Set up environment variables:
+   - Copy `.env.example` to `.env`
+   - Fill in the required values
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+## Database Migration
+
+When making schema changes, use the following steps:
+
+1. Update the schema in `shared/schema.ts`
+2. Generate migration files:
+   ```bash
+   npx drizzle-kit generate
+   ```
+3. Apply migrations:
+   ```bash
+   npx drizzle-kit push
+   ```
+   
+**Note:** If you encounter issues with interactive prompts during `drizzle-kit push`, you can manually apply the SQL from the generated migration files to your database.
+
+## Deployment on Netlify
 
 ### Prerequisites
 
-1. A Netlify account
-2. A PostgreSQL database (Neon, Supabase, etc.)
-3. API keys for services (Paddle, Firebase, etc.)
+1. A [Netlify account](https://app.netlify.com/signup)
+2. PostgreSQL database (e.g., [Neon](https://neon.tech))
+3. Properly configured environment variables
 
-### Environment Variables
+### Deployment Steps
 
-Before deploying, you need to set up the following environment variables:
+1. **Prepare for deployment**:
+   ```bash
+   npm run build
+   ```
 
-1. Copy `.env.example` to `.env` and fill in the values
-2. Add these variables to your Netlify site:
-   - Database connection details (`DATABASE_URL`, `PGHOST`, etc.)
-   - Session secret (`SESSION_SECRET`)
-   - API keys for services (`STRIPE_SECRET_KEY`, `VITE_PADDLE_VENDOR_ID`, etc.)
+2. **Deploy through Netlify CLI**:
+   ```bash
+   npm install -g netlify-cli
+   netlify login
+   netlify deploy
+   ```
 
-### Deploy to Netlify
+3. **Or deploy through Netlify UI**:
+   - Sign in to Netlify
+   - Go to "Sites" and click "Add new site" > "Import an existing project"
+   - Connect to your Git provider and select the repository
+   - Configure build settings:
+     - Build command: `npm run build`
+     - Publish directory: `dist`
+   - Click "Deploy site"
 
-1. Push the code to a Git repository (GitHub, GitLab, Bitbucket)
-2. Log in to your Netlify account
-3. Click "New site from Git"
-4. Select your repository and follow the setup wizard
-5. In the build settings:
-   - Build command: `npm run build`
-   - Publish directory: `dist`
-6. Deploy the site
+4. **Set up environment variables in Netlify**:
+   - In your site dashboard, go to "Site settings" > "Environment variables"
+   - Add all required environment variables from your `.env` file
+   - Make sure to include `DATABASE_URL` and all other database credentials
 
-### Post-Deployment
+5. **Configure serverless functions**:
+   - Netlify automatically detects functions in the `netlify/functions` directory
+   - No additional configuration is required
 
-1. Set up environment variables in Netlify dashboard
-2. Connect your custom domain (optional)
-3. Initialize your database with Drizzle migrations
+### WebSocket Limitations on Netlify
 
-## Local Development
+Netlify Functions don't natively support WebSockets, so we have two options:
 
-1. Clone the repository
-2. Create a `.env` file based on `.env.example`
-3. Install dependencies: `npm install`
-4. Start the development server: `npm run dev`
-5. Open `http://localhost:5000` in your browser
+1. **Use the REST API fallback** (implemented in the code)
+   - The application automatically detects when running on Netlify and uses AJAX polling instead
 
-## Note on WebSocket Functionality
+2. **Use a third-party WebSocket service** (for production):
+   - Consider services like Pusher, Firebase, or Ably
+   - Update the client code to use the chosen service
 
-When deployed to Netlify, the WebSocket functionality will fallback to HTTP-based communication as Netlify Functions don't support native WebSockets. 
+## User Authentication
 
-For production deployments that require real-time functionality, consider integrating with:
-- Firebase Realtime Database
-- Pusher
-- Ably
-- WebSocket API on AWS
+Sample users are created during the initial database seeding:
+
+- **Regular User**:
+  - Username: `user`
+  - Password: `password`
+
+- **Admin User**:
+  - Username: `admin`
+  - Password: `password`
+
+## License
+
+[MIT License](LICENSE)
