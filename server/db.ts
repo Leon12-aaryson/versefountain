@@ -79,7 +79,13 @@ async function connectWithRetry(attempts = 3, delay = 5000) {
       client.release();
       return;
     } catch (err) {
-      console.error(`Connection attempt ${i + 1} failed:`, err.message, err.stack);
+
+      if (err instanceof Error) {
+        console.error(`Connection attempt ${i + 1} failed:`, err.message, err.stack);
+      } else {
+        console.error(`Connection attempt ${i + 1} failed with an unknown error:`, err);
+      }
+      
       if (i < attempts - 1) {
         console.log(`Retrying in ${delay}ms...`);
         await new Promise((resolve) => setTimeout(resolve, delay));

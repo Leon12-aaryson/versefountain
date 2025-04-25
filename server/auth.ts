@@ -6,7 +6,6 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
-import { db, userStatements } from "./database";
 import { z } from "zod";
 
 // Custom user type for SQLite
@@ -92,7 +91,14 @@ export function setupAuth(app: Express) {
           
           if (passwordMatch) {
             console.log(`Authentication successful for DB user: ${username}`);
-            return done(null, dbUser);
+            const user: Express.User = {
+              id: dbUser.id,
+              username: dbUser.username,
+              email: dbUser.email,
+              is_admin: dbUser.isAdmin ? 1 : 0,
+              created_at: new Date().toISOString(), // Replace with actual created_at if available
+            };
+            return done(null, user);
           }
         }
         
@@ -111,7 +117,14 @@ export function setupAuth(app: Express) {
       // Get user from PostgreSQL database through our storage interface
       const user = await storage.getUser(id);
       if (user) {
-        done(null, user);
+        const mappedUser: Express.User = {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          is_admin: user.isAdmin ? 1 : 0,
+          created_at: new Date().toISOString(), // Replace with actual created_at if available
+        };
+        done(null, mappedUser);
       } else {
         done(null, false);
       }
@@ -167,7 +180,14 @@ export function setupAuth(app: Express) {
       console.log("Created new user in database:", { id: user.id, username: user.username });
 
       // Automatically log in the new user
-      req.login(user, (err) => {
+      const mappedUser: Express.User = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        is_admin: user.isAdmin ? 1 : 0,
+        created_at: new Date().toISOString(), // Replace with actual created_at if available
+      };
+      req.login(mappedUser, (err) => {
         if (err) return next(err);
         res.status(201).json(user);
       });
