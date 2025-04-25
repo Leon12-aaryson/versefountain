@@ -1,6 +1,5 @@
 import { db } from './db';
 import session from 'express-session';
-import { pool } from './db';
 import createMemoryStore from 'memorystore';
 import { 
   User, InsertUser, 
@@ -98,7 +97,7 @@ export class DatabaseStorage implements IStorage {
         .slice(0, limit);
       
       // Get user details for these authors
-      const poetUsers = [];
+      const poetUsers: { id: number; username: string; email: string; isAdmin: boolean | null; poemCount: number }[] = [];
       for (const { authorId, count } of authorCountArray) {
         const [user] = await db.select({
           id: users.id,

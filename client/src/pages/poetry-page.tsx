@@ -111,13 +111,27 @@ export default function PoetryPage() {
       const res = await apiRequest('POST', `/api/poets/${poetId}/follow`, {});
       return res.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       toast({
         title: 'Success',
         description: 'You are now following this poet',
       });
       
-      // Invalidate relevant queries to refresh data
+      // Immediately update UI state
+      setPoetFollowingStatus(prev => ({
+        ...prev,
+        [variables]: true // Use the poetId from variables
+      }));
+      
+      // Add to followed poet IDs for filtering
+      setFollowedPoetIds(prev => {
+        if (!prev.includes(variables)) {
+          return [...prev, variables];
+        }
+        return prev;
+      });
+      
+      // Still invalidate relevant queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/user/followed-poets'] });
       queryClient.invalidateQueries({ queryKey: ['/api/poets/featured'] });
     },
@@ -136,13 +150,22 @@ export default function PoetryPage() {
       const res = await apiRequest('POST', `/api/poets/${poetId}/unfollow`, {});
       return res.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       toast({
         title: 'Success',
         description: 'You have unfollowed this poet',
       });
       
-      // Invalidate relevant queries to refresh data
+      // Immediately update UI state
+      setPoetFollowingStatus(prev => ({
+        ...prev,
+        [variables]: false // Use the poetId from variables
+      }));
+      
+      // Remove from followed poet IDs for filtering
+      setFollowedPoetIds(prev => prev.filter(id => id !== variables));
+      
+      // Still invalidate relevant queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/user/followed-poets'] });
       queryClient.invalidateQueries({ queryKey: ['/api/poets/featured'] });
     },

@@ -58,7 +58,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     fileFilter: function(req, file, cb) {
       // Accept only image files
       if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
-        return cb(new Error('Only image files are allowed!'), false);
+        console.error('Only image files are allowed!');
+        return cb(null, false);
       }
       cb(null, true);
     }
@@ -113,6 +114,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get("/api/poems/user", isAuthenticated, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
       const poems = await storage.getPoemsByAuthorId(req.user.id);
       
       if (!poems || poems.length === 0) {
@@ -166,6 +170,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const poemData = insertPoemSchema.parse(req.body);
       console.log("Creating poem with data:", poemData);
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
       console.log("User ID:", req.user.id);
       const poem = await storage.createPoem(poemData, req.user.id);
       
@@ -204,6 +211,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Rating must be between 1 and 5" });
       }
       
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
       await storage.ratePoem(id, req.user.id, rating);
       res.sendStatus(200);
     } catch (error) {
@@ -215,6 +225,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/poems/:id/like", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
       await storage.likePoem(id, req.user.id);
       
       // Get updated like count
@@ -233,6 +247,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/poems/:id/unlike", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
       await storage.unlikePoem(id, req.user.id);
       
       // Get updated like count
@@ -264,6 +282,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/poems/:id/user-status", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
       const status = await storage.getUserPoemStatus(id, req.user.id);
       res.json(status);
     } catch (error) {
