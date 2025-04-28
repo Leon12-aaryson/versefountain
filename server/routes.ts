@@ -58,7 +58,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     fileFilter: function(req, file, cb) {
       // Accept only image files
       if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
-        return cb(new Error('Only image files are allowed!'), false);
+        console.error('Only image files are allowed!');
+        return cb(null, false);
       }
       cb(null, true);
     }
@@ -80,7 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Check if user is an admin middleware
   const isAdmin = (req, res, next) => {
-    if (req.isAuthenticated() && req.user.isAdmin) {
+    if (req.isAuthenticated() && req.user.is_admin) {
       return next();
     }
     return res.status(403).json({ message: "You don't have permission to perform this action" });
@@ -113,6 +114,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get("/api/poems/user", isAuthenticated, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
       const poems = await storage.getPoemsByAuthorId(req.user.id);
       
       if (!poems || poems.length === 0) {
@@ -166,6 +170,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const poemData = insertPoemSchema.parse(req.body);
       console.log("Creating poem with data:", poemData);
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      if (!req.user) {
+        console.error("User is not authenticated");
+        return res.status(401).json({ message: "Authentication required" });
+      }
       console.log("User ID:", req.user.id);
       const poem = await storage.createPoem(poemData, req.user.id);
       
@@ -204,6 +215,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Rating must be between 1 and 5" });
       }
       
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
       await storage.ratePoem(id, req.user.id, rating);
       res.sendStatus(200);
     } catch (error) {
@@ -215,6 +229,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/poems/:id/like", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
       await storage.likePoem(id, req.user.id);
       
       // Get updated like count
@@ -233,6 +251,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/poems/:id/unlike", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
       await storage.unlikePoem(id, req.user.id);
       
       // Get updated like count
@@ -264,6 +286,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/poems/:id/user-status", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
       const status = await storage.getUserPoemStatus(id, req.user.id);
       res.json(status);
     } catch (error) {
@@ -395,7 +421,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Gather data for each comment
       for (const commentId of commentIds) {
         const counts = await storage.getCommentReactionCounts(commentId);
-        let userReaction = null;
+
+        let userReaction: string | null = null;
         
         if (userId) {
           try {
@@ -509,7 +536,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user owns the poem or is an admin
-      if (poem.authorId !== req.user?.id && !req.user?.isAdmin) {
+      if (poem.authorId !== req.user?.id && !req.user?.is_admin) {
         return res.status(403).json({ message: "You don't have permission to edit this poem" });
       }
       
@@ -550,7 +577,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user owns the poem or is an admin
-      if (poem.authorId !== req.user?.id && !req.user?.isAdmin) {
+      if (poem.authorId !== req.user?.id && !req.user?.is_admin) {
         return res.status(403).json({ message: "You don't have permission to delete this poem" });
       }
       
@@ -619,6 +646,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/books", isAuthenticated, async (req, res) => {
     try {
       const bookData = insertBookSchema.parse(req.body);
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
       const book = await storage.createBook(bookData, req.user.id);
       
       res.status(201).json(book);
@@ -711,6 +741,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventData = insertEventSchema.parse(requestData);
       
       // Make sure createdById is set to the authenticated user's ID
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
       eventData.createdById = req.user.id;
       
       const event = await storage.createEvent(eventData);
@@ -742,7 +775,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if the user is the creator of the event or an admin
-      if (existingEvent.createdById !== req.user?.id && !req.user?.isAdmin) {
+      if (existingEvent.createdById !== req.user?.id && !req.user?.is_admin) {
         return res.status(403).json({ message: "You don't have permission to edit this event" });
       }
       
@@ -801,8 +834,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const roomData = insertChatRoomSchema.parse(req.body);
       console.log("Creating chat room with data:", roomData);
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
       console.log("User ID:", req.user.id);
       
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
       const room = await storage.createChatRoom(roomData, req.user.id);
       console.log("Chat room created successfully:", room);
       
@@ -997,6 +1036,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/poets/:id/follow", isAuthenticated, async (req, res) => {
     try {
       const poetId = parseInt(req.params.id);
+      if(!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      // Check if the user is authenticated
       const followerId = req.user.id;
       
       // Don't allow users to follow themselves
@@ -1024,6 +1067,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/poets/:id/unfollow", isAuthenticated, async (req, res) => {
     try {
       const poetId = parseInt(req.params.id);
+      if(!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      // Check if the user is authenticated
       const followerId = req.user.id;
       
       // Check if the poet exists
@@ -1070,7 +1117,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get("/api/user/followed-poets", isAuthenticated, async (req, res) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
       const followedPoets = await storage.getFollowedPoets(userId);
       
       res.json(followedPoets);
@@ -1083,6 +1133,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/poets/:id/following-status", isAuthenticated, async (req, res) => {
     try {
       const poetId = parseInt(req.params.id);
+
+      if(!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
       const userId = req.user.id;
       
       const isFollowing = await storage.isFollowingPoet(userId, poetId);
@@ -1110,7 +1164,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Basic ticket creation (in a real app, this would involve payment processing)
-      const ticket = await storage.createTicket(parseInt(eventId), req.user?.id);
+      if (eventId === undefined) {
+        return res.status(400).json({ message: "Event ID is required" });
+      }
+      const ticket = await storage.createTicket(parseInt(eventId, 10), req.user?.id!);
       
       res.status(201).json(ticket);
     } catch (error) {
@@ -1136,7 +1193,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // For security, always use the authenticated user's ID
-      const ticket = await storage.createTicket(parseInt(eventId), req.user?.id);
+      if (eventId === undefined) {
+        return res.status(400).json({ message: "Event ID is required" });
+      }
+      const ticket = await storage.createTicket(parseInt(eventId, 10), req.user?.id!);
       
       res.status(201).json(ticket);
     } catch (error) {
@@ -1147,6 +1207,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get("/api/tickets", isAuthenticated, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
       const tickets = await storage.getTicketsByUserId(req.user.id);
       
       // Get event details for each ticket
@@ -1167,6 +1230,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get("/api/tickets/user", isAuthenticated, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      // Get tickets for the authenticated user
       const tickets = await storage.getTicketsByUserId(req.user.id);
       
       // Always return an array (empty if no tickets)
@@ -1200,7 +1267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if the ticket belongs to the user
-      if (ticket.userId !== req.user?.id && !req.user?.isAdmin) {
+      if (ticket.userId !== req.user?.id && !req.user?.is_admin) {
         return res.status(403).json({ message: "You don't have permission to view this ticket" });
       }
       
@@ -1237,7 +1304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Don't allow changing own admin status to prevent lockout
-      if (userId === req.user.id && !makeAdmin) {
+      if (!req.user || userId === req.user.id && !makeAdmin) {
         return res.status(400).json({ message: "You cannot remove your own admin privileges" });
       }
       
@@ -1258,7 +1325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.id);
       
       // Don't allow deleting own account
-      if (userId === req.user.id) {
+      if (!req.user || userId === req.user.id) {
         return res.status(400).json({ message: "You cannot delete your own account" });
       }
       
@@ -1338,7 +1405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user owns the poem or is an admin
-      if (poem.authorId !== req.user?.id && !req.user?.isAdmin) {
+      if (poem.authorId !== req.user?.id && !req.user?.is_admin) {
         return res.status(403).json({ message: "You don't have permission to delete this poem" });
       }
       
@@ -1383,7 +1450,7 @@ app.delete("/api/admin/poems/:id", isAdmin, async (req, res) => {
       }
       
       // Ensure user is authorized
-      if (paymentData.userId !== req.user.id) {
+      if (!req.user || paymentData.userId !== req.user.id) {
         return res.status(403).json({ message: "Unauthorized" });
       }
       
@@ -1419,7 +1486,7 @@ app.delete("/api/admin/poems/:id", isAdmin, async (req, res) => {
       }
       
       // Only admin or payment owner can update status
-      if (payment.userId !== req.user.id && !req.user.isAdmin) {
+      if (!req.user || (payment.userId !== req.user.id && !req.user.is_admin)) {
         return res.status(403).json({ message: "Unauthorized" });
       }
       
@@ -1462,7 +1529,7 @@ app.delete("/api/admin/poems/:id", isAdmin, async (req, res) => {
       }
       
       // Only admin or payment owner can request refund
-      if (payment.userId !== req.user.id && !req.user.isAdmin) {
+      if (!req.user || (payment.userId !== req.user.id && !req.user.is_admin)) {
         return res.status(403).json({ message: "Unauthorized" });
       }
       
@@ -1501,7 +1568,7 @@ app.delete("/api/admin/poems/:id", isAdmin, async (req, res) => {
       }
       
       // Only owner or admin can view ticket details
-      if (ticket.userId !== req.user.id && !req.user.isAdmin) {
+      if (!req.user || (ticket.userId !== req.user.id && !req.user.is_admin)) {
         return res.status(403).json({ message: "Unauthorized" });
       }
       
@@ -1534,7 +1601,7 @@ app.delete("/api/admin/poems/:id", isAdmin, async (req, res) => {
       }
       
       // Only owner or admin can update ticket status
-      if (ticket.userId !== req.user.id && !req.user.isAdmin) {
+      if (!req.user || ticket.userId !== req.user.id && !req.user.is_admin) {
         return res.status(403).json({ message: "Unauthorized" });
       }
       
@@ -1568,7 +1635,7 @@ app.delete("/api/admin/poems/:id", isAdmin, async (req, res) => {
       console.log(`Found ticket: ${JSON.stringify(ticket)}`);
       
       // Check if the user owns the ticket or is an admin
-      if (ticket.userId !== req.user.id && !req.user.isAdmin) {
+      if (!req.user || (ticket.userId !== req.user.id && !req.user.is_admin)) {
         return res.status(403).json({ message: "You don't have permission to cancel this ticket" });
       }
       

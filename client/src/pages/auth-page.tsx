@@ -76,7 +76,7 @@ export default function AuthPage() {
 
   useEffect(() => {
     document.title = 'VerseFountain - Authentication';
-    
+
     // Redirect if already logged in
     if (user) {
       navigate('/');
@@ -142,8 +142,8 @@ export default function AuthPage() {
                 <CardHeader>
                   <CardTitle>Welcome to VerseFountain</CardTitle>
                   <CardDescription>
-                    {activeTab === 'login' 
-                      ? 'Sign in to your account to continue' 
+                    {activeTab === 'login'
+                      ? 'Sign in to your account to continue'
                       : 'Create a new account to join our community'}
                   </CardDescription>
                 </CardHeader>
@@ -153,64 +153,64 @@ export default function AuthPage() {
                       <TabsTrigger value="register">Register</TabsTrigger>
                       <TabsTrigger value="login">Login</TabsTrigger>
                     </TabsList>
-                    
+
                     <TabsContent value="register">
                       <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
                         <div className="space-y-2">
                           <Label htmlFor="register-username">Username</Label>
-                          <Input 
-                            id="register-username" 
-                            type="text" 
+                          <Input
+                            id="register-username"
+                            type="text"
                             placeholder="Choose a username"
-                            {...registerForm.register('username')} 
+                            {...registerForm.register('username')}
                           />
                           {registerForm.formState.errors.username && (
                             <p className="text-sm text-red-500">{registerForm.formState.errors.username.message}</p>
                           )}
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="register-email">Email</Label>
-                          <Input 
-                            id="register-email" 
-                            type="email" 
+                          <Input
+                            id="register-email"
+                            type="email"
                             placeholder="you@example.com"
-                            {...registerForm.register('email')} 
+                            {...registerForm.register('email')}
                           />
                           {registerForm.formState.errors.email && (
                             <p className="text-sm text-red-500">{registerForm.formState.errors.email.message}</p>
                           )}
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="register-password">Password</Label>
-                          <Input 
-                            id="register-password" 
-                            type="password" 
+                          <Input
+                            id="register-password"
+                            type="password"
                             placeholder="Create a password"
-                            {...registerForm.register('password')} 
+                            {...registerForm.register('password')}
                           />
                           {registerForm.formState.errors.password && (
                             <p className="text-sm text-red-500">{registerForm.formState.errors.password.message}</p>
                           )}
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="register-confirm-password">Confirm Password</Label>
-                          <Input 
-                            id="register-confirm-password" 
-                            type="password" 
+                          <Input
+                            id="register-confirm-password"
+                            type="password"
                             placeholder="Confirm your password"
-                            {...registerForm.register('confirmPassword')} 
+                            {...registerForm.register('confirmPassword')}
                           />
                           {registerForm.formState.errors.confirmPassword && (
                             <p className="text-sm text-red-500">{registerForm.formState.errors.confirmPassword.message}</p>
                           )}
                         </div>
-                        
-                        <Button 
-                          type="submit" 
-                          className="w-full" 
+
+                        <Button
+                          type="submit"
+                          className="w-full"
                           disabled={registerMutation.isPending}
                         >
                           {registerMutation.isPending ? (
@@ -224,38 +224,38 @@ export default function AuthPage() {
                         </Button>
                       </form>
                     </TabsContent>
-                    
+
                     <TabsContent value="login">
                       <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
                         <div className="space-y-2">
                           <Label htmlFor="login-username">Username</Label>
-                          <Input 
-                            id="login-username" 
-                            type="text" 
+                          <Input
+                            id="login-username"
+                            type="text"
                             placeholder="Enter your username"
-                            {...loginForm.register('username')} 
+                            {...loginForm.register('username')}
                           />
                           {loginForm.formState.errors.username && (
                             <p className="text-sm text-red-500">{loginForm.formState.errors.username.message}</p>
                           )}
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="login-password">Password</Label>
-                          <Input 
-                            id="login-password" 
-                            type="password" 
+                          <Input
+                            id="login-password"
+                            type="password"
                             placeholder="Enter your password"
-                            {...loginForm.register('password')} 
+                            {...loginForm.register('password')}
                           />
                           {loginForm.formState.errors.password && (
                             <p className="text-sm text-red-500">{loginForm.formState.errors.password.message}</p>
                           )}
                         </div>
-                        
-                        <Button 
-                          type="submit" 
-                          className="w-full" 
+
+                        <Button
+                          type="submit"
+                          className="w-full"
                           disabled={loginMutation.isPending}
                         >
                           {loginMutation.isPending ? (
@@ -280,7 +280,7 @@ export default function AuthPage() {
                 </CardFooter>
               </Card>
             </div>
-            
+
             {/* Right Column - Hero Section */}
             <div className="hidden md:flex flex-col justify-center">
               <div className="text-center mb-6">
@@ -291,43 +291,48 @@ export default function AuthPage() {
                   Join our community of readers and writers. Share your poetry, discover new books, and connect with like-minded literature enthusiasts.
                 </p>
               </div>
-              
+
               <div className="flex flex-col space-y-4">
-                <div className="flex items-center bg-blue-50 rounded-lg p-4">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
+                <a href="/poetry">
+                  <div className="flex items-center bg-blue-50 rounded-lg p-4">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-800">Share Your Poetry</h3>
+                      <p className="text-sm text-gray-600">Publish your poems in text or video format</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-medium text-gray-800">Share Your Poetry</h3>
-                    <p className="text-sm text-gray-600">Publish your poems in text or video format</p>
+                </a>
+                <a href="/chat">
+                  <div className="flex items-center bg-purple-50 rounded-lg p-4">
+                    <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mr-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-800">Engage in Chat Rooms</h3>
+                      <p className="text-sm text-gray-600">Discuss literature with fellow enthusiasts</p>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="flex items-center bg-purple-50 rounded-lg p-4">
-                  <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mr-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
+                </a>
+
+                <a href="/books">
+                  <div className="flex items-center bg-green-50 rounded-lg p-4">
+                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-800">Explore Books</h3>
+                      <p className="text-sm text-gray-600">Access our vast collection of eBooks</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-medium text-gray-800">Engage in Chat Rooms</h3>
-                    <p className="text-sm text-gray-600">Discuss literature with fellow enthusiasts</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center bg-green-50 rounded-lg p-4">
-                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-800">Explore Books</h3>
-                    <p className="text-sm text-gray-600">Access our vast collection of eBooks</p>
-                  </div>
-                </div>
+                </a>
               </div>
             </div>
           </div>
