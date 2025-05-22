@@ -12,6 +12,12 @@ VerseFountain is a comprehensive digital library platform that empowers poets, r
 - **Payment Processing**: Handle paid event registrations
 - **User Management**: Authentication and personalized profiles
 
+## Architecture
+
+A detailed explanation of the project's architecture, including frontend, backend, shared code, deployment, and an interaction diagram, can be found in the [ARCHITECTURE.md](ARCHITECTURE.md) file.
+
+---
+
 ## Tech Stack
 
 - **Frontend**: React, TypeScript, TailwindCSS, shadcn/ui
