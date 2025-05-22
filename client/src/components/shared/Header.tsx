@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
-import { 
-  Search, 
-  Menu, 
+import {
+  Search,
+  Menu,
   X,
   ChevronDown,
   User as UserIcon,
@@ -76,14 +76,14 @@ const Header = ({ user, toggleMobileMenu, isMobileMenuOpen }: HeaderProps) => {
         <div className="flex items-center space-x-4">
           {!user ? (
             <>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 className="hidden md:block"
                 onClick={() => navigate('/auth')}
               >
                 Log In
               </Button>
-              <Button 
+              <Button
                 className="hidden md:block"
                 onClick={() => navigate('/auth')}
               >
@@ -132,8 +132,8 @@ const Header = ({ user, toggleMobileMenu, isMobileMenuOpen }: HeaderProps) => {
           )}
 
           {/* Mobile Menu Button */}
-          <button 
-            onClick={toggleMobileMenu} 
+          <button
+            onClick={toggleMobileMenu}
             className="md:hidden flex items-center text-gray-700"
           >
             {isMobileMenuOpen ? (
@@ -144,7 +144,7 @@ const Header = ({ user, toggleMobileMenu, isMobileMenuOpen }: HeaderProps) => {
           </button>
         </div>
       </div>
-      
+
       {/* Mobile Search (shown when menu is open) */}
       {isMobileMenuOpen && (
         <div className="md:hidden px-4 py-3 bg-white border-t border-gray-200">
