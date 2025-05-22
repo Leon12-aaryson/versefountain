@@ -6,22 +6,22 @@ use Illuminate\Http\Request;
 
 class CommentController extends Controller
 {
-    public function storePoemComment(Request $request, $poemId)
+    public function storePoemComment(Request $request, $poem_id)
     {
         // Validate and store a comment for a poem
     }
 
-    public function storeBookComment(Request $request, $bookId)
+    public function storeBookComment(Request $request, $book_id)
     {
         // Validate and store a comment for a book
     }
 
-    public function poemComments($poemId)
+    public function poemComments($poem_id)
     {
         // Return all comments for a poem
     }
 
-    public function bookComments($bookId)
+    public function bookComments($book_id)
     {
         // Return all comments for a book
     }

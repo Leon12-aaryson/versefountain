@@ -109,7 +109,7 @@
     * [PATCH /api/admin/books/:id/approve](#patch-apiadminbooksidapprove)
     * [DELETE /api/admin/books/:id](#delete-apiadminbooksid)
     * [DELETE /api/admin/poems/:id](#delete-apiadminpoemsid)
-    * [GET /api/admin/tickets/event/:eventId](#get-apiadminticketseventeventid)
+    * [GET /api/admin/tickets/event/:event_id](#get-apiadminticketseventevent_id)
   * [3.12. Resource: Paddle Webhook (Payments)](#312-resource-paddle-webhook-payments)
     * [POST /api/paddle/webhook](#post-apipaddlewebhook)
   * [3.13. Static File Serving](#313-static-file-serving)
@@ -154,21 +154,21 @@
     *   `email`: `text` - Not Null. The user's email address.
     *   `isAdmin`: `boolean` - Default: `false`. Flag indicating if the user has administrative privileges.
 *   **Relationships:**
-    *   Referenced by `poetFollowers.followerId`, `poetFollowers.poetId`, `poems.authorId`, `books.uploadedById`, `events.createdById`, `chatRooms.createdById`, `chatMessages.userId`, `payments.userId`, `tickets.userId`, `userPoems.userId`, `userChatRooms.userId`, `poemComments.userId`, `commentReactions.userId`.
+    *   Referenced by `poetFollowers.follower_id`, `poetFollowers.poet_id`, `poems.author_id`, `books.uploadedById`, `events.createdById`, `chatRooms.createdById`, `chatMessages.user_id`, `payments.user_id`, `tickets.user_id`, `userPoems.user_id`, `userChatRooms.user_id`, `poemComments.user_id`, `commentReactions.user_id`.
 
 ### 1.2. `poetFollowers` Table
 
 *   **Purpose:** Tracks users who follow other users (poets).
 *   **Columns:**
     *   `id`: `serial` - Primary Key, Auto-incrementing ID for the follow relationship.
-    *   `followerId`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user who is following.
-    *   `poetId`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user (poet) being followed.
+    *   `follower_id`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user who is following.
+    *   `poet_id`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user (poet) being followed.
     *   `createdAt`: `timestamp` - Default: `now()`. Timestamp of when the follow relationship was created.
 *   **Constraints:**
-    *   `UNIQUE` on (`followerId`, `poetId`) - Ensures a user cannot follow the same poet multiple times.
+    *   `UNIQUE` on (`follower_id`, `poet_id`) - Ensures a user cannot follow the same poet multiple times.
 *   **Relationships:**
-    *   `followerId` references `users.id`.
-    *   `poetId` references `users.id`.
+    *   `follower_id` references `users.id`.
+    *   `poet_id` references `users.id`.
 
 ### 1.3. `poems` Table
 
@@ -177,14 +177,14 @@
     *   `id`: `serial` - Primary Key, Auto-incrementing ID for the poem.
     *   `title`: `text` - Not Null. The title of the poem.
     *   `content`: `text` - Not Null. The content of the poem.
-    *   `authorId`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user who authored the poem.
+    *   `author_id`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user who authored the poem.
     *   `createdAt`: `timestamp` - Default: `now()`. Timestamp of when the poem was created.
     *   `isVideo`: `boolean` - Default: `false`. Flag indicating if the poem is a video.
     *   `videoUrl`: `text` - Nullable. The URL of the video if `isVideo` is true.
     *   `approved`: `boolean` - Default: `true`. Flag indicating if the poem is approved. (Note: `schema.ts` says `default(true)`, migration `0000_fine_wither.sql` says `DEFAULT false`, migration `0001_fast_lockheed.sql` sets `DEFAULT true`. The latest schema definition in `schema.ts` and the later migration `0001_fast_lockheed.sql` both indicate `true` as the intended default).
 *   **Relationships:**
-    *   `authorId` references `users.id`.
-    *   Referenced by `userPoems.poemId`, `poemComments.poemId`.
+    *   `author_id` references `users.id`.
+    *   Referenced by `userPoems.poem_id`, `poemComments.poem_id`.
 
 ### 1.4. `books` Table
 
@@ -219,7 +219,7 @@
     *   `category`: `text` - Default: `general`. The category of the event (e.g., "poetry", "book_launch", "workshop", "lecture", "general"). (Added in `0001_fast_lockheed.sql` migration and `schema.ts`)
 *   **Relationships:**
     *   `createdById` references `users.id`.
-    *   Referenced by `payments.eventId`, `tickets.eventId`.
+    *   Referenced by `payments.event_id`, `tickets.event_id`.
 
 ### 1.6. `chatRooms` Table
 
@@ -232,20 +232,20 @@
     *   `isPrivate`: `boolean` - Default: `false`. Flag indicating if the chat room is private.
 *   **Relationships:**
     *   `createdById` references `users.id`.
-    *   Referenced by `chatMessages.roomId`, `userChatRooms.roomId`.
+    *   Referenced by `chatMessages.room_id`, `userChatRooms.room_id`.
 
 ### 1.7. `chatMessages` Table
 
 *   **Purpose:** Stores individual messages sent within chat rooms.
 *   **Columns:**
     *   `id`: `serial` - Primary Key, Auto-incrementing ID for the message.
-    *   `roomId`: `integer` - Not Null. Foreign Key referencing `chatRooms.id`. The ID of the chat room where the message was sent.
-    *   `userId`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user who sent the message.
+    *   `room_id`: `integer` - Not Null. Foreign Key referencing `chatRooms.id`. The ID of the chat room where the message was sent.
+    *   `user_id`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user who sent the message.
     *   `message`: `text` - Not Null. The content of the message.
     *   `createdAt`: `timestamp` - Default: `now()`. Timestamp of when the message was sent.
 *   **Relationships:**
-    *   `roomId` references `chatRooms.id`.
-    *   `userId` references `users.id`.
+    *   `room_id` references `chatRooms.id`.
+    *   `user_id` references `users.id`.
 
 ### 1.8. `academicResources` Table
 
@@ -267,93 +267,93 @@
 *   **Purpose:** Stores information about payments made by users for events.
 *   **Columns:**
     *   `id`: `serial` - Primary Key, Auto-incrementing ID for the payment.
-    *   `userId`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user who made the payment.
-    *   `eventId`: `integer` - Not Null. Foreign Key referencing `events.id`. The ID of the event for which the payment was made.
+    *   `user_id`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user who made the payment.
+    *   `event_id`: `integer` - Not Null. Foreign Key referencing `events.id`. The ID of the event for which the payment was made.
     *   `amount`: `integer` - Not Null. The amount of the payment.
     *   `currency`: `text` - Default: `USD`. The currency of the payment.
     *   `status`: `text` - Not Null. The status of the payment (e.g., "pending", "completed", "refunded", "failed").
-    *   `paddlePaymentId`: `text` - Nullable. The ID of the payment from the Paddle payment provider.
+    *   `paddlepayment_id`: `text` - Nullable. The ID of the payment from the Paddle payment provider.
     *   `paddleTransactionId`: `text` - Nullable. The ID of the transaction from the Paddle payment provider.
     *   `createdAt`: `timestamp` - Default: `now()`. Timestamp of when the payment was created.
     *   `updatedAt`: `timestamp` - Default: `now()`. Timestamp of when the payment was last updated.
     *   `refundReason`: `text` - Nullable. The reason for a refund, if applicable.
 *   **Relationships:**
-    *   `userId` references `users.id`.
-    *   `eventId` references `events.id`.
-    *   Referenced by `tickets.paymentId`.
+    *   `user_id` references `users.id`.
+    *   `event_id` references `events.id`.
+    *   Referenced by `tickets.payment_id`.
 
 ### 1.10. `tickets` Table
 
 *   **Purpose:** Stores information about tickets purchased by users for events.
 *   **Columns:**
     *   `id`: `serial` - Primary Key, Auto-incrementing ID for the ticket.
-    *   `eventId`: `integer` - Not Null. Foreign Key referencing `events.id`. The ID of the event for which the ticket was purchased.
-    *   `userId`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user who purchased the ticket.
+    *   `event_id`: `integer` - Not Null. Foreign Key referencing `events.id`. The ID of the event for which the ticket was purchased.
+    *   `user_id`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user who purchased the ticket.
     *   `purchaseDate`: `timestamp` - Default: `now()`. Timestamp of when the ticket was purchased.
     *   `ticketCode`: `text` - Not Null, Unique. The unique code for the ticket.
     *   `status`: `text` - Default: `active`, Not Null. The status of the ticket (e.g., "active", "cancelled", "used"). (Added in `0001_fast_lockheed.sql` migration and `schema.ts`)
-    *   `paymentId`: `integer` - Nullable. Foreign Key referencing `payments.id`. The ID of the payment associated with this ticket. (Added in `0001_fast_lockheed.sql` migration and `schema.ts`)
+    *   `payment_id`: `integer` - Nullable. Foreign Key referencing `payments.id`. The ID of the payment associated with this ticket. (Added in `0001_fast_lockheed.sql` migration and `schema.ts`)
     *   `isRefunded`: `boolean` - Default: `false`. Flag indicating if the ticket has been refunded. (Added in `0001_fast_lockheed.sql` migration and `schema.ts`)
 *   **Constraints:**
     *   `UNIQUE` on (`ticketCode`) - Ensures ticket codes are unique.
 *   **Relationships:**
-    *   `eventId` references `events.id`.
-    *   `userId` references `users.id`.
-    *   `paymentId` references `payments.id`.
+    *   `event_id` references `events.id`.
+    *   `user_id` references `users.id`.
+    *   `payment_id` references `payments.id`.
 
 ### 1.11. `userPoems` Table
 
 *   **Purpose:** Tracks user interactions with poems, such as ratings and likes.
 *   **Columns:**
-    *   `id`: `serial` - Primary Key, Auto-incrementing ID for the user-poem interaction. (Added in `0002_true_ravenous.sql` migration and `schema.ts`, previously composite PK on `userId`, `poemId`)
-    *   `userId`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user.
-    *   `poemId`: `integer` - Not Null. Foreign Key referencing `poems.id`. The ID of the poem.
+    *   `id`: `serial` - Primary Key, Auto-incrementing ID for the user-poem interaction. (Added in `0002_true_ravenous.sql` migration and `schema.ts`, previously composite PK on `user_id`, `poem_id`)
+    *   `user_id`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user.
+    *   `poem_id`: `integer` - Not Null. Foreign Key referencing `poems.id`. The ID of the poem.
     *   `rating`: `integer` - Nullable. The rating given by the user to the poem.
     *   `liked`: `boolean` - Default: `false`. Flag indicating if the user liked the poem.
 *   **Constraints:**
-    *   `UNIQUE` on (`userId`, `poemId`) - Ensures a user can only have one interaction entry per poem. (Index added in `0002_true_ravenous.sql` migration and `schema.ts`)
+    *   `UNIQUE` on (`user_id`, `poem_id`) - Ensures a user can only have one interaction entry per poem. (Index added in `0002_true_ravenous.sql` migration and `schema.ts`)
 *   **Relationships:**
-    *   `userId` references `users.id`.
-    *   `poemId` references `poems.id`.
+    *   `user_id` references `users.id`.
+    *   `poem_id` references `poems.id`.
 
 ### 1.12. `userChatRooms` Table
 
 *   **Purpose:** Tracks users who have joined specific chat rooms.
 *   **Columns:**
     *   `id`: `serial` - Primary Key, Auto-incrementing ID for the user-chat room link.
-    *   `userId`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user.
-    *   `roomId`: `integer` - Not Null. Foreign Key referencing `chatRooms.id`. The ID of the chat room.
+    *   `user_id`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user.
+    *   `room_id`: `integer` - Not Null. Foreign Key referencing `chatRooms.id`. The ID of the chat room.
     *   `joinedAt`: `timestamp` - Default: `now()`. Timestamp of when the user joined the chat room.
 *   **Relationships:**
-    *   `userId` references `users.id`.
-    *   `roomId` references `chatRooms.id`.
+    *   `user_id` references `users.id`.
+    *   `room_id` references `chatRooms.id`.
 
 ### 1.13. `poemComments` Table
 
 *   **Purpose:** Stores comments made by users on poems.
 *   **Columns:**
     *   `id`: `serial` - Primary Key, Auto-incrementing ID for the comment.
-    *   `poemId`: `integer` - Not Null. Foreign Key referencing `poems.id`. The ID of the poem that was commented on.
-    *   `userId`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user who made the comment.
+    *   `poem_id`: `integer` - Not Null. Foreign Key referencing `poems.id`. The ID of the poem that was commented on.
+    *   `user_id`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user who made the comment.
     *   `content`: `text` - Not Null. The content of the comment.
     *   `createdAt`: `timestamp` - Default: `now()`. Timestamp of when the comment was created.
 *   **Relationships:**
-    *   `poemId` references `poems.id`.
-    *   `userId` references `users.id`.
-    *   Referenced by `commentReactions.commentId`.
+    *   `poem_id` references `poems.id`.
+    *   `user_id` references `users.id`.
+    *   Referenced by `commentReactions.comment_id`.
 
 ### 1.14. `commentReactions` Table
 
 *   **Purpose:** Stores reactions made by users to comments on poems.
 *   **Columns:**
     *   `id`: `serial` - Primary Key, Auto-incrementing ID for the reaction.
-    *   `commentId`: `integer` - Not Null. Foreign Key referencing `poemComments.id`. The ID of the comment that was reacted to.
-    *   `userId`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user who made the reaction.
+    *   `comment_id`: `integer` - Not Null. Foreign Key referencing `poemComments.id`. The ID of the comment that was reacted to.
+    *   `user_id`: `integer` - Not Null. Foreign Key referencing `users.id`. The ID of the user who made the reaction.
     *   `reaction`: `text` - Not Null. The type of reaction (e.g., "like", "love", "laugh", "angry").
     *   `createdAt`: `timestamp` - Default: `now()`. Timestamp of when the reaction was created.
 *   **Relationships:**
-    *   `commentId` references `poemComments.id`.
-    *   `userId` references `users.id`.
+    *   `comment_id` references `poemComments.id`.
+    *   `user_id` references `users.id`.
 
 ## 2. Data Models and Validation
 
@@ -390,14 +390,14 @@
 *   **Associated Table:** `poet_followers`
 *   **Attributes:**
     *   `id`: `number` (from `serial`)
-    *   `followerId`: `number` (from `integer`)
-    *   `poetId`: `number` (from `integer`)
+    *   `follower_id`: `number` (from `integer`)
+    *   `poet_id`: `number` (from `integer`)
     *   `createdAt`: `Date` (from `timestamp`)
 *   **Validation Schemas:**
     *   **`insertPoetFollowerSchema`**: Used for validating data when a user follows a poet. Derived from `poetFollowers` table schema using `createInsertSchema`.
         *   Omits: `id`, `createdAt`. (These are auto-generated or defaulted by the database).
-        *   `followerId`: `number` - Required. (Implicitly, from the table schema).
-        *   `poetId`: `number` - Required. (Implicitly, from the table schema).
+        *   `follower_id`: `number` - Required. (Implicitly, from the table schema).
+        *   `poet_id`: `number` - Required. (Implicitly, from the table schema).
 *   **TypeScript Types:**
     *   `PoetFollower = typeof poetFollowers.$inferSelect;` (Select model for fetching poet follower data)
     *   `InsertPoetFollower = z.infer<typeof insertPoetFollowerSchema>;` (Type for data to create a new poet follower relationship)
@@ -410,14 +410,14 @@
     *   `id`: `number` (from `serial`)
     *   `title`: `string` (from `text`)
     *   `content`: `string` (from `text`)
-    *   `authorId`: `number` (from `integer`)
+    *   `author_id`: `number` (from `integer`)
     *   `createdAt`: `Date` (from `timestamp`)
     *   `isVideo`: `boolean` (from `boolean`)
     *   `videoUrl`: `string | null` (from `text`, can be null if `isVideo` is `false`)
     *   `approved`: `boolean` (from `boolean`)
 *   **Validation Schemas:**
     *   **`insertPoemSchema`**: Used for validating data when a new poem is created. Derived from `poems` table schema using `createInsertSchema`.
-        *   Omits: `id`, `authorId`, `createdAt`, `approved`. (These are auto-generated, context-dependent, or defaulted).
+        *   Omits: `id`, `author_id`, `createdAt`, `approved`. (These are auto-generated, context-dependent, or defaulted).
         *   `title`: `string` - Required.
         *   `content`: `string` - Required.
         *   `isVideo`: `boolean` - Optional, defaults to `false`.
@@ -513,15 +513,15 @@
 *   **Associated Table:** `chat_messages`
 *   **Attributes:**
     *   `id`: `number` (from `serial`)
-    *   `roomId`: `number` (from `integer`)
-    *   `userId`: `number` (from `integer`)
+    *   `room_id`: `number` (from `integer`)
+    *   `user_id`: `number` (from `integer`)
     *   `message`: `string` (from `text`)
     *   `createdAt`: `Date` (from `timestamp`)
 *   **Validation Schemas:**
     *   **`insertChatMessageSchema`**: Used for validating data when a new chat message is sent. Derived from `chatMessages` table schema using `createInsertSchema`.
         *   Omits: `id`, `createdAt`. (These are auto-generated or defaulted).
-        *   `roomId`: `number` - Required. (Implicitly from table schema).
-        *   `userId`: `number` - Required. (Implicitly from table schema, usually context-dependent).
+        *   `room_id`: `number` - Required. (Implicitly from table schema).
+        *   `user_id`: `number` - Required. (Implicitly from table schema, usually context-dependent).
         *   `message`: `string` - Required.
 *   **TypeScript Types:**
     *   `ChatMessage = typeof chatMessages.$inferSelect;` (Select model for fetching chat message data)
@@ -560,21 +560,21 @@
 *   **Associated Table:** `payments`
 *   **Attributes:**
     *   `id`: `number` (from `serial`)
-    *   `userId`: `number` (from `integer`)
-    *   `eventId`: `number` (from `integer`)
+    *   `user_id`: `number` (from `integer`)
+    *   `event_id`: `number` (from `integer`)
     *   `amount`: `number` (from `integer`)
     *   `currency`: `string` (from `text`)
     *   `status`: `string` (from `text`) - e.g., "pending", "completed", "refunded", "failed".
-    *   `paddlePaymentId`: `string | null` (from `text`)
+    *   `paddlepayment_id`: `string | null` (from `text`)
     *   `paddleTransactionId`: `string | null` (from `text`)
     *   `createdAt`: `Date` (from `timestamp`)
     *   `updatedAt`: `Date` (from `timestamp`)
     *   `refundReason`: `string | null` (from `text`)
 *   **Validation Schemas:**
     *   **`insertPaymentSchema`**: Used for validating data when a new payment is created. Derived from `payments` table schema using `createInsertSchema`.
-        *   Omits: `id`, `paddlePaymentId`, `paddleTransactionId`, `createdAt`, `updatedAt`, `refundReason`. (These are auto-generated, set by payment provider, or context-dependent).
-        *   `userId`: `number` - Required.
-        *   `eventId`: `number` - Required.
+        *   Omits: `id`, `paddlepayment_id`, `paddleTransactionId`, `createdAt`, `updatedAt`, `refundReason`. (These are auto-generated, set by payment provider, or context-dependent).
+        *   `user_id`: `number` - Required.
+        *   `event_id`: `number` - Required.
         *   `amount`: `number` - Required.
         *   `currency`: `string` - Optional, defaults to "USD" in the database.
         *   `status`: `string` - Required.
@@ -588,19 +588,19 @@
 *   **Associated Table:** `tickets`
 *   **Attributes:**
     *   `id`: `number` (from `serial`)
-    *   `eventId`: `number` (from `integer`)
-    *   `userId`: `number` (from `integer`)
+    *   `event_id`: `number` (from `integer`)
+    *   `user_id`: `number` (from `integer`)
     *   `purchaseDate`: `Date` (from `timestamp`)
     *   `ticketCode`: `string` (from `text`)
     *   `status`: `string` (from `text`) - e.g., "active", "cancelled", "used".
-    *   `paymentId`: `number | null` (from `integer`)
+    *   `payment_id`: `number | null` (from `integer`)
     *   `isRefunded`: `boolean` (from `boolean`)
 *   **Validation Schemas:**
     *   **`insertTicketSchema`**: Used for validating data when a new ticket is created. Derived from `tickets` table schema using `createInsertSchema`.
         *   Omits: `id`, `purchaseDate`, `ticketCode`, `status`, `isRefunded`. (These are auto-generated or defaulted by the database/application logic).
-        *   `eventId`: `number` - Required.
-        *   `userId`: `number` - Required.
-        *   `paymentId`: `number` - Optional.
+        *   `event_id`: `number` - Required.
+        *   `user_id`: `number` - Required.
+        *   `payment_id`: `number` - Optional.
 *   **TypeScript Types:**
     *   `Ticket = typeof tickets.$inferSelect;` (Select model for fetching ticket data)
     *   `InsertTicket = z.infer<typeof insertTicketSchema>;` (Type for data to insert a new ticket)
@@ -611,8 +611,8 @@
 *   **Associated Table:** `user_poems`
 *   **Attributes:**
     *   `id`: `number` (from `serial`)
-    *   `userId`: `number` (from `integer`)
-    *   `poemId`: `number` (from `integer`)
+    *   `user_id`: `number` (from `integer`)
+    *   `poem_id`: `number` (from `integer`)
     *   `rating`: `number | null` (from `integer`)
     *   `liked`: `boolean` (from `boolean`)
 *   **Validation Schemas:**
@@ -626,8 +626,8 @@
 *   **Associated Table:** `user_chat_rooms`
 *   **Attributes:**
     *   `id`: `number` (from `serial`)
-    *   `userId`: `number` (from `integer`)
-    *   `roomId`: `number` (from `integer`)
+    *   `user_id`: `number` (from `integer`)
+    *   `room_id`: `number` (from `integer`)
     *   `joinedAt`: `Date` (from `timestamp`)
 *   **Validation Schemas:**
     *   No explicit `insertUserChatRoomSchema` is defined in the provided `shared/schema.ts`. Interactions (like joining a room) are likely handled by specific service logic which might use parts of the main `UserChatRoom` type or direct values.
@@ -640,14 +640,14 @@
 *   **Associated Table:** `poem_comments`
 *   **Attributes:**
     *   `id`: `number` (from `serial`)
-    *   `poemId`: `number` (from `integer`)
-    *   `userId`: `number` (from `integer`)
+    *   `poem_id`: `number` (from `integer`)
+    *   `user_id`: `number` (from `integer`)
     *   `content`: `string` (from `text`)
     *   `createdAt`: `Date` (from `timestamp`)
 *   **Validation Schemas:**
     *   **`insertPoemCommentSchema`**: Used for validating data when a new comment is added to a poem. Derived from `poemComments` table schema using `createInsertSchema`.
-        *   Omits: `id`, `userId`, `createdAt`. (These are auto-generated or context-dependent).
-        *   `poemId`: `number` - Required. (Implicitly from table schema, often part of the route/context).
+        *   Omits: `id`, `user_id`, `createdAt`. (These are auto-generated or context-dependent).
+        *   `poem_id`: `number` - Required. (Implicitly from table schema, often part of the route/context).
         *   `content`: `string` - Required.
 *   **TypeScript Types:**
     *   `PoemComment = typeof poemComments.$inferSelect;` (Select model for fetching poem comment data)
@@ -659,14 +659,14 @@
 *   **Associated Table:** `poem_comment_reactions`
 *   **Attributes:**
     *   `id`: `number` (from `serial`)
-    *   `commentId`: `number` (from `integer`)
-    *   `userId`: `number` (from `integer`)
+    *   `comment_id`: `number` (from `integer`)
+    *   `user_id`: `number` (from `integer`)
     *   `reaction`: `string` (from `text`) - e.g., "like", "love", "laugh", "angry".
     *   `createdAt`: `Date` (from `timestamp`)
 *   **Validation Schemas:**
     *   **`insertCommentReactionSchema`**: Used for validating data when a new reaction is added to a comment. Derived from `commentReactions` table schema using `createInsertSchema`.
-        *   Omits: `id`, `userId`, `createdAt`. (These are auto-generated or context-dependent).
-        *   `commentId`: `number` - Required. (Implicitly from table schema, often part of the route/context).
+        *   Omits: `id`, `user_id`, `createdAt`. (These are auto-generated or context-dependent).
+        *   `comment_id`: `number` - Required. (Implicitly from table schema, often part of the route/context).
         *   `reaction`: `string` - Required.
 *   **TypeScript Types:**
     *   `CommentReaction = typeof commentReactions.$inferSelect;` (Select model for fetching comment reaction data)
@@ -704,7 +704,7 @@ Endpoints related to user authentication (login, logout, signup, status). These 
             "id": 1,
             "title": "Poem Title",
             "content": "Poem content...",
-            "authorId": 1,
+            "author_id": 1,
             "createdAt": "2023-01-01T12:00:00.000Z",
             "isVideo": false,
             "videoUrl": null,
@@ -743,7 +743,7 @@ Endpoints related to user authentication (login, logout, signup, status). These 
           "id": 1,
           "title": "Poem Title",
           "content": "Poem content...",
-          "authorId": 1,
+          "author_id": 1,
           "createdAt": "2023-01-01T12:00:00.000Z",
           "isVideo": false,
           "videoUrl": null,
@@ -776,7 +776,7 @@ Endpoints related to user authentication (login, logout, signup, status). These 
           "id": 2,
           "title": "New Poem",
           "content": "Content of the new poem.",
-          "authorId": 5, // ID of the authenticated user
+          "author_id": 5, // ID of the authenticated user
           "createdAt": "2023-01-02T14:30:00.000Z",
           "isVideo": false,
           "videoUrl": null,
@@ -955,8 +955,8 @@ Endpoints related to user authentication (login, logout, signup, status). These 
         [
           {
             "id": 1,
-            "poemId": 1,
-            "userId": 2,
+            "poem_id": 1,
+            "user_id": 2,
             "content": "This is a great poem!",
             "createdAt": "2023-01-03T10:00:00.000Z",
             "user": { "id": 2, "username": "commenter_username" }
@@ -980,14 +980,14 @@ Endpoints related to user authentication (login, logout, signup, status). These 
           "content": "My new comment on this poem."
         }
         ```
-        (Note: `poemId` is taken from the path, `userId` from `req.user`. The schema used is `insertPoemCommentSchema` which expects `poemId` and `content`.)
+        (Note: `poem_id` is taken from the path, `user_id` from `req.user`. The schema used is `insertPoemCommentSchema` which expects `poem_id` and `content`.)
 *   **Response:**
     *   **Success (201 Created):** The newly created comment object, including user details.
         ```json
         {
           "id": 3,
-          "poemId": 1,
-          "userId": 5, // ID of the authenticated user
+          "poem_id": 1,
+          "user_id": 5, // ID of the authenticated user
           "content": "My new comment on this poem.",
           "createdAt": "2023-01-03T11:00:00.000Z",
           "user": { "id": 5, "username": "current_user" }
@@ -1032,8 +1032,8 @@ Endpoints related to user authentication (login, logout, signup, status). These 
         [
           {
             "id": 1,
-            "commentId": 1,
-            "userId": 2,
+            "comment_id": 1,
+            "user_id": 2,
             "reaction": "like",
             "createdAt": "2023-01-04T09:00:00.000Z"
           }
@@ -1068,7 +1068,7 @@ Endpoints related to user authentication (login, logout, signup, status). These 
 *   **Authentication:** Optional (Authenticated User to get `userReaction`)
 *   **Request Parameters:**
     *   **Query Parameters:**
-        *   `commentIds` (string): Comma-separated string of comment IDs (e.g., "1,2,3"). Required.
+        *   `comment_ids` (string): Comma-separated string of comment IDs (e.g., "1,2,3"). Required.
 *   **Response:**
     *   **Success (200 OK):**
         ```json
@@ -1084,7 +1084,7 @@ Endpoints related to user authentication (login, logout, signup, status). These 
           // ... data for other requested comment IDs
         }
         ```
-    *   **Error (400 Bad Request):** If `commentIds` query parameter is missing.
+    *   **Error (400 Bad Request):** If `comment_ids` query parameter is missing.
     *   **Error (500 Internal Server Error):** If there's an issue fetching reactions data.
 
 #### GET /api/comments/:id/user-reaction
@@ -1100,8 +1100,8 @@ Endpoints related to user authentication (login, logout, signup, status). These 
         ```json
         {
           "id": 1,
-          "commentId": 1,
-          "userId": 5,
+          "comment_id": 1,
+          "user_id": 5,
           "reaction": "love",
           "createdAt": "2023-01-04T10:00:00.000Z"
         }
@@ -1124,15 +1124,15 @@ Endpoints related to user authentication (login, logout, signup, status). These 
           "reaction": "like" // string, e.g., "like", "love"
         }
         ```
-        (Note: `commentId` is from path, `userId` from `req.user`. The schema used is `insertCommentReactionSchema` which expects `commentId` and `reaction`.)
+        (Note: `comment_id` is from path, `user_id` from `req.user`. The schema used is `insertCommentReactionSchema` which expects `comment_id` and `reaction`.)
 *   **Response:**
     *   **Success (201 Created):**
         ```json
         {
           "reaction": {
             "id": 2,
-            "commentId": 1,
-            "userId": 5,
+            "comment_id": 1,
+            "user_id": 5,
             "reaction": "like",
             "createdAt": "2023-01-04T11:00:00.000Z"
           },
@@ -1141,7 +1141,7 @@ Endpoints related to user authentication (login, logout, signup, status). These 
         ```
     *   **Error (400 Bad Request):** If the reaction type is invalid or missing.
     *   **Error (401 Unauthorized):** If the user is not authenticated.
-    *   **Error (404 Not Found):** If the comment with the specified ID doesn't exist. (Note: The current code's check for `commentExists` might be too broad; it checks if *any* comment exists in the `poem_comments` table rather than the specific `commentId`. This should ideally be `storage.getCommentById(commentId)`).
+    *   **Error (404 Not Found):** If the comment with the specified ID doesn't exist. (Note: The current code's check for `commentExists` might be too broad; it checks if *any* comment exists in the `poem_comments` table rather than the specific `comment_id`. This should ideally be `storage.getCommentById(comment_id)`).
     *   **Error (500 Internal Server Error):** If there's an issue adding the reaction.
 
 #### DELETE /api/comments/:id/reactions
@@ -1451,8 +1451,8 @@ Endpoints related to user authentication (login, logout, signup, status). These 
         [
           {
             "id": 1,
-            "roomId": 1,
-            "userId": 5,
+            "room_id": 1,
+            "user_id": 5,
             "message": "Hello everyone!",
             "createdAt": "2023-01-05T10:00:00.000Z",
             "user": { "id": 5, "username": "user_who_sent" }
@@ -1475,10 +1475,10 @@ Endpoints related to user authentication (login, logout, signup, status). These 
         ```json
         {
           "message": "My message content."
-          // roomId is from path, userId from req.user
+          // room_id is from path, user_id from req.user
         }
         ```
-        (Note: Uses `insertChatMessageSchema` which expects `roomId`, `userId`, `message`)
+        (Note: Uses `insertChatMessageSchema` which expects `room_id`, `user_id`, `message`)
 *   **Response:**
     *   **Success (201 Created):** The newly created chat message object.
     *   **Error (401 Unauthorized):** If the user is not authenticated.
@@ -1747,12 +1747,12 @@ Endpoints related to user authentication (login, logout, signup, status). These 
     *   **Request Body:**
         ```json
         {
-          "eventId": 123 // number, required
+          "event_id": 123 // number, required
         }
         ```
 *   **Response:**
     *   **Success (201 Created):** The newly created ticket object.
-    *   **Error (400 Bad Request):** If `eventId` is missing.
+    *   **Error (400 Bad Request):** If `event_id` is missing.
     *   **Error (401 Unauthorized):** If the user is not authenticated.
     *   **Error (404 Not Found):** If the event doesn't exist.
     *   **Error (500 Internal Server Error):** If there's an issue purchasing the ticket.
@@ -1766,13 +1766,13 @@ Endpoints related to user authentication (login, logout, signup, status). These 
     *   **Request Body:**
         ```json
         {
-          "eventId": 123, // number, required
-          "userId": 5 // Though present in body example in code, it's overridden by req.user.id
+          "event_id": 123, // number, required
+          "user_id": 5 // Though present in body example in code, it's overridden by req.user.id
         }
         ```
 *   **Response:**
     *   **Success (201 Created):** The newly created ticket object.
-    *   **Error (400 Bad Request):** If `eventId` is missing.
+    *   **Error (400 Bad Request):** If `event_id` is missing.
     *   **Error (401 Unauthorized):** If the user is not authenticated.
     *   **Error (404 Not Found):** If the event doesn't exist.
     *   **Error (500 Internal Server Error):** If there's an issue creating the ticket.
@@ -1789,12 +1789,12 @@ Endpoints related to user authentication (login, logout, signup, status). These 
         [
           {
             "id": 1,
-            "eventId": 1,
-            "userId": 5,
+            "event_id": 1,
+            "user_id": 5,
             "purchaseDate": "2023-01-06T12:00:00.000Z",
             "ticketCode": "UNIQUECODE123",
             "status": "active",
-            "paymentId": null,
+            "payment_id": null,
             "isRefunded": false,
             "event": { /* event object */ }
           }
@@ -1839,8 +1839,8 @@ Endpoints related to user authentication (login, logout, signup, status). These 
     *   **Request Body:** JSON object matching `insertPaymentSchema`.
         ```json
         {
-          "userId": 5, // Must match authenticated user
-          "eventId": 1,
+          "user_id": 5, // Must match authenticated user
+          "event_id": 1,
           "amount": 1500, // In cents or smallest currency unit
           "currency": "USD", // optional, defaults to USD
           "status": "pending" // initial status
@@ -1850,7 +1850,7 @@ Endpoints related to user authentication (login, logout, signup, status). These 
     *   **Success (201 Created):** The newly created payment object.
     *   **Error (400 Bad Request):** If request body validation fails (ZodError).
     *   **Error (401 Unauthorized):** If the user is not authenticated.
-    *   **Error (403 Forbidden):** If `userId` in body does not match authenticated user.
+    *   **Error (403 Forbidden):** If `user_id` in body does not match authenticated user.
     *   **Error (404 Not Found):** If the event doesn't exist.
     *   **Error (500 Internal Server Error):** If there's an issue creating the payment.
 
@@ -2102,14 +2102,14 @@ Endpoints related to user authentication (login, logout, signup, status). These 
     *   **Error (404 Not Found):** If the poem doesn't exist.
     *   **Error (500 Internal Server Error):** If there's an issue deleting the poem.
 
-#### GET /api/admin/tickets/event/:eventId
+#### GET /api/admin/tickets/event/:event_id
 *   **Method:** `GET`
-*   **Path:** `/api/admin/tickets/event/:eventId`
+*   **Path:** `/api/admin/tickets/event/:event_id`
 *   **Description:** Fetches all tickets for a specific event, enriching them with user information.
 *   **Authentication:** Admin Only
 *   **Request Parameters:**
     *   **Path Parameters:**
-        *   `:eventId` (number): The ID of the event.
+        *   `:event_id` (number): The ID of the event.
 *   **Response:**
     *   **Success (200 OK):** Array of ticket objects, each with a nested `user` object.
         ```json
@@ -2243,40 +2243,40 @@ The application provides real-time chat functionality using WebSockets, implemen
     ```json
     {
       "type": "auth", // or "authenticate"
-      "userId": 123 // The ID of the user
+      "user_id": 123 // The ID of the user
     }
     ```
-*   The server receives this message and uses the provided `userId` to fetch user details from the database via `storage.getUser()`.
-*   If the user is found, their `userId` and `username` are stored in the `clientData` map, associating the WebSocket connection (the `ws` object itself as the key) with the authenticated user's details.
+*   The server receives this message and uses the provided `user_id` to fetch user details from the database via `storage.getUser()`.
+*   If the user is found, their `user_id` and `username` are stored in the `clientData` map, associating the WebSocket connection (the `ws` object itself as the key) with the authenticated user's details.
 *   A confirmation message `auth_success` is sent back to the client upon successful authentication.
     ```json
     {
       "type": "auth_success",
-      "userId": 123,
+      "user_id": 123,
       "username": "user_name"
     }
     ```
-*   If authentication fails (e.g., user not found, invalid `userId`), an error message is sent to the client.
+*   If authentication fails (e.g., user not found, invalid `user_id`), an error message is sent to the client.
 
 ### 5.4. Joining Chat Rooms
 *   Authenticated clients can request to join a chat room by sending a `join_room` message.
     ```json
     {
       "type": "join_room",
-      "roomId": 1 // The ID of the room to join
+      "room_id": 1 // The ID of the room to join
     }
     ```
 *   The server first checks if the client is authenticated (i.e., present in `clientData`).
-*   It then validates the `roomId` by attempting to fetch the room details using `storage.getChatRoomById()`.
-*   If successful, the client's WebSocket connection is added to a `Set` of clients for that `roomId` within the `roomClients` map.
-*   **Room History:** Upon successfully joining a room, the server fetches past messages for that room using `storage.getChatMessagesByRoomId()`. These messages are formatted and sent to the joining client in a `room_history` message.
+*   It then validates the `room_id` by attempting to fetch the room details using `storage.getChatRoomById()`.
+*   If successful, the client's WebSocket connection is added to a `Set` of clients for that `room_id` within the `roomClients` map.
+*   **Room History:** Upon successfully joining a room, the server fetches past messages for that room using `storage.getChatMessagesByroom_id()`. These messages are formatted and sent to the joining client in a `room_history` message.
     ```json
     {
       "type": "room_history",
-      "roomId": 1,
+      "room_id": 1,
       "messages": [
-        { "type": "chat_message", "roomId": 1, "userId": 10, "username": "Alice", "message": "Hi!", "timestamp": "..." },
-        { "type": "chat_message", "roomId": 1, "userId": 12, "username": "Bob", "message": "Hello!", "timestamp": "..." }
+        { "type": "chat_message", "room_id": 1, "user_id": 10, "username": "Alice", "message": "Hi!", "timestamp": "..." },
+        { "type": "chat_message", "room_id": 1, "user_id": 12, "username": "Bob", "message": "Hello!", "timestamp": "..." }
       ]
     }
     ```
@@ -2284,8 +2284,8 @@ The application provides real-time chat functionality using WebSockets, implemen
     ```json
     {
       "type": "user_joined",
-      "roomId": 1,
-      "userId": 123,
+      "room_id": 1,
+      "user_id": 123,
       "username": "new_user_name",
       "timestamp": "...",
       "message": "new_user_name joined the room"
@@ -2297,26 +2297,26 @@ The application provides real-time chat functionality using WebSockets, implemen
     ```json
     {
       "type": "chat_message",
-      "roomId": 1,
+      "room_id": 1,
       "message": "Hello everyone!"
     }
     ```
 *   The server validates that the client is authenticated and that the message content is not empty.
-*   The message (containing `roomId`, `userId` from `clientData`, and the `message` text) is persisted to the database using `storage.createChatMessage()`.
+*   The message (containing `room_id`, `user_id` from `clientData`, and the `message` text) is persisted to the database using `storage.createChatMessage()`.
 *   A timestamp is generated for the message.
 *   **Delivery Confirmation:** The server sends the formatted message (now including `username`, `timestamp`, and a `delivered: true` flag) back to the original sender to confirm it has been processed.
     ```json
     {
       "type": "chat_message",
-      "roomId": 1,
-      "userId": 123,
+      "room_id": 1,
+      "user_id": 123,
       "username": "sender_username",
       "message": "Hello everyone!",
       "timestamp": "...",
       "delivered": true
     }
     ```
-*   **Broadcast:** The same formatted message (without the `delivered` flag, or it can be ignored by other clients) is then broadcast to all other connected clients in the specified `roomId` using the `broadcastToRoom` function.
+*   **Broadcast:** The same formatted message (without the `delivered` flag, or it can be ignored by other clients) is then broadcast to all other connected clients in the specified `room_id` using the `broadcastToRoom` function.
 
 ### 5.6. Other Message Types
 *   **`ping`:** Clients can send a `ping` message, to which the server responds with a `pong` message. This is primarily for the client to check its connection status, though the server also has its own ping/pong mechanism for keep-alive.
@@ -2338,18 +2338,18 @@ The application provides real-time chat functionality using WebSockets, implemen
 *   Examples of situations where errors are sent:
     *   Unknown message type received.
     *   Authentication required but client is not authenticated (e.g., for `join_room`, `chat_message`).
-    *   Invalid `userId` during authentication or user not found.
+    *   Invalid `user_id` during authentication or user not found.
     *   Chat room not found when trying to join or send a message.
     *   Attempting to send an empty chat message.
     *   General errors during message processing.
 
 ### 5.8. Key Server-Side Data Structures
 *   `roomClients` (Map<number, Set<ExtendedWebSocket>>):
-    *   Keys are `roomId` (numbers).
+    *   Keys are `room_id` (numbers).
     *   Values are `Set`s of `ExtendedWebSocket` objects, representing all clients currently subscribed to that chat room.
-*   `clientData` (Map<ExtendedWebSocket, { userId: number; username: string }>):
+*   `clientData` (Map<ExtendedWebSocket, { user_id: number; username: string }>):
     *   Keys are `ExtendedWebSocket` client objects.
-    *   Values are objects containing the `userId` and `username` of the authenticated user associated with that WebSocket connection.
+    *   Values are objects containing the `user_id` and `username` of the authenticated user associated with that WebSocket connection.
 *   `activeConnections` (Set<ExtendedWebSocket>):
     *   A `Set` of all currently active WebSocket connections, used primarily for the heartbeat mechanism and logging connection counts.
 *   `ExtendedWebSocket` (Interface): An extension of the base `WebSocket` type from the `ws` library, adding:

@@ -1,87 +1,139 @@
 <?php
+// routes/api.php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\PoemController;
+use App\Http\Controllers\PoemCommentController;
+use App\Http\Controllers\CommentReactionController;
 use App\Http\Controllers\BookController;
-use App\Http\Controllers\CommentController;
+use App\Http\Controllers\EventController;
+use App\Http\Controllers\ChatRoomController;
+use App\Http\Controllers\ChatMessageController;
+use App\Http\Controllers\AcademicResourceController;
+use App\Http\Controllers\UserController; // For poets/following
+use App\Http\Controllers\TicketController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\ChatController;
-use App\Http\Controllers\UploadController;
+use App\Http\Controllers\PaddleWebhookController; // For Paddle webhook
 
-// Authentication
-// Route::prefix('auth')->group(function () {
-//     Route::post('register', [AuthController::class, 'register']);
-//     Route::post('login', [AuthController::class, 'login']);
-//     Route::middleware('auth:sanctum')->post('logout', [AuthController::class, 'logout']);
-//     Route::middleware('auth:sanctum')->get('user', [AuthController::class, 'user']);
-// });
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "api" middleware group. Make something great!
+|
+*/
 
-// User profile & social
-Route::get('users/{id}', [UserController::class, 'show']);
-Route::middleware('auth:sanctum')->group(function () {
-    Route::put('users/{id}', [UserController::class, 'update']);
-    Route::post('users/{id}/follow', [UserController::class, 'follow']);
-    Route::delete('users/{id}/follow', [UserController::class, 'unfollow']);
-});
-Route::get('users/{id}/poems', [UserController::class, 'poems']);
-Route::get('users/{id}/followers', [UserController::class, 'followers']);
-Route::get('users/{id}/following', [UserController::class, 'following']);
+// // Public Routes
+// Route::post('auth/register', [AuthController::class, 'register']);
+// Route::post('auth/login', [AuthController::class, 'login']);
+// Route::get('auth/me', [AuthController::class, 'me'])->middleware('auth:sanctum'); // Optional auth for /me
 
-// Poems
 Route::get('poems', [PoemController::class, 'index']);
-Route::get('poems/{id}', [PoemController::class, 'show']);
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('poems', [PoemController::class, 'store']);
-    Route::put('poems/{id}', [PoemController::class, 'update']);
-    Route::delete('poems/{id}', [PoemController::class, 'destroy']);
-    Route::post('poems/{id}/like', [PoemController::class, 'like']);
-    Route::delete('poems/{id}/like', [PoemController::class, 'unlike']);
-    Route::post('poems/{id}/comments', [CommentController::class, 'storePoemComment']);
-});
-Route::get('poems/{id}/likes', [PoemController::class, 'likes']);
-Route::get('poems/{id}/comments', [CommentController::class, 'poemComments']);
+Route::get('poems/{poem}', [PoemController::class, 'show']);
+Route::get('poems/{poem}/like-count', [PoemController::class, 'getLikeCount']);
+Route::get('poems/{poem}/comments', [PoemCommentController::class, 'index']);
 
-// Books
+Route::get('comments/{comment}/reactions', [CommentReactionController::class, 'index']);
+Route::get('comments/{comment}/reaction-counts', [CommentReactionController::class, 'getReactionCounts']);
+
 Route::get('books', [BookController::class, 'index']);
-Route::get('books/{id}', [BookController::class, 'show']);
+Route::get('books/{book}', [BookController::class, 'show']);
+Route::post('upload/bookcover', [BookController::class, 'uploadCover']); // Separate upload endpoint
+
+Route::get('events', [EventController::class, 'index']);
+Route::get('events/poetry', [EventController::class, 'poetryEvents']);
+Route::get('events/{event}', [EventController::class, 'show']);
+
+Route::get('chat/rooms', [ChatRoomController::class, 'index']); // Public rooms
+Route::get('chat/rooms/{room}', [ChatRoomController::class, 'show']); // Public rooms
+
+Route::get('academic-resources', [AcademicResourceController::class, 'index']);
+Route::get('academic-resources/{academicResource}', [AcademicResourceController::class, 'show']);
+
+Route::get('poets/featured', [UserController::class, 'featuredPoets']);
+Route::get('poets/{user}/followers', [UserController::class, 'getFollowers']);
+
+// Authenticated Routes (require 'auth:sanctum' middleware)
 Route::middleware('auth:sanctum')->group(function () {
+    // Poems
+    Route::get('poems/user', [PoemController::class, 'userPoems']);
+    Route::post('poems', [PoemController::class, 'store']);
+    Route::patch('poems/{poem}', [PoemController::class, 'update']);
+    Route::delete('poems/{poem}', [PoemController::class, 'destroy']);
+    Route::post('poems/{poem}/rate', [PoemController::class, 'rate']);
+    Route::post('poems/{poem}/like', [PoemController::class, 'like']);
+    Route::post('poems/{poem}/unlike', [PoemController::class, 'unlike']);
+    Route::get('poems/{poem}/user-status', [PoemController::class, 'getUserStatus']);
+
+    // Poem Comments
+    Route::post('poems/{poem}/comments', [PoemCommentController::class, 'store']);
+    Route::delete('poems/comments/{comment}', [PoemCommentController::class, 'destroy']);
+
+    // Comment Reactions
+    Route::get('comments/reactions', [CommentReactionController::class, 'userReactions']);
+    Route::get('comments/{comment}/user-reaction', [CommentReactionController::class, 'getUserReaction']);
+    Route::post('comments/{comment}/reactions', [CommentReactionController::class, 'storeOrUpdate']);
+    Route::delete('comments/{comment}/reactions', [CommentReactionController::class, 'destroy']);
+
+    // Books
     Route::post('books', [BookController::class, 'store']);
-    Route::put('books/{id}', [BookController::class, 'update']);
-    Route::delete('books/{id}', [BookController::class, 'destroy']);
-    Route::post('books/{id}/like', [BookController::class, 'like']);
-    Route::delete('books/{id}/like', [BookController::class, 'unlike']);
-    Route::post('books/{id}/comments', [CommentController::class, 'storeBookComment']);
-});
-Route::get('books/{id}/likes', [BookController::class, 'likes']);
-Route::get('books/{id}/comments', [CommentController::class, 'bookComments']);
 
-// Comments
-Route::middleware('auth:sanctum')->group(function () {
-    Route::put('comments/{id}', [CommentController::class, 'update']);
-    Route::delete('comments/{id}', [CommentController::class, 'destroy']);
+    // Events
+    Route::post('events', [EventController::class, 'store']);
+    Route::put('events/{event}', [EventController::class, 'update']);
+
+    // Chat Rooms & Messages
+    Route::get('user/chat/rooms', [ChatRoomController::class, 'userChatRooms']);
+    Route::post('chat/rooms', [ChatRoomController::class, 'store']);
+    Route::post('chat/rooms/{room}/messages', [ChatMessageController::class, 'store']);
+    Route::get('chat/rooms/{room}/messages', [ChatMessageController::class, 'index']); // Requires auth for private rooms
+    Route::post('chat/rooms/{room}/join', [ChatRoomController::class, 'joinRoom']);
+    Route::post('chat/rooms/{room}/leave', [ChatRoomController::class, 'leaveRoom']);
+    Route::get('chat/rooms/{room}/membership', [ChatRoomController::class, 'getMembershipStatus']);
+
+
+    // Academic Resources
+    Route::post('academic-resources', [AcademicResourceController::class, 'store']);
+
+    // Poets (Users) & Following
+    Route::post('poets/{user}/follow', [UserController::class, 'followPoet']);
+    Route::post('poets/{user}/unfollow', [UserController::class, 'unfollowPoet']);
+    Route::get('user/followed-poets', [UserController::class, 'followedPoets']);
+    Route::get('poets/{user}/following-status', [UserController::class, 'getFollowingStatus']);
+
+    // Tickets & Payments
+    Route::post('tickets', [TicketController::class, 'store']); // For free event registration
+    Route::get('tickets/user', [TicketController::class, 'userTickets']);
+    Route::get('tickets/{ticket}', [TicketController::class, 'show']);
+    Route::post('payments', [PaymentController::class, 'store']); // Initiate payment
+    Route::post('tickets/{ticket}/cancel', [TicketController::class, 'cancel']);
 });
 
-// Admin/Moderation
-Route::middleware(['auth:sanctum', 'can:admin'])->prefix('admin')->group(function () {
-    Route::get('poems/pending', [AdminController::class, 'pendingPoems']);
-    Route::post('poems/{id}/approve', [AdminController::class, 'approvePoem']);
-    Route::post('poems/{id}/reject', [AdminController::class, 'rejectPoem']);
-    Route::get('users', [AdminController::class, 'users']);
-    Route::delete('users/{id}', [AdminController::class, 'deleteUser']);
+// Admin Routes (require 'auth:sanctum' and 'can:manage-users' or similar policy)
+Route::middleware(['auth:sanctum', 'can:accessAdminPanel'])->prefix('admin')->group(function () {
+    Route::get('users', [AdminController::class, 'getUsers']);
+    Route::patch('users/{user}', [AdminController::class, 'updateUser']);
+    Route::delete('users/{user}', [AdminController::class, 'deleteUser']);
+
+    Route::get('pending/books', [AdminController::class, 'getPendingBooks']);
+    Route::get('pending/poems', [AdminController::class, 'getPendingPoems']);
+
+    Route::patch('books/{book}/approve', [AdminController::class, 'approveBook']);
+    Route::delete('books/{book}', [AdminController::class, 'deleteBook']);
+
+    Route::post('poems/{poem}/approve', [PoemController::class, 'approve']); // Moved here for admin-specific action
+    Route::delete('poems/{poem}', [AdminController::class, 'deletePoem']); // Admin can delete any poem
+
+    Route::patch('payments/{payment}/status', [AdminController::class, 'updatePaymentStatus']);
+    Route::patch('payments/{payment}/refund', [AdminController::class, 'refundPayment']);
+    Route::patch('tickets/{ticket}/status', [AdminController::class, 'updateTicketStatus']);
+    Route::get('tickets/event/{event}', [AdminController::class, 'getTicketsForEvent']);
 });
 
-// Chat (RESTful example)
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('chats', [ChatController::class, 'index']);
-    Route::post('chats', [ChatController::class, 'store']);
-    Route::get('chats/{id}/messages', [ChatController::class, 'messages']);
-    Route::post('chats/{id}/messages', [ChatController::class, 'sendMessage']);
-});
-
-// Uploads
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('upload/book-cover', [UploadController::class, 'bookCover']);
-    Route::post('upload/avatar', [UploadController::class, 'avatar']);
-});
+// Paddle Webhook (no standard auth, relies on signature verification)
+Route::post('paddle/webhook', [PaddleWebhookController::class, 'handleWebhook']);
