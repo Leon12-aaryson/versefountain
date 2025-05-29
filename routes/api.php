@@ -30,25 +30,6 @@ Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)->middlewar
 Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('auth')->name('logout');
 
-// Public Routes
-// Route::get('poems', [PoemController::class, 'index']);
-// Route::get('poems/{poem}', [PoemController::class, 'show']);
-// Route::get('poems/{poem}/like-count', [PoemController::class, 'getLikeCount']);
-// Route::get('poems/{poem}/comments', [PoemCommentController::class, 'index']);
-// Route::get('comments/{comment}/reactions', [CommentReactionController::class, 'index']);
-// Route::get('comments/{comment}/reaction-counts', [CommentReactionController::class, 'getReactionCounts']);
-// Route::get('books', [BookController::class, 'index']);
-// Route::get('books/{book}', [BookController::class, 'show']);
-// Route::post('upload/bookcover', [BookController::class, 'uploadCover']);
-// Route::get('events', [EventController::class, 'index']);
-// Route::get('events/poetry', [EventController::class, 'poetryEvents']);
-// Route::get('events/{event}', [EventController::class, 'show']);
-// Route::get('chat/rooms', [ChatRoomController::class, 'index']);
-// Route::get('chat/rooms/{room}', [ChatRoomController::class, 'show']);
-// Route::get('academic-resources', [AcademicResourceController::class, 'index']);
-// Route::get('academic-resources/{academicResource}', [AcademicResourceController::class, 'show']);
-// Route::get('poets/featured', [UserController::class, 'featuredPoets']);
-// Route::get('poets/{user}/followers', [UserController::class, 'getFollowers']);
 
 // Authenticated Routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -126,7 +107,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Admin Routes
-Route::middleware(['auth:sanctum', 'can:accessAdminPanel'])->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'can:accessAdminPanel'])->group(function () {
     Route::get('users', [AdminController::class, 'getUsers']);
     Route::patch('users/{user}', [AdminController::class, 'updateUser']);
     Route::delete('users/{user}', [AdminController::class, 'deleteUser']);
