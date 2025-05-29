@@ -33,7 +33,7 @@ import { useToast } from '@/hooks/use-toast';
 interface TicketWithEvent {
   id: number;
   eventId: number;
-  userId: number;
+  user_id: number;
   purchaseDate: string;
   ticketCode: string;
   status: string;
@@ -122,9 +122,9 @@ export default function TicketsPage() {
         eventLocation: ticket.event.location,
         eventVirtual: ticket.event.isVirtual,
         price: ticket.event.isFree ? 'FREE' : `$${(ticket.event.ticketPrice / 100).toFixed(2)}`,
-        userId: ticket.userId,
+        user_id: ticket.user_id,
         purchaseDate: ticket.purchaseDate,
-        validationHash: `${ticket.id}-${ticket.userId}-${ticket.ticketCode}`, // Simple validation hash
+        validationHash: `${ticket.id}-${ticket.user_id}-${ticket.ticketCode}`, // Simple validation hash
         timestamp: new Date().toISOString(),
         attendee: user?.username
       };
@@ -168,9 +168,9 @@ export default function TicketsPage() {
         eventLocation: ticket.event.location,
         eventVirtual: ticket.event.isVirtual,
         price: ticket.event.isFree ? 'FREE' : `$${(ticket.event.ticketPrice / 100).toFixed(2)}`,
-        userId: ticket.userId,
+        user_id: ticket.user_id,
         purchaseDate: ticket.purchaseDate,
-        validationHash: `${ticket.id}-${ticket.userId}-${ticket.ticketCode}`, // Simple validation hash
+        validationHash: `${ticket.id}-${ticket.user_id}-${ticket.ticketCode}`, // Simple validation hash
         timestamp: new Date().toISOString(),
         attendee: user?.username
       };
@@ -307,7 +307,7 @@ export default function TicketsPage() {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7);
       doc.setTextColor(120, 120, 140);
-      const validationHash = `${ticket.id}-${ticket.userId}-${ticket.ticketCode}`;
+      const validationHash = `${ticket.id}-${ticket.user_id}-${ticket.ticketCode}`;
       doc.text(validationHash.substring(0, 24) + '...', 74, currentY);
       
       // Add footer
@@ -582,8 +582,8 @@ export default function TicketsPage() {
                 <span className="hidden sm:inline-block"> {format(new Date(selectedTicket.purchaseDate), 'MMMM d, yyyy')}</span>
               </p>
               <p>Attendee: {user?.username}</p>
-              <p className="truncate" title={`${selectedTicket.id}-${selectedTicket.userId}-${selectedTicket.ticketCode}`}>
-                Validation: {`${selectedTicket.id}-${selectedTicket.userId}-${selectedTicket.ticketCode}`.substring(0, 16)}...
+              <p className="truncate" title={`${selectedTicket.id}-${selectedTicket.user_id}-${selectedTicket.ticketCode}`}>
+                Validation: {`${selectedTicket.id}-${selectedTicket.user_id}-${selectedTicket.ticketCode}`.substring(0, 16)}...
               </p>
             </div>
           </div>
@@ -893,8 +893,8 @@ export default function TicketsPage() {
                       <div className="truncate">{user?.username}</div>
                       
                       <div className="font-medium">Validation:</div>
-                      <div className="text-xs text-gray-500 truncate" title={`${selectedTicket.id}-${selectedTicket.userId}-${selectedTicket.ticketCode}`}>
-                        {`${selectedTicket.id}-${selectedTicket.userId}-${selectedTicket.ticketCode}`.substring(0, 16)}...
+                      <div className="text-xs text-gray-500 truncate" title={`${selectedTicket.id}-${selectedTicket.user_id}-${selectedTicket.ticketCode}`}>
+                        {`${selectedTicket.id}-${selectedTicket.user_id}-${selectedTicket.ticketCode}`.substring(0, 16)}...
                       </div>
                     </div>
                     

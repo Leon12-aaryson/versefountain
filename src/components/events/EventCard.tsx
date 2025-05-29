@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/dialog";
 import EventEditForm from './EventEditForm';
 
-import { Event } from "@shared/schema";
 
 interface EventCardProps {
   id: number;
@@ -139,7 +138,7 @@ const EventCard = ({
     try {
       const response = await apiRequest("POST", "/api/tickets", { 
         eventId: id,
-        userId: user.id 
+        user_id: user.user_id 
       });
       
       if (!response.ok) {
@@ -250,7 +249,7 @@ const EventCard = ({
           </Button>
           
           {/* Edit button for event creators */}
-          {user && createdById && user.id === createdById && fullEvent && (
+          {user && createdById && user.user_id === createdById && fullEvent && (
             <Dialog>
               <DialogTrigger asChild>
                 <Button 

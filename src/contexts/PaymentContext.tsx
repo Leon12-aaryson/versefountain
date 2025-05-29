@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { Event, Payment, Ticket } from "@shared/schema";
 
 // Initialize Paddle
 declare global {
@@ -84,7 +83,7 @@ export const PaymentProvider = ({ children }: { children: ReactNode }) => {
       if (!user) throw new Error("You must be logged in to make a payment.");
 
       const res = await apiRequest("POST", "/api/payments", {
-        userId: user.id,
+        user_id: user.user_id,
         eventId,
         amount,
         currency: "USD",
@@ -233,7 +232,7 @@ export const PaymentProvider = ({ children }: { children: ReactNode }) => {
             // Create a ticket for the user
             return apiRequest("POST", "/api/tickets", {
               eventId: event.id,
-              userId: user?.id,
+              user_id: user?.id,
               paymentId: payment.id
             });
           })
@@ -247,7 +246,7 @@ export const PaymentProvider = ({ children }: { children: ReactNode }) => {
         },
         passthrough: JSON.stringify({
           payment_id: payment.id,
-          user_id: user.id,
+          user_id: user.user_id,
           event_id: event.id,
         }),
       });

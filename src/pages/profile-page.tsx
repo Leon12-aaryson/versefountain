@@ -144,13 +144,13 @@ export default function ProfilePage() {
                   <span className="text-sm font-medium">Status</span>
                   <span className="text-sm text-green-500 font-medium">Active</span>
                 </div>
-                {user.isAdmin && (
+                {user?.role === "admin" && (
                   <div className="flex justify-between w-full">
                     <span className="text-sm font-medium">Role</span>
                     <span className="text-sm text-purple-500 font-medium">Administrator</span>
                   </div>
                 )}
-                {user.isAdmin && (
+                {user?.role === "admin" && (
                   <Button 
                     variant="outline" 
                     className="w-full bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100 hover:text-purple-700"

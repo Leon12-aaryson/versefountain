@@ -57,12 +57,13 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const [selectedTab, setSelectedTab] = useState('users');
   
-  // Redirect if not an admin
+  // Redirect if not authenticated
   if (!user) {
     return <Redirect to="/auth" />;
   }
-  
-  if (user && !user.isAdmin) {
+
+  // Allow access if user.role === 'admin'
+  if (user && user.role !== 'admin') {
     toast({
       title: "Access Denied",
       description: "You don't have permission to access the admin dashboard.",
@@ -73,7 +74,7 @@ export default function AdminDashboard() {
   
   return (
     <MainLayout>
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-8 px-4 md:px-8">
         <div className="flex flex-col space-y-4">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
           <p className="text-gray-600">Manage your VerseFountain eLibrary application</p>
@@ -170,10 +171,10 @@ function UserManagement() {
     mutationFn: async ({ userId, isAdmin }: { userId: number, isAdmin: boolean }) => {
       const res = await apiRequest('PATCH', `/api/admin/users/${userId}`, { isAdmin });
       if (!res.ok) {
-        const errorData = await res.json();
+        const errorData = await res.data;
         throw new Error(errorData.message || 'Failed to update user');
       }
-      return res.json();
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
@@ -379,7 +380,7 @@ function BookManagement() {
   const approveBookMutation = useMutation({
     mutationFn: async (bookId: number) => {
       const res = await apiRequest('PATCH', `/api/admin/books/${bookId}/approve`, {});
-      return res.json();
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/books'] });
@@ -408,7 +409,7 @@ function BookManagement() {
   const createBookMutation = useMutation({
     mutationFn: async (data: any) => {
       const res = await apiRequest('POST', '/api/books', data);
-      return res.json();
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/books'] });

@@ -1,124 +1,105 @@
-import { createContext, ReactNode, useContext } from "react";
-import {
-  useMutation,
-  UseMutationResult,
-  useQuery,
-} from "@tanstack/react-query";
-import { User as SelectUser, InsertUser, loginUserSchema } from "@shared/schema";
+import { createContext, ReactNode, useContext, useEffect } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, getQueryFn, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { z } from "zod";
+import { API_BASE_URL } from "@/constants/constants";
+import axios from "axios";
 
-type AuthContextType = {
-  user: SelectUser | null;
-  isLoading: boolean;
-  error: Error | null;
-  logoutMutation: UseMutationResult<void, Error, void>;
-  loginMutation: UseMutationResult<SelectUser, Error, LoginData>;
-  registerMutation: UseMutationResult<SelectUser, Error, RegisterData>;
+type User = {
+  user_id: number;
+  username: string;
+  email: string;
+  role: string; // e.g., 'user', 'admin'
 };
 
-type LoginData = z.infer<typeof loginUserSchema>;
-type RegisterData = Omit<InsertUser, "confirmPassword"> & { confirmPassword: string };
+type AuthContextType = {
+  user: User | null;
+  isLoading: boolean;
+  error: Error | null;
+  logoutMutation: any;
+  loginMutation: any;
+  registerMutation: any;
+};
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
-  // Query to get user data from our backend
-  const { data: user, isLoading, error } = useQuery<SelectUser | null, Error>({
-    queryKey: ["/api/user"],
+  // Helper to store token
+  const setToken = (token: string) => {
+    localStorage.setItem("auth_token", token);
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  };
+
+  // On mount, set axios header if token exists
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    }
+  }, []);
+
+  // Query to get user data from backend
+  const { data: user, isLoading, error } = useQuery<User | null, Error>({
+    queryKey: ['/api/user'],
     queryFn: getQueryFn({ on401: "returnNull" }),
-    staleTime: 300000, // 5 minutes
+    staleTime: 300000,
     retry: false
   });
 
-  // Login with username/password
+  // Login
   const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginData) => {
-      const response = await apiRequest("POST", "/api/login", credentials);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Invalid username or password");
-      }
-      return await response.json();
+    mutationFn: async (credentials: { email: string; password: string }) => {
+      const response = await apiRequest("POST", `${API_BASE_URL}/api/login`, credentials);
+      return response.data;
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(["/api/user"], data);
-      toast({
-        title: "Login successful",
-        description: `Welcome back, ${data.username}!`,
-      });
+      if (data.token) setToken(data.token);
+      queryClient.setQueryData(['/api/user'], data.user || data);
+      toast({ title: "Login successful", description: `Welcome back, ${data.user?.username || data.username}!` });
     },
-    onError: (error: Error) => {
-      toast({
-        title: "Login failed",
-        description: error.message,
-        variant: "destructive",
-      });
+    onError: (error: any) => {
+      toast({ title: "Login failed", description: error.data?.message || error.statusText || "Invalid email or password", variant: "destructive" });
     },
   });
 
-  // Register new user
+  // Register
   const registerMutation = useMutation({
-    mutationFn: async (userData: RegisterData) => {
-      const response = await apiRequest("POST", "/api/register", userData);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || 
-          (errorData.errors && Object.values(errorData.errors).flat()[0]) || 
-          "Registration failed"
-        );
-      }
-      return await response.json();
+    mutationFn: async (userData: any) => {
+      const response = await apiRequest("POST", `${API_BASE_URL}/api/register`, userData);
+      return response.data;
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(["/api/user"], data);
-      toast({
-        title: "Registration successful",
-        description: `Welcome to VerseFountain, ${data.username}!`,
-      });
+      if (data.token) setToken(data.token);
+      queryClient.setQueryData(['/api/user'], data.user || data);
+      toast({ title: "Registration successful", description: `Welcome, ${data.user?.username || data.username}!` });
     },
-    onError: (error: Error) => {
-      toast({
-        title: "Registration failed",
-        description: error.message,
-        variant: "destructive",
-      });
+    onError: (error: any) => {
+      toast({ title: "Registration failed", description: error.data?.message || "Registration failed", variant: "destructive" });
     },
   });
 
   // Logout
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      // Logout from our backend
-      const response = await apiRequest("POST", "/api/logout");
-      if (!response.ok) {
-        throw new Error("Logout failed");
-      }
+      await apiRequest("POST", `${API_BASE_URL}/api/logout`);
     },
     onSuccess: () => {
-      queryClient.setQueryData(["/api/user"], null);
-      toast({
-        title: "Logout successful",
-        description: "You have been logged out",
-      });
+      localStorage.removeItem("auth_token");
+      delete axios.defaults.headers.common["Authorization"];
+      queryClient.setQueryData(['/api/user'], null);
+      toast({ title: "Logout successful", description: "You have been logged out" });
     },
-    onError: (error: Error) => {
-      toast({
-        title: "Logout failed",
-        description: error.message,
-        variant: "destructive",
-      });
+    onError: (error: any) => {
+      toast({ title: "Logout failed", description: error.data?.message || "Logout failed", variant: "destructive" });
     },
   });
 
   return (
     <AuthContext.Provider
       value={{
-        user,
+        user: user ?? null,
         isLoading,
         error,
         logoutMutation,
@@ -133,8 +114,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 }

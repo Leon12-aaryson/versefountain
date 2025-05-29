@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import MainLayout from '@/components/shared/MainLayout';
 import ResourceCard from '@/components/academics/ResourceCard';
-import { AcademicResource } from '@shared/schema';
 import { 
   Card,
   CardContent,

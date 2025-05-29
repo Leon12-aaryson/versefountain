@@ -1,5 +1,6 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { getApiBaseUrl } from "./netlifyConfig";
+import axios, { AxiosRequestConfig } from "axios";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -14,22 +15,22 @@ const apiBase = getApiBaseUrl();
 export async function apiRequest(
   method: string,
   url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
-  // Prepend API base URL if url starts with /api
-  const fullUrl = url.startsWith('/api') 
-    ? `${apiBase}${url.substring(4)}` // Remove /api prefix
-    : url;
-    
-  const res = await fetch(fullUrl, {
+  data?: unknown
+) {
+  const config: AxiosRequestConfig = {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
-
-  await throwIfResNotOk(res);
-  return res;
+    url,
+    data,
+    withCredentials: true,
+    headers: { "Content-Type": "application/json" },
+  };
+  try {
+    const response = await axios(config);
+    return response;
+  } catch (error: any) {
+    if (error.response) throw error.response;
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

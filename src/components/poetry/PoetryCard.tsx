@@ -6,19 +6,19 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Link } from 'wouter';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
   FormLabel,
   FormMessage
 } from '@/components/ui/form';
@@ -27,13 +27,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -54,7 +54,7 @@ interface Comment {
   id: number;
   content: string;
   poemId: number;
-  userId: number;
+  user_id: number;
   createdAt: string | Date;
   user?: {
     id: number;
@@ -73,15 +73,15 @@ interface PoetryCardProps {
   comments?: number;
 }
 
-const PoetryCard = ({ 
-  id, 
-  title, 
-  content, 
-  author, 
-  createdAt, 
-  rating = 4, 
-  likes = 0, 
-  comments = 0 
+const PoetryCard = ({
+  id,
+  title,
+  content,
+  author,
+  createdAt,
+  rating = 4,
+  likes = 0,
+  comments = 0
 }: PoetryCardProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -94,7 +94,7 @@ const PoetryCard = ({
   const [commentsDialogOpen, setCommentsDialogOpen] = useState(false);
   const [currentCommentCount, setCurrentCommentCount] = useState(comments);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Fetch the user's like status for this poem
   const { data: userPoemData } = useQuery({
     queryKey: ["/api/poems", id, "user-status"],
@@ -113,7 +113,7 @@ const PoetryCard = ({
     },
     enabled: !!user
   });
-  
+
   // Fetch the like count for this poem
   const { data: likeCountData } = useQuery<{ likeCount: number }>({
     queryKey: ["/api/poems", id, "like-count"],
@@ -125,7 +125,7 @@ const PoetryCard = ({
       return res.json();
     }
   });
-  
+
   // Fetch comments count
   const { data: commentsData } = useQuery<Comment[]>({
     queryKey: ["/api/poems", id, "comments"],
@@ -152,7 +152,7 @@ const PoetryCard = ({
       content
     }
   });
-  
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(
@@ -160,7 +160,7 @@ const PoetryCard = ({
       'day'
     );
   };
-  
+
   // Update state when data loads
   useEffect(() => {
     if (userPoemData) {
@@ -170,25 +170,25 @@ const PoetryCard = ({
       }
     }
   }, [userPoemData]);
-  
+
   // Update like count when like count data loads
   useEffect(() => {
     if (likeCountData && likeCountData.likeCount !== undefined) {
       setCurrentLikes(likeCountData.likeCount);
     }
   }, [likeCountData]);
-  
+
   // Update comments count when comments data loads
   useEffect(() => {
     if (commentsData) {
       setCurrentCommentCount(commentsData.length);
     }
   }, [commentsData]);
-  
+
   const toggleExpand = () => {
     setExpanded(!expanded);
   };
-  
+
   const handleLike = async () => {
     if (!user) {
       toast({
@@ -198,7 +198,7 @@ const PoetryCard = ({
       });
       return;
     }
-    
+
     try {
       let response;
       if (isLiked) {
@@ -212,7 +212,7 @@ const PoetryCard = ({
         setCurrentLikes(data.likeCount);
         setIsLiked(true);
       }
-      
+
       // Invalidate poems cache
       queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
     } catch (error) {
@@ -223,7 +223,7 @@ const PoetryCard = ({
       });
     }
   };
-  
+
   const handleRate = async (rating: number) => {
     if (!user) {
       toast({
@@ -233,16 +233,16 @@ const PoetryCard = ({
       });
       return;
     }
-    
+
     try {
       await apiRequest("POST", `/api/poems/${id}/rate`, { rating });
       setCurrentRating(rating);
-      
+
       toast({
         title: "Rating Submitted",
         description: `You rated this poem ${rating} stars`
       });
-      
+
       // Invalidate poems cache
       queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
     } catch (error) {
@@ -253,7 +253,7 @@ const PoetryCard = ({
       });
     }
   };
-  
+
   // Handle poem edit submission
   const onEditSubmit = async (data: z.infer<typeof formSchema>) => {
     if (!user) {
@@ -264,22 +264,22 @@ const PoetryCard = ({
       });
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const response = await apiRequest("PATCH", `/api/poems/${id}`, data);
-      
+
       if (response.ok) {
         // Close the dialog
         setEditDialogOpen(false);
-        
+
         // Show success message
         toast({
           title: "Poem Updated",
           description: "Your poem has been updated successfully"
         });
-        
+
         // Refresh poems data
         queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
       } else {
@@ -296,7 +296,7 @@ const PoetryCard = ({
       setIsSubmitting(false);
     }
   };
-  
+
   // Handle poem deletion
   const handleDeletePoem = async () => {
     if (!user) {
@@ -307,22 +307,22 @@ const PoetryCard = ({
       });
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const response = await apiRequest("DELETE", `/api/poems/${id}`);
-      
+
       if (response.ok) {
         // Close the dialog
         setDeleteDialogOpen(false);
-        
+
         // Show success message
         toast({
           title: "Poem Deleted",
           description: "Your poem has been deleted successfully"
         });
-        
+
         // Refresh poems data
         queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
       } else {
@@ -357,9 +357,9 @@ const PoetryCard = ({
               </p>
             </div>
           </div>
-          
+
           {/* Show edit/delete options if the user is the author or an admin */}
-          {user && (user.id === author.id || user.isAdmin) && (
+          {user && (user.user_id === author.id || user.role === "admin") && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -371,7 +371,7 @@ const PoetryCard = ({
                   <Pencil className="h-4 w-4 mr-2" />
                   Edit
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => setDeleteDialogOpen(true)}
                   className="text-red-500 focus:text-red-500"
                 >
@@ -382,11 +382,11 @@ const PoetryCard = ({
             </DropdownMenu>
           )}
         </div>
-        
+
         <Link href={`/poems/${id}`}>
           <h2 className="text-lg font-semibold text-gray-800 mb-2 hover:text-primary cursor-pointer">{title}</h2>
         </Link>
-        
+
         <div className="prose prose-sm text-gray-600">
           <div className="rounded-md p-1 -m-1">
             {expanded ? (
@@ -398,7 +398,7 @@ const PoetryCard = ({
             )}
           </div>
         </div>
-        
+
         {content.length > 200 && (
           <div className="flex items-center gap-2 mt-2">
             <Button
@@ -408,7 +408,7 @@ const PoetryCard = ({
             >
               {expanded ? "Read less" : "Read more"}
             </Button>
-            
+
             <Link href={`/poems/${id}`}>
               <Button
                 variant="link"
@@ -421,19 +421,19 @@ const PoetryCard = ({
           </div>
         )}
       </div>
-      
+
       <div className="border-t border-gray-100 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <button 
+          <button
             className={`flex items-center text-gray-500 hover:text-red-500 ${isLiked ? 'text-red-500' : ''}`}
             onClick={handleLike}
           >
             <Heart className="h-5 w-5 mr-1" fill={isLiked ? 'currentColor' : 'none'} />
             <span>{currentLikes}</span>
           </button>
-          
+
           <Link href={`/poems/${id}#comments`}>
-            <button 
+            <button
               className="flex items-center text-gray-500 hover:text-primary"
             >
               <MessageSquare className="h-5 w-5 mr-1" />
@@ -441,14 +441,13 @@ const PoetryCard = ({
             </button>
           </Link>
         </div>
-        
+
         <div className="flex items-center space-x-1">
           {[1, 2, 3, 4, 5].map((star) => (
             <button key={star} onClick={() => handleRate(star)}>
-              <Star 
-                className={`h-5 w-5 ${
-                  star <= currentRating ? 'text-yellow-500' : 'text-gray-300'
-                }`} 
+              <Star
+                className={`h-5 w-5 ${star <= currentRating ? 'text-yellow-500' : 'text-gray-300'
+                  }`}
                 fill={star <= currentRating ? 'currentColor' : 'none'}
               />
             </button>
@@ -456,7 +455,7 @@ const PoetryCard = ({
           <span className="text-sm text-gray-600 ml-1">{currentRating ? currentRating.toFixed(1) : '0.0'}</span>
         </div>
       </div>
-      
+
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
@@ -466,7 +465,7 @@ const PoetryCard = ({
               Make changes to your poem. Click save when you're done.
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onEditSubmit)} className="space-y-4">
               <FormField
@@ -482,7 +481,7 @@ const PoetryCard = ({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="content"
@@ -490,22 +489,22 @@ const PoetryCard = ({
                   <FormItem>
                     <FormLabel>Content</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        {...field} 
+                      <Textarea
+                        {...field}
                         rows={10}
-                        placeholder="Write your poem here..." 
-                        className="resize-none" 
+                        placeholder="Write your poem here..."
+                        className="resize-none"
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => setEditDialogOpen(false)}
                   disabled={isSubmitting}
                 >
@@ -519,7 +518,7 @@ const PoetryCard = ({
           </Form>
         </DialogContent>
       </Dialog>
-      
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
@@ -532,7 +531,7 @@ const PoetryCard = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleDeletePoem}
               disabled={isSubmitting}
               className="bg-red-600 hover:bg-red-700"
@@ -542,7 +541,7 @@ const PoetryCard = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      
+
       {/* Comments Dialog */}
       <Dialog open={commentsDialogOpen} onOpenChange={setCommentsDialogOpen}>
         <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
@@ -552,12 +551,12 @@ const PoetryCard = ({
               Join the conversation about this poem.
             </DialogDescription>
           </DialogHeader>
-          
-          <CommentsSection 
-            poemId={id} 
-            onCommentAdded={() => setCurrentCommentCount(prev => prev + 1)} 
+
+          <CommentsSection
+            poemId={id}
+            onCommentAdded={() => setCurrentCommentCount(prev => prev + 1)}
           />
-          
+
         </DialogContent>
       </Dialog>
     </div>
@@ -575,12 +574,12 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
   const { toast } = useToast();
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Comment form schema
   const commentSchema = z.object({
     content: z.string().min(1, "Comment cannot be empty").max(500, "Comment is too long")
   });
-  
+
   // Comment form
   const form = useForm<z.infer<typeof commentSchema>>({
     resolver: zodResolver(commentSchema),
@@ -588,13 +587,13 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
       content: ""
     }
   });
-  
+
   // Fetch comments for this poem
-  const { 
-    data: comments = [], 
-    isLoading, 
+  const {
+    data: comments = [],
+    isLoading,
     error,
-    refetch 
+    refetch
   } = useQuery<Comment[]>({
     queryKey: ["/api/poems", poemId, "comments"],
     queryFn: async () => {
@@ -605,7 +604,7 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
       return res.json();
     }
   });
-  
+
   // Submit new comment
   const onSubmit = async (data: z.infer<typeof commentSchema>) => {
     if (!user) {
@@ -616,17 +615,17 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
       });
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const response = await apiRequest("POST", `/api/poems/${poemId}/comments`, { content: data.content });
-      
+
       if (response.ok) {
         form.reset();
         refetch(); // Refresh comments
         onCommentAdded(); // Update comment count
-        
+
         toast({
           title: "Comment Added",
           description: "Your comment has been posted successfully"
@@ -645,7 +644,7 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
       setIsSubmitting(false);
     }
   };
-  
+
   // Delete comment
   const handleDeleteComment = async (commentId: number) => {
     if (!user) {
@@ -656,10 +655,10 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
       });
       return;
     }
-    
+
     try {
       const response = await apiRequest("DELETE", `/api/poems/comments/${commentId}`);
-      
+
       if (response.ok) {
         refetch(); // Refresh comments
         toast({
@@ -678,7 +677,7 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
       });
     }
   };
-  
+
   // Format date for display
   const formatCommentDate = (dateStr: string | Date) => {
     const date = new Date(dateStr);
@@ -689,7 +688,7 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
       minute: '2-digit'
     }).format(date);
   };
-  
+
   return (
     <div className="space-y-4">
       {/* Comments List */}
@@ -699,19 +698,19 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
             <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full"></div>
           </div>
         )}
-        
+
         {error && (
           <div className="py-4 text-center text-red-500">
             Failed to load comments. Please try again.
           </div>
         )}
-        
+
         {!isLoading && comments.length === 0 && (
           <div className="py-4 text-center text-gray-500">
             No comments yet. Be the first to comment!
           </div>
         )}
-        
+
         {comments.map((comment) => (
           <div key={comment.id} className="bg-gray-50 p-3 rounded-md">
             <div className="flex justify-between items-start">
@@ -726,10 +725,10 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
                   <p className="text-xs text-gray-500">{formatCommentDate(comment.createdAt)}</p>
                 </div>
               </div>
-              
-              {user && (user.id === comment.userId || user.isAdmin) && (
-                <Button 
-                  variant="ghost" 
+
+              {user && (user.user_id === comment.user_id || user.role === "admin") && (
+                <Button
+                  variant="ghost"
                   size="icon"
                   className="h-6 w-6"
                   onClick={() => handleDeleteComment(comment.id)}
@@ -738,12 +737,12 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
                 </Button>
               )}
             </div>
-            
+
             <p className="mt-2 text-sm text-gray-700 whitespace-pre-line">{comment.content}</p>
           </div>
         ))}
       </div>
-      
+
       {/* Comment Form */}
       {user ? (
         <Form {...form}>
@@ -755,15 +754,15 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
                 <FormItem>
                   <FormControl>
                     <div className="flex items-end gap-2">
-                      <Textarea 
-                        {...field} 
-                        placeholder="Write a comment..." 
-                        className="resize-none" 
+                      <Textarea
+                        {...field}
+                        placeholder="Write a comment..."
+                        className="resize-none"
                         disabled={isSubmitting}
                         rows={3}
                       />
-                      <Button 
-                        type="submit" 
+                      <Button
+                        type="submit"
                         size="sm"
                         disabled={isSubmitting}
                         className="mb-1"

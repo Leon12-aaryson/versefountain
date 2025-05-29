@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
-import { Event } from '@shared/schema';
 import { usePayment } from '@/contexts/PaymentContext';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -94,7 +93,7 @@ export default function EventDetailPage() {
     try {
       const response = await apiRequest("POST", "/api/tickets", { 
         eventId: event.id,
-        userId: user.id 
+        user_id: user.user_id 
       });
       
       if (!response.ok) {

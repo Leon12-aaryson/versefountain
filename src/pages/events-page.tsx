@@ -5,7 +5,6 @@ import MainLayout from '@/components/shared/MainLayout';
 import EventCard from '@/components/events/EventCard';
 import EventCreationForm from '@/components/events/EventCreationForm';
 import EventEditForm from '@/components/events/EventEditForm';
-import { Event } from '@shared/schema';
 import { 
   Card, 
   CardContent, 
@@ -191,7 +190,7 @@ export default function EventsPage() {
                                   // Free event registration
                                   const response = await apiRequest("POST", "/api/tickets", { 
                                     eventId: event.id,
-                                    userId: user.id
+                                    user_id: user.user_id
                                   });
                                   
                                   if (!response.ok) {
@@ -220,7 +219,7 @@ export default function EventsPage() {
                           )}
 
                           {/* Edit button if user created this event */}
-                          {user && user.id && event.createdById && user.id === event.createdById && (
+                          {user && user.user_id && event.createdById && user.user_id === event.createdById && (
                             <Dialog>
                               <DialogTrigger asChild>
                                 <Button 

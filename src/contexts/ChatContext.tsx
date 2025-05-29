@@ -8,7 +8,7 @@ import { getWebSocketUrl } from '@/lib/netlifyConfig';
 interface ChatMessage {
   type: string;
   roomId: number;
-  userId: number;
+  user_id: number;
   username: string;
   message: string;
   timestamp: string;
@@ -145,7 +145,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             try {
               ws.send(JSON.stringify({
                 type: 'authenticate',
-                userId: user.id,
+                user_id: user.user_id,
                 username: user.username
               }));
             } catch (err) {

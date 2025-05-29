@@ -1,12 +1,9 @@
 import { useState } from "react";
-import { z } from "zod";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { insertEventSchema, InsertEvent } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 import { Button } from "@/components/ui/button";
@@ -38,26 +35,18 @@ import {
 import { cn } from "@/lib/utils";
 import { DialogClose } from "@/components/ui/dialog";
 
-// Extended event schema for form validation
-const eventFormSchema = insertEventSchema.extend({
-  date: z.date({
-    required_error: "Please select a date for the event",
-  }),
-  location: z.string().min(2, {
-    message: "Location must be at least 2 characters.",
-  }),
-  title: z.string().min(2, {
-    message: "Title must be at least 2 characters.",
-  }),
-  description: z.string().min(10, {
-    message: "Description must be at least 10 characters.",
-  }),
-  ticketPrice: z.coerce.number().min(0, {
-    message: "Ticket price must be a positive number.",
-  }).optional(),
-});
-
-type EventFormData = z.infer<typeof eventFormSchema>;
+type EventFormData = {
+  title: string;
+  description: string;
+  date: Date | string;
+  location: string;
+  organizer: string;
+  isVirtual: boolean;
+  isFree: boolean;
+  ticketPrice?: number;
+  streamUrl?: string;
+  category: string;
+};
 
 export default function EventCreationForm() {
   const { user } = useAuth();
@@ -66,7 +55,6 @@ export default function EventCreationForm() {
   const [formSubmitted, setFormSubmitted] = useState(false);
 
   const form = useForm<EventFormData>({
-    resolver: zodResolver(eventFormSchema),
     defaultValues: {
       title: "",
       description: "",
@@ -79,7 +67,7 @@ export default function EventCreationForm() {
       streamUrl: "",
       category: "general",
     },
-  } as any);
+  });
 
   const isVirtual = form.watch("isVirtual");
   const isFree = form.watch("isFree");
@@ -98,15 +86,14 @@ export default function EventCreationForm() {
 
     try {
       // Convert price from dollars to cents for storage
-      const eventData: InsertEvent = {
+      const eventData = {
         ...data,
         ticketPrice: isFree ? 0 : (data.ticketPrice || 0) * 100,
         streamUrl: isVirtual ? data.streamUrl || "" : undefined,
-        createdById: user.id,
+        createdById: user.user_id,
       };
 
       const response = await apiRequest("POST", "/api/events", eventData);
-      const newEvent = await response.json();
 
       toast({
         title: "Event Created",
@@ -117,10 +104,10 @@ export default function EventCreationForm() {
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });
 
       setFormSubmitted(true);
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Failed to Create Event",
-        description: error instanceof Error ? error.message : "An error occurred while creating the event",
+        description: error?.message || "An error occurred while creating the event",
         variant: "destructive",
       });
     } finally {
@@ -132,7 +119,7 @@ export default function EventCreationForm() {
     return (
       <div className="text-center py-8">
         <div className="mb-4 text-green-500">
-          <svg className="h-12 w-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <svg className="h-12 w-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
@@ -151,6 +138,7 @@ export default function EventCreationForm() {
         <FormField
           control={form.control}
           name="title"
+          rules={{ required: "Title is required", minLength: { value: 2, message: "Title must be at least 2 characters." } }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Event Title</FormLabel>
@@ -165,6 +153,7 @@ export default function EventCreationForm() {
         <FormField
           control={form.control}
           name="description"
+          rules={{ required: "Description is required", minLength: { value: 10, message: "Description must be at least 10 characters." } }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Description</FormLabel>
@@ -184,6 +173,7 @@ export default function EventCreationForm() {
           <FormField
             control={form.control}
             name="date"
+            rules={{ required: "Please select a date for the event" }}
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel>Event Date</FormLabel>
@@ -205,7 +195,7 @@ export default function EventCreationForm() {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value}
+                      selected={field.value ? (typeof field.value === "string" ? new Date(field.value) : field.value) : undefined}
                       onSelect={field.onChange}
                       disabled={(date) => date < new Date()}
                       initialFocus
@@ -220,6 +210,7 @@ export default function EventCreationForm() {
           <FormField
             control={form.control}
             name="organizer"
+            rules={{ required: "Organizer is required" }}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Organizer</FormLabel>
@@ -235,6 +226,7 @@ export default function EventCreationForm() {
         <FormField
           control={form.control}
           name="category"
+          rules={{ required: "Category is required" }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Event Category</FormLabel>
@@ -308,6 +300,7 @@ export default function EventCreationForm() {
           <FormField
             control={form.control}
             name="streamUrl"
+            rules={{ required: "Stream URL is required for virtual events" }}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Stream URL</FormLabel>
@@ -325,6 +318,7 @@ export default function EventCreationForm() {
           <FormField
             control={form.control}
             name="location"
+            rules={{ required: "Location is required for physical events", minLength: { value: 2, message: "Location must be at least 2 characters." } }}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Location</FormLabel>
@@ -341,6 +335,7 @@ export default function EventCreationForm() {
           <FormField
             control={form.control}
             name="ticketPrice"
+            rules={{ min: { value: 0, message: "Ticket price must be a positive number." } }}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Ticket Price ($)</FormLabel>

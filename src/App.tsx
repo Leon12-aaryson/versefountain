@@ -1,10 +1,14 @@
-import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
+import { Switch, Route, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ThemeProvider } from "next-themes";
-import NotFound from "@/pages/not-found";
+import { queryClient } from "./lib/queryClient";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ChatProvider } from "@/contexts/ChatContext";
+import { PaymentProvider } from "@/contexts/PaymentContext";
+import ProtectedRoute from "./lib/protected-route";
+
 import HomePage from "@/pages/home-page";
 import AuthPage from "@/pages/auth-page";
 import PoetryPage from "@/pages/poetry-page";
@@ -17,10 +21,7 @@ import EventDetailPage from "@/pages/event-detail-page";
 import TicketsPage from "@/pages/tickets-page";
 import ProfilePage from "@/pages/profile-page";
 import AdminDashboard from "@/pages/admin-dashboard";
-import { AuthProvider } from "@/hooks/use-auth";
-import { ProtectedRoute } from "@/lib/protected-route";
-import { ChatProvider } from "@/contexts/ChatContext";
-import { PaymentProvider } from "@/contexts/PaymentContext";
+import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
@@ -31,22 +32,40 @@ function Router() {
       <Route path="/poems/:id" component={PoemDetailPage} />
       <Route path="/books" component={BooksPage} />
       <Route path="/academics" component={AcademicsPage} />
-      <ProtectedRoute path="/chat" component={ChatPage} />
+      <Route path="/chat">
+        <ProtectedRoute>
+          <ChatPage />
+        </ProtectedRoute>
+      </Route>
       <Route path="/events" component={EventsPage} />
       <Route path="/events/:id" component={EventDetailPage} />
-      <ProtectedRoute path="/tickets" component={TicketsPage} />
-      <ProtectedRoute path="/profile" component={ProfilePage} />
-      <ProtectedRoute path="/admin-dashboard" component={AdminDashboard} />
+      <Route path="/tickets">
+        <ProtectedRoute>
+          <TicketsPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/profile">
+        <ProtectedRoute>
+          <ProfilePage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/admin-dashboard">
+        <ProtectedRoute>
+          <AdminDashboard />
+        </ProtectedRoute>
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
 }
 
 function App() {
+  const [, navigate] = useLocation();
+
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="light">
-        <AuthProvider>
+      <AuthProvider>
+        <ThemeProvider attribute="class" defaultTheme="light">
           <ChatProvider>
             <PaymentProvider>
               <TooltipProvider>
@@ -55,8 +74,8 @@ function App() {
               </TooltipProvider>
             </PaymentProvider>
           </ChatProvider>
-        </AuthProvider>
-      </ThemeProvider>
+        </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

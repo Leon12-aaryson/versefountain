@@ -37,8 +37,6 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { MessageSquare, Users, Lock, PlusCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { insertChatRoomSchema } from '@shared/schema';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
 export default function ChatPage() {
@@ -60,8 +58,8 @@ export default function ChatPage() {
   const [viewingUserRooms, setViewingUserRooms] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
 
+  // No schema, just use react-hook-form rules
   const chatRoomForm = useForm({
-    resolver: zodResolver(insertChatRoomSchema),
     defaultValues: {
       name: '',
       description: '',
@@ -72,7 +70,7 @@ export default function ChatPage() {
   const createChatRoomMutation = useMutation({
     mutationFn: async (data: any) => {
       const res = await apiRequest('POST', '/api/chat/rooms', data);
-      return res.json();
+      return res.data;
     },
     onSuccess: () => {
       toast({
@@ -105,12 +103,7 @@ export default function ChatPage() {
       });
       return;
     }
-    
-    // First update the local state
     setSelectedRoomId(roomId);
-    
-    // Use a small timeout to ensure state is updated before joining the room
-    // This helps prevent infinite update loops
     setTimeout(() => {
       joinRoom(roomId);
     }, 50);
@@ -195,6 +188,7 @@ export default function ChatPage() {
                         <FormField
                           control={chatRoomForm.control}
                           name="name"
+                          rules={{ required: "Room name is required", minLength: { value: 2, message: "Name must be at least 2 characters." } }}
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Room Name</FormLabel>
@@ -209,6 +203,7 @@ export default function ChatPage() {
                         <FormField
                           control={chatRoomForm.control}
                           name="description"
+                          rules={{ required: "Description is required", minLength: { value: 5, message: "Description must be at least 5 characters." } }}
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Description</FormLabel>
@@ -258,7 +253,6 @@ export default function ChatPage() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Show no rooms message if there are no rooms or no joined rooms when viewing user rooms */}
               {(rooms.length === 0 || (viewingUserRooms && userRooms.length === 0)) ? (
                 <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
                   <MessageSquare className="h-12 w-12 text-gray-400 mb-4" />
@@ -279,10 +273,8 @@ export default function ChatPage() {
                   )}
                 </div>
               ) : (
-                // Determine which rooms to display based on viewingUserRooms state
                 (viewingUserRooms ? userRooms : rooms).map(room => {
                   const isJoined = isMemberOf(room.id);
-                  
                   return (
                     <Card key={room.id} className={`overflow-hidden ${isJoined ? 'border-primary/50' : ''}`}>
                       <CardHeader className="pb-3">
@@ -306,7 +298,6 @@ export default function ChatPage() {
                           <Users className="h-4 w-4 mr-2" />
                           <span>Active community</span>
                         </div>
-                        
                         <div className="grid grid-cols-2 gap-2">
                           <Button 
                             className="w-full" 
@@ -315,7 +306,6 @@ export default function ChatPage() {
                           >
                             Enter Chat
                           </Button>
-                          
                           {isJoined ? (
                             <Button 
                               variant="outline" 

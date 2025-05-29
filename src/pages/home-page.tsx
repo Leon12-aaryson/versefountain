@@ -7,7 +7,6 @@ import EventCard from '@/components/events/EventCard';
 import ResourceCard from '@/components/academics/ResourceCard';
 import PoetryCard from '@/components/poetry/PoetryCard';
 import { Button } from '@/components/ui/button';
-import { Book, Poem, Event, AcademicResource } from '@shared/schema';
 
 export default function HomePage() {
   // Fetch featured poems

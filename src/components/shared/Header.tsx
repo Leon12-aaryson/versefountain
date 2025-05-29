@@ -96,7 +96,7 @@ const Header = ({ user, toggleMobileMenu, isMobileMenuOpen }: HeaderProps) => {
                 <button className="flex items-center focus:outline-none">
                   <Avatar className="h-8 w-8">
                     <AvatarFallback className="bg-primary text-white">
-                      {user.username.charAt(0).toUpperCase()}
+                      {user?.username ? user.username.charAt(0).toUpperCase() : "?"}
                     </AvatarFallback>
                   </Avatar>
                   <ChevronDown className="h-4 w-4 ml-1 text-gray-500" />
@@ -113,7 +113,7 @@ const Header = ({ user, toggleMobileMenu, isMobileMenuOpen }: HeaderProps) => {
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Settings</span>
                 </DropdownMenuItem>
-                {user.isAdmin && (
+                {user.role === "admin" && (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/admin-dashboard')}>
