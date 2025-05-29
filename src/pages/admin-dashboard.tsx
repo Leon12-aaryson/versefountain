@@ -170,8 +170,8 @@ function UserManagement() {
   const toggleAdminStatusMutation = useMutation({
     mutationFn: async ({ userId, isAdmin }: { userId: number, isAdmin: boolean }) => {
       const res = await apiRequest('PATCH', `/api/admin/users/${userId}`, { isAdmin });
-      if (!res.ok) {
-        const errorData = await res.data;
+      if (res.status < 200 || res.status >= 300) {
+        const errorData = res.data;
         throw new Error(errorData.message || 'Failed to update user');
       }
       return res.data;
@@ -196,11 +196,11 @@ function UserManagement() {
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: number) => {
       const res = await apiRequest('DELETE', `/api/admin/users/${userId}`, {});
-      if (!res.ok) {
-        const errorData = await res.json();
+      if (res.status < 200 || res.status >= 300) {
+        const errorData = res.data;
         throw new Error(errorData.message || 'Failed to delete user');
       }
-      return res.json();
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
