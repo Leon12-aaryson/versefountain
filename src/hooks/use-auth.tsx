@@ -1,9 +1,22 @@
-import { createContext, ReactNode, useContext, useEffect } from "react";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, getQueryFn, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/constants/constants";
 import axios from "axios";
+
+// Add this interceptor ONCE, outside the component
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("auth_token");
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 type User = {
   user_id: number;
@@ -25,19 +38,22 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  const [tokenReady, setTokenReady] = useState(false);
 
   // Helper to store token
   const setToken = (token: string) => {
     localStorage.setItem("auth_token", token);
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    // No need to set axios.defaults.headers here anymore
   };
 
-  // On mount, set axios header if token exists
+  // On mount, check for token in localStorage and set tokenReady
   useEffect(() => {
     const token = localStorage.getItem("auth_token");
     if (token) {
+      // Optionally, set axios header here if not already set by interceptor
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     }
+    setTokenReady(true);
   }, []);
 
   // Query to get user data from backend
@@ -45,7 +61,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ['/api/user'],
     queryFn: getQueryFn({ on401: "returnNull" }),
     staleTime: 300000,
-    retry: false
+    retry: false,
+    enabled: tokenReady, // Only run query after token is set
   });
 
   // Login

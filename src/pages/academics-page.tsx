@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { API_BASE_URL } from '@/constants/constants';
 import MainLayout from '@/components/shared/MainLayout';
 import ResourceCard from '@/components/academics/ResourceCard';
 import { 
@@ -21,7 +23,6 @@ import {
 } from '@/components/ui/select';
 import {
   Tabs,
-  TabsContent,
   TabsList,
   TabsTrigger
 } from '@/components/ui/tabs';
@@ -35,6 +36,15 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
+interface AcademicResource {
+  id: string;
+  title: string;
+  description?: string;
+  type: string;
+  subject: string;
+  resourceUrl: string;
+}
+
 export default function AcademicsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
@@ -43,20 +53,14 @@ export default function AcademicsPage() {
   const { data: resources, isLoading } = useQuery<AcademicResource[]>({
     queryKey: ['/api/academic-resources'],
     queryFn: async () => {
-      const res = await fetch('/api/academic-resources');
-      if (!res.ok) throw new Error('Failed to fetch academic resources');
-      return res.json();
+      const res = await axios.get(`${API_BASE_URL}/api/academic-resources`);
+      return res.data;
     }
   });
   
   useEffect(() => {
     document.title = 'eLibrary - Academic Resources';
   }, []);
-  
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Search functionality would be implemented here
-  };
   
   const filteredResources = resources?.filter(resource => {
     const matchesSearch = searchQuery === '' || 
@@ -118,7 +122,7 @@ export default function AcademicsPage() {
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row md:items-center gap-4">
-              <form onSubmit={handleSearch} className="flex-1">
+              <form className="flex-1" onSubmit={e => e.preventDefault()}>
                 <div className="relative">
                   <Input
                     type="text"
@@ -180,7 +184,7 @@ export default function AcademicsPage() {
             filteredResources.map(resource => (
               <ResourceCard
                 key={resource.id}
-                id={resource.id}
+                id={Number(resource.id)}
                 title={resource.title}
                 description={resource.description || ''}
                 type={resource.type}

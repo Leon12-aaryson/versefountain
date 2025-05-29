@@ -4,7 +4,9 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import axios from "axios";
+import { API_BASE_URL } from "@/constants/constants";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -93,7 +95,7 @@ export default function EventCreationForm() {
         createdById: user.user_id,
       };
 
-      const response = await apiRequest("POST", "/api/events", eventData);
+      const response = await axios.post(`${API_BASE_URL}/api/events`, eventData);
 
       toast({
         title: "Event Created",
@@ -101,7 +103,8 @@ export default function EventCreationForm() {
       });
 
       // Update the events cache
-      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+      queryClient.invalidateQueries({ queryKey: ['event'] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
 
       setFormSubmitted(true);
     } catch (error: any) {

@@ -4,6 +4,26 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 
+// Define missing types
+export type Payment = {
+  id: number;
+  user_id: number;
+  eventId: number;
+  amount: number;
+  currency: string;
+  status: string;
+  paddlePaymentId?: string;
+  paddleTransactionId?: string;
+};
+
+export type Ticket = {
+  id: number;
+  eventId: number;
+  user_id: number;
+  paymentId: number;
+  status: string;
+};
+
 // Initialize Paddle
 declare global {
   interface Window {
@@ -11,18 +31,33 @@ declare global {
   }
 }
 
+export type Event = {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  isFree: boolean;
+  ticketPrice?: number;
+  isVirtual?: boolean;
+  streamUrl?: string;
+  location?: string;
+  category?: string;
+  organizer?: string;
+};
+
 type PaymentContextType = {
   isLoading: boolean;
   createPayment: (eventId: number, amount: number) => Promise<Payment>;
   requestRefund: (paymentId: number, reason: string) => Promise<void>;
   updateTicketStatus: (ticketId: number, status: string) => Promise<Ticket>;
-  userTickets: Ticket[] | undefined;
+  userTickets?: Ticket[];
   isTicketsLoading: boolean;
   initializePaddle: () => void;
   startCheckout: (event: Event) => Promise<void>;
 };
 
-const PaymentContext = createContext<PaymentContextType | undefined>(undefined);
+// Create PaymentContext
+export const PaymentContext = React.createContext<PaymentContextType | undefined>(undefined);
 
 export const PaymentProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
@@ -38,10 +73,10 @@ export const PaymentProvider = ({ children }: { children: ReactNode }) => {
     queryKey: ["/api/tickets/user"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/tickets/user");
-      if (!res.ok) {
+      if (res.status < 200 || res.status >= 300) {
         throw new Error("Failed to fetch tickets");
       }
-      return await res.json();
+      return res.data;
     },
     enabled: !!user, // Only fetch when user is authenticated
   });
@@ -59,21 +94,9 @@ export const PaymentProvider = ({ children }: { children: ReactNode }) => {
     script.onload = () => {
       window.Paddle.Setup({
         vendor: parseInt(import.meta.env.VITE_PADDLE_VENDOR_ID, 10),
-        eventCallback: (data: any) => {
-          console.log("Paddle event:", data);
-          if (data.event === "Checkout.Complete") {
-            toast({
-              title: "Payment Successful",
-              description: "Your payment was processed successfully.",
-            });
-            // Refresh user tickets
-            queryClient.invalidateQueries({ queryKey: ["/api/tickets/user"] });
-          }
-        },
       });
       setPaddleInitialized(true);
     };
-
     document.body.appendChild(script);
   };
 
@@ -90,24 +113,19 @@ export const PaymentProvider = ({ children }: { children: ReactNode }) => {
         status: "pending",
       });
 
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to create payment");
+      if (res.status < 200 || res.status >= 300) {
+        const error = res.data;
+        throw new Error(error?.message || "Failed to create payment");
       }
-      
-      return await res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets/user"] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Payment Error",
-        description: error.message,
-        variant: "destructive",
-      });
+
+      return res.data;
     },
   });
+
+  // Define createPayment function
+  const createPayment = async (eventId: number, amount: number): Promise<Payment> => {
+    return createPaymentMutation.mutateAsync({ eventId, amount });
+  };
 
   // Request refund mutation
   const requestRefundMutation = useMutation({
@@ -118,21 +136,20 @@ export const PaymentProvider = ({ children }: { children: ReactNode }) => {
         { reason }
       );
 
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to request refund");
+      if (res.status < 200 || res.status >= 300) {
+        const error = res.data;
+        throw new Error(error?.message || "Failed to request refund");
       }
-      
-      return await res.json();
     },
     onSuccess: () => {
       toast({
         title: "Refund Requested",
-        description: "Your refund request has been processed.",
+        description: "Your refund request has been submitted.",
+        variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets/user"] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Refund Error",
         description: error.message,
@@ -140,6 +157,11 @@ export const PaymentProvider = ({ children }: { children: ReactNode }) => {
       });
     },
   });
+
+  // Define requestRefund function
+  const requestRefund = async (paymentId: number, reason: string): Promise<void> => {
+    await requestRefundMutation.mutateAsync({ paymentId, reason });
+  };
 
   // Update ticket status mutation
   const updateTicketStatusMutation = useMutation({
@@ -150,21 +172,22 @@ export const PaymentProvider = ({ children }: { children: ReactNode }) => {
         { status }
       );
 
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to update ticket status");
+      if (res.status < 200 || res.status >= 300) {
+        const error = res.data;
+        throw new Error(error?.message || "Failed to update ticket status");
       }
       
-      return await res.json();
+      return res.data;
     },
     onSuccess: () => {
       toast({
         title: "Ticket Updated",
         description: "Your ticket status has been updated.",
+        variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets/user"] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Update Error",
         description: error.message,
@@ -173,23 +196,13 @@ export const PaymentProvider = ({ children }: { children: ReactNode }) => {
     },
   });
 
-  // Create payment function
-  const createPayment = async (eventId: number, amount: number) => {
-    return await createPaymentMutation.mutateAsync({ eventId, amount });
+  // Define updateTicketStatus function
+  const updateTicketStatus = async (ticketId: number, status: string): Promise<Ticket> => {
+    return updateTicketStatusMutation.mutateAsync({ ticketId, status });
   };
 
-  // Request refund function
-  const requestRefund = async (paymentId: number, reason: string) => {
-    await requestRefundMutation.mutateAsync({ paymentId, reason });
-  };
-
-  // Update ticket status function
-  const updateTicketStatus = async (ticketId: number, status: string) => {
-    return await updateTicketStatusMutation.mutateAsync({ ticketId, status });
-  };
-
-  // Start Paddle checkout
-  const startCheckout = async (event: Event) => {
+  // Start checkout function (moved to correct scope)
+  const startCheckout = async (event: Event): Promise<void> => {
     if (!user) {
       toast({
         title: "Login Required",
@@ -232,7 +245,7 @@ export const PaymentProvider = ({ children }: { children: ReactNode }) => {
             // Create a ticket for the user
             return apiRequest("POST", "/api/tickets", {
               eventId: event.id,
-              user_id: user?.id,
+              user_id: user.user_id,
               paymentId: payment.id
             });
           })
@@ -287,7 +300,7 @@ export const PaymentProvider = ({ children }: { children: ReactNode }) => {
 
 export const usePayment = () => {
   const context = useContext(PaymentContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error("usePayment must be used within a PaymentProvider");
   }
   return context;

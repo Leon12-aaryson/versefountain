@@ -29,18 +29,34 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { usePayment } from '@/contexts/PaymentContext';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import axios from 'axios';
+import { API_BASE_URL } from '@/constants/constants';
+
+interface Event {
+  id: number;
+  title: string;
+  date: string;
+  location?: string;
+  isFree?: boolean | null;
+  isVirtual?: boolean | null;
+  ticketPrice?: number | null;
+  organizer?: string;
+  createdById?: number | null;
+  description?: string;
+  streamUrl?: string;
+}
 
 export default function EventsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { startCheckout, userTickets: paymentTickets, initializePaddle } = usePayment();
   
+  // Update the events query
   const { data: events, isLoading } = useQuery<Event[]>({
     queryKey: ['/api/events'],
     queryFn: async () => {
-      const res = await fetch('/api/events');
-      if (!res.ok) throw new Error('Failed to fetch events');
-      return res.json();
+      const response = await axios.get(`${API_BASE_URL}/api/events`); // Added /api prefix
+      return response.data;
     }
   });
   
@@ -48,10 +64,15 @@ export default function EventsPage() {
   const { data: userTickets } = useQuery({
     queryKey: ['/api/tickets/user'],
     queryFn: async () => {
-      const res = await fetch('/api/tickets/user');
-      if (res.status === 404) return []; // No tickets found
-      if (!res.ok) throw new Error('Failed to fetch tickets');
-      return res.json();
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/tickets/user`); // Added /api prefix
+        return response.data;
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          return [];
+        }
+        throw error;
+      }
     },
     enabled: !!user, // Only run query if user is logged in
   });
@@ -174,7 +195,7 @@ export default function EventsPage() {
                                 if (!event.isFree && (event.ticketPrice || 0) > 0) {
                                   try {
                                     // Start the Paddle checkout flow
-                                    await startCheckout(event);
+                                    await startCheckout({ ...event, description: event.description || "" });
                                   } catch (error) {
                                     toast({
                                       title: "Payment Error",
@@ -188,14 +209,10 @@ export default function EventsPage() {
                                 // For free events, create a ticket directly
                                 try {
                                   // Free event registration
-                                  const response = await apiRequest("POST", "/api/tickets", { 
+                                  const response = await axios.post(`${API_BASE_URL}/api/tickets`, { // Added /api prefix
                                     eventId: event.id,
                                     user_id: user.user_id
                                   });
-                                  
-                                  if (!response.ok) {
-                                    throw new Error("Failed to register for event");
-                                  }
                                   
                                   toast({
                                     title: "Registration Successful",
@@ -207,7 +224,9 @@ export default function EventsPage() {
                                 } catch (error) {
                                   toast({
                                     title: "Registration Failed",
-                                    description: error instanceof Error ? error.message : "Failed to register for event",
+                                    description: axios.isAxiosError(error) 
+                                      ? error.response?.data?.message || error.message 
+                                      : "Failed to register for event",
                                     variant: "destructive"
                                   });
                                 }
@@ -298,14 +317,13 @@ export default function EventsPage() {
                         title={event.title}
                         date={event.date}
                         location={event.location || ""}
-                        isFree={event.isFree === null ? true : event.isFree}
-                        isVirtual={event.isVirtual === null ? false : event.isVirtual}
+                        isFree={event.isFree === null || event.isFree === undefined ? true : event.isFree}
+                        isVirtual={event.isVirtual === null || event.isVirtual === undefined ? false : event.isVirtual}
                         price={event.ticketPrice || 0}
                         organizer={event.organizer || ""}
                         createdById={event.createdById || undefined}
                         description={event.description || ""}
                         streamUrl={event.streamUrl || ""}
-                        fullEvent={event}
                       />
                     </div>
                   ))}

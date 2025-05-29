@@ -4,6 +4,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import axios from 'axios';
+import { API_BASE_URL } from '@/constants/constants';
 
 interface Author {
   id: number;
@@ -71,18 +73,18 @@ const VideoPoetryCard = ({
       });
       return;
     }
-    
+
     try {
       if (isLiked) {
-        await apiRequest("POST", `/api/poems/${id}/unlike`);
+        await axios.post(`${API_BASE_URL}/poems/${id}/unlike`);
         setCurrentLikes(prev => prev - 1);
         setIsLiked(false);
       } else {
-        await apiRequest("POST", `/api/poems/${id}/like`);
+        await axios.post(`${API_BASE_URL}/poems/${id}/like`);
         setCurrentLikes(prev => prev + 1);
         setIsLiked(true);
       }
-      
+
       // Invalidate poems cache
       queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
     } catch (error) {
@@ -103,16 +105,16 @@ const VideoPoetryCard = ({
       });
       return;
     }
-    
+
     try {
-      await apiRequest("POST", `/api/poems/${id}/rate`, { rating });
+      await axios.post(`${API_BASE_URL}/poems/${id}/rate`, { rating });
       setCurrentRating(rating);
-      
+
       toast({
         title: "Rating Submitted",
         description: `You rated this poem ${rating} stars`
       });
-      
+
       // Invalidate poems cache
       queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
     } catch (error) {

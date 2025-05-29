@@ -6,7 +6,9 @@ import { EventBadge } from '@/components/ui/event-badge';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { usePayment } from '@/contexts/PaymentContext';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import axios from "axios";
+import { API_BASE_URL } from "@/constants/constants";
+import { queryClient } from '@/lib/queryClient';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import {
@@ -34,6 +36,12 @@ interface EventCardProps {
   streamUrl?: string;
   onRegister?: () => void;
   fullEvent?: Event; // For the edit form
+}
+
+// First, define an interface for the ticket type
+interface Ticket {
+  eventId: number;
+  // Add other ticket properties if needed
 }
 
 const EventCard = ({ 
@@ -70,7 +78,9 @@ const EventCard = ({
   });
   
   // Check if user is already registered for this event
-  const isRegistered = userTickets?.some((ticket: {eventId: number}) => ticket.eventId === id);
+  const isRegistered = Array.isArray(userTickets) 
+    ? userTickets.some((ticket: Ticket) => ticket.eventId === id)
+    : false;
   
   // Initialize Paddle on component mount
   useEffect(() => {
@@ -109,16 +119,16 @@ const EventCard = ({
         const event = {
           id,
           title,
-          date: eventDate,
+          date: typeof date === 'string' ? date : eventDate.toISOString(),
           location: location || '',
           isFree: isFree as boolean | null,
           isVirtual: isVirtual as boolean | null,
-          description: description || null,
+          description: description || "",
           ticketPrice: price,
           organizer: organizer || null,
           streamUrl: streamUrl || null,
           createdById: createdById || null,
-          category: fullEvent?.category || 'general'
+          // category property removed as it does not exist on Event
         };
         
         // Start the Paddle checkout flow
@@ -136,16 +146,19 @@ const EventCard = ({
     
     // For free events, create a ticket directly
     try {
-      const response = await apiRequest("POST", "/api/tickets", { 
-        eventId: id,
-        user_id: user.user_id 
-      });
+      const response = await axios.post(
+        `${API_BASE_URL}/api/tickets`,
+        { 
+          eventId: id,
+          user_id: user.user_id 
+        }
+      );
       
-      if (!response.ok) {
+      if (response.status < 200 || response.status >= 300) {
         throw new Error("Failed to register for event");
       }
       
-      const ticket = await response.json();
+      const ticket = response.data;
       
       toast({
         title: "Registration Successful",

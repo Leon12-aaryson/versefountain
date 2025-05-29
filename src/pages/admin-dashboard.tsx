@@ -51,6 +51,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2, UserCircle, Book, ScrollText, Calendar, MessageCircle, GraduationCap, Ticket, Plus, Check, X, Edit, Trash2, Eye } from 'lucide-react';
+import axios from 'axios';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -149,24 +150,24 @@ function UserManagement() {
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  
-  const { data: users = [], isLoading, error, refetch } = useQuery({
+
+  const { data: usersRaw = [], isLoading, error, refetch } = useQuery({
     queryKey: ['/api/admin/users'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/admin/users');
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to fetch users');
+        const response = await axios.get('/api/admin/users');
+        return response.data;
+      } catch (error: any) {
+        if (error.response && error.response.data && error.response.data.message) {
+          throw new Error(error.response.data.message);
         }
-        return response.json();
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        throw error;
+        throw new Error('Failed to fetch users');
       }
     }
   });
-  
+
+  const users = Array.isArray(usersRaw) ? usersRaw : [];
+
   const toggleAdminStatusMutation = useMutation({
     mutationFn: async ({ userId, isAdmin }: { userId: number, isAdmin: boolean }) => {
       const res = await apiRequest('PATCH', `/api/admin/users/${userId}`, { isAdmin });
@@ -192,7 +193,7 @@ function UserManagement() {
       });
     }
   });
-  
+
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: number) => {
       const res = await apiRequest('DELETE', `/api/admin/users/${userId}`, {});

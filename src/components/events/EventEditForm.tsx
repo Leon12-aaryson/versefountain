@@ -5,6 +5,8 @@ import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import axios from "axios";
+import { API_BASE_URL } from "@/constants/constants";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -88,13 +90,15 @@ export default function EventEditForm({ event, onSuccess }: EventEditFormProps) 
         streamUrl: isVirtual ? data.streamUrl || "" : null,
       };
 
-      const response = await apiRequest("PUT", `/api/events/${event.id}`, eventData);
+      const response = await axios.put(
+        `${API_BASE_URL}/api/events/${event.id}`,
+        eventData
+      );
 
       if (response.status < 200 || response.status >= 300) {
         throw new Error("Failed to update event");
       }
 
-      // Optionally await response.json() if you need the updated event
       toast({
         title: "Event Updated",
         description: "Your event has been successfully updated",

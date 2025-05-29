@@ -102,8 +102,8 @@ const PoetryCard = ({
       if (!user) return null;
       try {
         const res = await apiRequest("GET", `/api/poems/${id}/user-status`);
-        if (res.ok) {
-          return res.json();
+        if (res.status >= 200 && res.status < 300) {
+          return res.data;
         }
         return null;
       } catch (error) {
@@ -119,10 +119,10 @@ const PoetryCard = ({
     queryKey: ["/api/poems", id, "like-count"],
     queryFn: async () => {
       const res = await apiRequest("GET", `/api/poems/${id}/like-count`);
-      if (!res.ok) {
+      if (!(res.status >= 200 && res.status < 300)) {
         throw new Error('Failed to fetch like count');
       }
-      return res.json();
+      return res.data;
     }
   });
 
@@ -131,10 +131,10 @@ const PoetryCard = ({
     queryKey: ["/api/poems", id, "comments"],
     queryFn: async () => {
       const res = await apiRequest("GET", `/api/poems/${id}/comments`);
-      if (!res.ok) {
+      if (!(res.status >= 200 && res.status < 300)) {
         throw new Error('Failed to fetch comments');
       }
-      return res.json();
+      return res.data;
     }
   });
 
@@ -203,12 +203,12 @@ const PoetryCard = ({
       let response;
       if (isLiked) {
         response = await apiRequest("POST", `/api/poems/${id}/unlike`);
-        const data = await response.json();
+        const data = response.data;
         setCurrentLikes(data.likeCount);
         setIsLiked(false);
       } else {
         response = await apiRequest("POST", `/api/poems/${id}/like`);
-        const data = await response.json();
+        const data = response.data;
         setCurrentLikes(data.likeCount);
         setIsLiked(true);
       }
@@ -270,7 +270,7 @@ const PoetryCard = ({
     try {
       const response = await apiRequest("PATCH", `/api/poems/${id}`, data);
 
-      if (response.ok) {
+      if (response.status >= 200 && response.status < 300) {
         // Close the dialog
         setEditDialogOpen(false);
 
@@ -283,7 +283,7 @@ const PoetryCard = ({
         // Refresh poems data
         queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
       } else {
-        const errorData = await response.json();
+        const errorData = response.data;
         throw new Error(errorData.message || "Failed to update poem");
       }
     } catch (error) {
@@ -313,7 +313,7 @@ const PoetryCard = ({
     try {
       const response = await apiRequest("DELETE", `/api/poems/${id}`);
 
-      if (response.ok) {
+      if (response.status >= 200 && response.status < 300) {
         // Close the dialog
         setDeleteDialogOpen(false);
 
@@ -326,7 +326,7 @@ const PoetryCard = ({
         // Refresh poems data
         queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
       } else {
-        const errorData = await response.json();
+        const errorData = response.data;
         throw new Error(errorData.message || "Failed to delete poem");
       }
     } catch (error) {
@@ -598,10 +598,10 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
     queryKey: ["/api/poems", poemId, "comments"],
     queryFn: async () => {
       const res = await apiRequest("GET", `/api/poems/${poemId}/comments`);
-      if (!res.ok) {
+      if (!(res.status >= 200 && res.status < 300)) {
         throw new Error('Failed to fetch comments');
       }
-      return res.json();
+      return res.data;
     }
   });
 
@@ -621,7 +621,7 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
     try {
       const response = await apiRequest("POST", `/api/poems/${poemId}/comments`, { content: data.content });
 
-      if (response.ok) {
+      if (response.status >= 200 && response.status < 300) {
         form.reset();
         refetch(); // Refresh comments
         onCommentAdded(); // Update comment count
@@ -631,7 +631,7 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
           description: "Your comment has been posted successfully"
         });
       } else {
-        const errorData = await response.json();
+        const errorData = response.data;
         throw new Error(errorData.message || "Failed to post comment");
       }
     } catch (error) {
@@ -659,14 +659,14 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
     try {
       const response = await apiRequest("DELETE", `/api/poems/comments/${commentId}`);
 
-      if (response.ok) {
+      if (response.status >= 200 && response.status < 300) {
         refetch(); // Refresh comments
         toast({
           title: "Comment Deleted",
           description: "Your comment has been deleted successfully"
         });
       } else {
-        const errorData = await response.json();
+        const errorData = response.data;
         throw new Error(errorData.message || "Failed to delete comment");
       }
     } catch (error) {
