@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('poem_id')->constrained('poems')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->text('content');
-            $table->timestamps(); // Adds updated_at
+            $table->timestamps();
         });
     }
 

@@ -7,7 +7,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens; // Using Laravel Sanctum for API authentication
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
@@ -19,10 +19,12 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'first_name',
+        'last_name',
         'username',
         'email',
-        'password', // This will be hashed automatically by the 'hashed' cast
-        'isAdmin',
+        'password',
+        'role',
     ];
 
     /**
@@ -43,7 +45,6 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed', // Laravel automatically hashes passwords when set this way
-        'isAdmin' => 'boolean',
     ];
 
     // Relationships

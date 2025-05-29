@@ -15,8 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('poet_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('follower_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('follower_id')->constrained('users')->onDelete('cascade');
-            $table->unique(['follower_id', 'poet_id']); // Ensures a user cannot follow the same poet multiple times
+            $table->unique(['follower_id', 'poet_id']);
             $table->timestamps();
         });
     }

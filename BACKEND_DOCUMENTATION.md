@@ -1767,7 +1767,7 @@ Endpoints related to user authentication (login, logout, signup, status). These 
         ```json
         {
           "event_id": 123, // number, required
-          "user_id": 5 // Though present in body example in code, it's overridden by req.user.id
+          "user_id": 5 // Though present in body example in code, it's overridden by req.user.user_id
         }
         ```
 *   **Response:**

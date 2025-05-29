@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -17,13 +18,24 @@ return new class extends Migration
             $table->string('last_name')->nullable();
             $table->string('username');
             $table->string('email')->unique();
-            $table->boolean('is_admin')->default(false);
-            $table->foreignId('role_id')->constrained()->onDelete('cascade');
+            $table->string('role')->default('user');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
         });
+
+        DB::table('users')->insert([
+            'first_name' => 'Aaron',
+            'last_name' => 'Leon',
+            'username' => 'admin1',
+            'email' => 'admin@admin.com',
+            'role' => 'admin',
+            'email_verified_at' => now(),
+            'password' => bcrypt('password'),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
