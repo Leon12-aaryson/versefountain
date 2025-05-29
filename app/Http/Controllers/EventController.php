@@ -151,4 +151,40 @@ class EventController extends Controller
 
         return response()->json($event);
     }
+
+    /**
+     * Delete an event.
+     */
+    public function destroy(Event $event)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        // Authorization check
+        if ($user->id !== $event->createdById && !$user->isAdmin) {
+            return response()->json(['message' => 'Forbidden. You did not create this event or are not an administrator.'], 403);
+        }
+
+        $event->delete();
+
+        return response()->json(['message' => 'Event deleted successfully.']);
+    }
+    /**
+     * Retrieve events created by the authenticated user.
+     */
+    public function userEvents(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $events = Event::where('createdById', $user->id)
+                       ->orderBy('date', 'asc')
+                       ->paginate($request->input('limit', 10));
+
+        return response()->json($events);
+    }
 }
