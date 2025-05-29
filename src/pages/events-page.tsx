@@ -195,7 +195,13 @@ export default function EventsPage() {
                                 if (!event.isFree && (event.ticketPrice || 0) > 0) {
                                   try {
                                     // Start the Paddle checkout flow
-                                    await startCheckout({ ...event, description: event.description || "" });
+                                    await startCheckout({
+                                      ...event, 
+                                      description: event.description || "",
+                                      isFree: event.isFree === null || event.isFree === undefined ? false : event.isFree,
+                                      isVirtual: event.isVirtual === null || event.isVirtual === undefined ? false : event.isVirtual,
+                                      ticketPrice: event.ticketPrice === null || event.ticketPrice === undefined ? undefined : event.ticketPrice
+                                    });
                                   } catch (error) {
                                     toast({
                                       title: "Payment Error",
