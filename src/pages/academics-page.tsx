@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { API_BASE_URL } from '@/constants/constants';
 import MainLayout from '@/components/shared/MainLayout';
@@ -49,19 +48,21 @@ export default function AcademicsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedSubject, setSelectedSubject] = useState('all');
-  
-  const { data: resources, isLoading } = useQuery<AcademicResource[]>({
-    queryKey: ['/api/academic-resources'],
-    queryFn: async () => {
-      const res = await axios.get(`${API_BASE_URL}/api/academic-resources`);
-      return res.data;
-    }
-  });
-  
+  const [resources, setResources] = useState<AcademicResource[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     document.title = 'eLibrary - Academic Resources';
   }, []);
-  
+
+  useEffect(() => {
+    setIsLoading(true);
+    axios.get(`${API_BASE_URL}/api/academic-resources`)
+      .then(res => setResources(res.data))
+      .catch(() => setResources([]))
+      .finally(() => setIsLoading(false));
+  }, []);
+
   const filteredResources = resources?.filter(resource => {
     const matchesSearch = searchQuery === '' || 
       resource.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -72,13 +73,13 @@ export default function AcademicsPage() {
     
     return matchesSearch && matchesType && matchesSubject;
   });
-  
+
   const getSubjects = () => {
     if (!resources) return [];
     const subjects = new Set(resources.map(resource => resource.subject).filter(Boolean));
     return Array.from(subjects);
   };
-  
+
   const getResourceIcon = (type: string) => {
     switch (type) {
       case 'study_guide':

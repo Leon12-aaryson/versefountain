@@ -1,8 +1,8 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { API_BASE_URL } from "@/constants/constants";
 
 // Define missing types
 export type Payment = {
@@ -24,7 +24,6 @@ export type Ticket = {
   status: string;
 };
 
-// Initialize Paddle
 declare global {
   interface Window {
     Paddle: any;
@@ -56,38 +55,43 @@ type PaymentContextType = {
   startCheckout: (event: Event) => Promise<void>;
 };
 
-// Create PaymentContext
 export const PaymentContext = React.createContext<PaymentContextType | undefined>(undefined);
 
 export const PaymentProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { user } = useAuth();
   const [paddleInitialized, setPaddleInitialized] = useState(false);
+  const [userTickets, setUserTickets] = useState<Ticket[] | undefined>(undefined);
+  const [isTicketsLoading, setIsTicketsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Fetch user tickets
-  const { 
-    data: userTickets, 
-    isLoading: isTicketsLoading 
-  } = useQuery({
-    queryKey: ["/api/tickets/user"],
-    queryFn: async () => {
-      const res = await apiRequest("GET", "/api/tickets/user");
-      if (res.status < 200 || res.status >= 300) {
-        throw new Error("Failed to fetch tickets");
-      }
-      return res.data;
-    },
-    enabled: !!user, // Only fetch when user is authenticated
-  });
+  const fetchUserTickets = async () => {
+    if (!user) {
+      setUserTickets(undefined);
+      return;
+    }
+    setIsTicketsLoading(true);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/tickets/user`, { withCredentials: true });
+      setUserTickets(res.data);
+    } catch {
+      setUserTickets(undefined);
+    } finally {
+      setIsTicketsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserTickets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // Initialize Paddle
   const initializePaddle = () => {
     if (window.Paddle || !import.meta.env.VITE_PADDLE_VENDOR_ID) {
       return;
     }
-
-    // Create script to load Paddle
     const script = document.createElement("script");
     script.src = "https://cdn.paddle.com/paddle/paddle.js";
     script.async = true;
@@ -100,108 +104,81 @@ export const PaymentProvider = ({ children }: { children: ReactNode }) => {
     document.body.appendChild(script);
   };
 
-  // Create payment mutation
-  const createPaymentMutation = useMutation({
-    mutationFn: async ({ eventId, amount }: { eventId: number; amount: number }) => {
-      if (!user) throw new Error("You must be logged in to make a payment.");
-
-      const res = await apiRequest("POST", "/api/payments", {
+  // Create payment
+  const createPayment = async (eventId: number, amount: number): Promise<Payment> => {
+    if (!user) throw new Error("You must be logged in to make a payment.");
+    setIsLoading(true);
+    try {
+      const res = await axios.post(`${API_BASE_URL}/api/payments`, {
         user_id: user.user_id,
         eventId,
         amount,
         currency: "USD",
         status: "pending",
-      });
-
+      }, { withCredentials: true });
       if (res.status < 200 || res.status >= 300) {
-        const error = res.data;
-        throw new Error(error?.message || "Failed to create payment");
+        throw new Error(res.data?.message || "Failed to create payment");
       }
-
       return res.data;
-    },
-  });
-
-  // Define createPayment function
-  const createPayment = async (eventId: number, amount: number): Promise<Payment> => {
-    return createPaymentMutation.mutateAsync({ eventId, amount });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Request refund mutation
-  const requestRefundMutation = useMutation({
-    mutationFn: async ({ paymentId, reason }: { paymentId: number; reason: string }) => {
-      const res = await apiRequest(
-        "PATCH", 
-        `/api/payments/${paymentId}/refund`,
-        { reason }
-      );
-
+  // Request refund
+  const requestRefund = async (paymentId: number, reason: string): Promise<void> => {
+    setIsLoading(true);
+    try {
+      const res = await axios.patch(`${API_BASE_URL}/api/payments/${paymentId}/refund`, { reason }, { withCredentials: true });
       if (res.status < 200 || res.status >= 300) {
-        const error = res.data;
-        throw new Error(error?.message || "Failed to request refund");
+        throw new Error(res.data?.message || "Failed to request refund");
       }
-    },
-    onSuccess: () => {
       toast({
         title: "Refund Requested",
         description: "Your refund request has been submitted.",
         variant: "default",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets/user"] });
-    },
-    onError: (error: any) => {
+      fetchUserTickets();
+    } catch (error: any) {
       toast({
         title: "Refund Error",
         description: error.message,
         variant: "destructive",
       });
-    },
-  });
-
-  // Define requestRefund function
-  const requestRefund = async (paymentId: number, reason: string): Promise<void> => {
-    await requestRefundMutation.mutateAsync({ paymentId, reason });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Update ticket status mutation
-  const updateTicketStatusMutation = useMutation({
-    mutationFn: async ({ ticketId, status }: { ticketId: number; status: string }) => {
-      const res = await apiRequest(
-        "PATCH", 
-        `/api/tickets/${ticketId}/status`,
-        { status }
-      );
-
+  // Update ticket status
+  const updateTicketStatus = async (ticketId: number, status: string): Promise<Ticket> => {
+    setIsLoading(true);
+    try {
+      const res = await axios.patch(`${API_BASE_URL}/api/tickets/${ticketId}/status`, { status }, { withCredentials: true });
       if (res.status < 200 || res.status >= 300) {
-        const error = res.data;
-        throw new Error(error?.message || "Failed to update ticket status");
+        throw new Error(res.data?.message || "Failed to update ticket status");
       }
-      
-      return res.data;
-    },
-    onSuccess: () => {
       toast({
         title: "Ticket Updated",
         description: "Your ticket status has been updated.",
         variant: "default",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets/user"] });
-    },
-    onError: (error: any) => {
+      fetchUserTickets();
+      return res.data;
+    } catch (error: any) {
       toast({
         title: "Update Error",
         description: error.message,
         variant: "destructive",
       });
-    },
-  });
-
-  // Define updateTicketStatus function
-  const updateTicketStatus = async (ticketId: number, status: string): Promise<Ticket> => {
-    return updateTicketStatusMutation.mutateAsync({ ticketId, status });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Start checkout function (moved to correct scope)
+  // Start checkout
   const startCheckout = async (event: Event): Promise<void> => {
     if (!user) {
       toast({
@@ -211,7 +188,6 @@ export const PaymentProvider = ({ children }: { children: ReactNode }) => {
       });
       return;
     }
-
     if (!paddleInitialized) {
       toast({
         title: "Payment System Error",
@@ -220,12 +196,8 @@ export const PaymentProvider = ({ children }: { children: ReactNode }) => {
       });
       return;
     }
-
     try {
-      // First create a pending payment in our system
       const payment = await createPayment(event.id, event.ticketPrice || 0);
-
-      // Open Paddle checkout
       window.Paddle.Checkout.open({
         product: parseInt(import.meta.env.VITE_PADDLE_PRODUCT_ID, 10),
         title: `Ticket for ${event.title}`,
@@ -233,29 +205,22 @@ export const PaymentProvider = ({ children }: { children: ReactNode }) => {
         closeCallback: () => {
           console.log("Checkout closed");
         },
-        successCallback: (data: any) => {
-          console.log("Checkout success:", data);
-          // Update payment status to completed
-          apiRequest("PATCH", `/api/payments/${payment.id}/status`, {
-            status: "completed",
-            paddlePaymentId: data.checkout.id,
-            paddleTransactionId: data.checkout.order_id,
-          })
-          .then(() => {
-            // Create a ticket for the user
-            return apiRequest("POST", "/api/tickets", {
+        successCallback: async (data: any) => {
+          try {
+            await axios.patch(`${API_BASE_URL}/api/payments/${payment.id}/status`, {
+              status: "completed",
+              paddlePaymentId: data.checkout.id,
+              paddleTransactionId: data.checkout.order_id,
+            }, { withCredentials: true });
+            await axios.post(`${API_BASE_URL}/api/tickets`, {
               eventId: event.id,
               user_id: user.user_id,
               paymentId: payment.id
-            });
-          })
-          .then(() => {
-            // Invalidate tickets cache to show the new ticket
-            queryClient.invalidateQueries({ queryKey: ["/api/tickets/user"] });
-          })
-          .catch(err => {
+            }, { withCredentials: true });
+            fetchUserTickets();
+          } catch (err) {
             console.error("Error processing payment completion:", err);
-          });
+          }
         },
         passthrough: JSON.stringify({
           payment_id: payment.id,
@@ -273,17 +238,17 @@ export const PaymentProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Effect to initialize Paddle
   useEffect(() => {
     if (user) {
       initializePaddle();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   return (
     <PaymentContext.Provider
       value={{
-        isLoading: createPaymentMutation.isPending,
+        isLoading,
         createPayment,
         requestRefund,
         updateTicketStatus,

@@ -30,7 +30,7 @@ interface HeaderProps {
 
 const Header = ({ user, toggleMobileMenu, isMobileMenuOpen }: HeaderProps) => {
   const [, navigate] = useLocation();
-  const { logoutMutation } = useAuth();
+  const { logout } = useAuth(); // Use logout from your context
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
@@ -39,8 +39,8 @@ const Header = ({ user, toggleMobileMenu, isMobileMenuOpen }: HeaderProps) => {
     console.log('Searching for:', searchQuery);
   };
 
-  const handleLogout = () => {
-    logoutMutation.mutate();
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
 

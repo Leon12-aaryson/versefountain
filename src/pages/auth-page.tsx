@@ -31,7 +31,7 @@ type RegisterFormData = {
 
 export default function AuthPage() {
   const [, navigate] = useLocation();
-  const { user, loginMutation, registerMutation } = useAuth();
+  const { user, login, register, isLoading } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('register');
 
@@ -60,42 +60,42 @@ export default function AuthPage() {
     }
   }, [user, navigate]);
 
-  const handleLogin = (data: LoginFormData) => {
-    loginMutation.mutate(data, {
-      onSuccess: () => {
-        navigate('/');
-        toast({
-          title: 'Welcome back!',
-          description: 'You have been successfully logged in.',
-        });
-      },
-      onError: (error) => {
-        toast({
-          title: 'Login Failed',
-          description: error.message || 'Invalid email or password',
-          variant: 'destructive',
-        });
-      }
-    });
+  const handleLogin = async (data: LoginFormData) => {
+    try {
+      await login(data);
+      navigate('/');
+      toast({
+        title: 'Welcome back!',
+        description: 'You have been successfully logged in.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Login Failed',
+        description: error?.response?.data?.message || error?.message || 'Invalid email or password',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleRegister = (data: RegisterFormData) => {
-    registerMutation.mutate(data, {
-      onSuccess: () => {
-        toast({
-          title: 'Registration Successful',
-          description: 'Your account has been created and you are now logged in.',
-        });
-        navigate('/');
-      },
-      onError: (error) => {
-        toast({
-          title: 'Registration Failed',
-          description: error.message || 'Could not register. Please try again.',
-          variant: 'destructive',
-        });
-      }
-    });
+  const handleRegister = async (data: RegisterFormData) => {
+    try {
+      await register({
+        username: data.username,
+        email: data.email,
+        password: data.password,
+      });
+      toast({
+        title: 'Registration Successful',
+        description: 'Your account has been created and you are now logged in.',
+      });
+      navigate('/');
+    } catch (error: any) {
+      toast({
+        title: 'Registration Failed',
+        description: error?.response?.data?.message || error?.message || 'Could not register. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   if (user) {
@@ -191,9 +191,9 @@ export default function AuthPage() {
                         <Button
                           type="submit"
                           className="w-full"
-                          disabled={registerMutation.isPending}
+                          disabled={isLoading}
                         >
-                          {registerMutation.isPending ? (
+                          {isLoading ? (
                             <>
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               Creating account...
@@ -236,9 +236,9 @@ export default function AuthPage() {
                         <Button
                           type="submit"
                           className="w-full"
-                          disabled={loginMutation.isPending}
+                          disabled={isLoading}
                         >
-                          {loginMutation.isPending ? (
+                          {isLoading ? (
                             <>
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               Signing in...

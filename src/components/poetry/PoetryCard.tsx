@@ -4,8 +4,9 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Link } from 'wouter';
+import axios from 'axios';
+import { API_BASE_URL } from '@/constants/constants';
 import {
   Dialog,
   DialogContent,
@@ -43,7 +44,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { useQuery, useMutation } from '@tanstack/react-query';
 
 interface Author {
   id: number;
@@ -96,47 +96,31 @@ const PoetryCard = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch the user's like status for this poem
-  const { data: userPoemData } = useQuery({
-    queryKey: ["/api/poems", id, "user-status"],
-    queryFn: async () => {
-      if (!user) return null;
-      try {
-        const res = await apiRequest("GET", `/api/poems/${id}/user-status`);
-        if (res.status >= 200 && res.status < 300) {
-          return res.data;
+  useEffect(() => {
+    if (!user) return;
+    axios.get(`${API_BASE_URL}/api/poems/${id}/user-status`)
+      .then(res => {
+        setIsLiked(res.data.liked ?? false);
+        if (res.data.rating !== undefined && res.data.rating !== null) {
+          setCurrentRating(res.data.rating);
         }
-        return null;
-      } catch (error) {
-        console.error("Error fetching poem user status:", error);
-        return null;
-      }
-    },
-    enabled: !!user
-  });
+      })
+      .catch(() => {});
+  }, [user, id]);
 
   // Fetch the like count for this poem
-  const { data: likeCountData } = useQuery<{ likeCount: number }>({
-    queryKey: ["/api/poems", id, "like-count"],
-    queryFn: async () => {
-      const res = await apiRequest("GET", `/api/poems/${id}/like-count`);
-      if (!(res.status >= 200 && res.status < 300)) {
-        throw new Error('Failed to fetch like count');
-      }
-      return res.data;
-    }
-  });
+  useEffect(() => {
+    axios.get(`${API_BASE_URL}/api/poems/${id}/like-count`)
+      .then(res => setCurrentLikes(res.data.likeCount ?? 0))
+      .catch(() => {});
+  }, [id]);
 
   // Fetch comments count
-  const { data: commentsData } = useQuery<Comment[]>({
-    queryKey: ["/api/poems", id, "comments"],
-    queryFn: async () => {
-      const res = await apiRequest("GET", `/api/poems/${id}/comments`);
-      if (!(res.status >= 200 && res.status < 300)) {
-        throw new Error('Failed to fetch comments');
-      }
-      return res.data;
-    }
-  });
+  useEffect(() => {
+    axios.get(`${API_BASE_URL}/api/poems/${id}/comments`)
+      .then(res => setCurrentCommentCount(res.data.length ?? 0))
+      .catch(() => {});
+  }, [id]);
 
   // Define validation schema for the edit form
   const formSchema = z.object({
@@ -155,35 +139,8 @@ const PoetryCard = ({
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(
-      Math.ceil((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
-      'day'
-    );
+    return date.toLocaleDateString();
   };
-
-  // Update state when data loads
-  useEffect(() => {
-    if (userPoemData) {
-      if (userPoemData.liked !== undefined) setIsLiked(userPoemData.liked);
-      if (userPoemData.rating !== undefined && userPoemData.rating !== null) {
-        setCurrentRating(userPoemData.rating);
-      }
-    }
-  }, [userPoemData]);
-
-  // Update like count when like count data loads
-  useEffect(() => {
-    if (likeCountData && likeCountData.likeCount !== undefined) {
-      setCurrentLikes(likeCountData.likeCount);
-    }
-  }, [likeCountData]);
-
-  // Update comments count when comments data loads
-  useEffect(() => {
-    if (commentsData) {
-      setCurrentCommentCount(commentsData.length);
-    }
-  }, [commentsData]);
 
   const toggleExpand = () => {
     setExpanded(!expanded);
@@ -202,19 +159,13 @@ const PoetryCard = ({
     try {
       let response;
       if (isLiked) {
-        response = await apiRequest("POST", `/api/poems/${id}/unlike`);
-        const data = response.data;
-        setCurrentLikes(data.likeCount);
+        response = await axios.post(`${API_BASE_URL}/api/poems/${id}/unlike`);
         setIsLiked(false);
       } else {
-        response = await apiRequest("POST", `/api/poems/${id}/like`);
-        const data = response.data;
-        setCurrentLikes(data.likeCount);
+        response = await axios.post(`${API_BASE_URL}/api/poems/${id}/like`);
         setIsLiked(true);
       }
-
-      // Invalidate poems cache
-      queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
+      setCurrentLikes(response.data.likeCount ?? currentLikes);
     } catch (error) {
       toast({
         title: "Error",
@@ -235,16 +186,13 @@ const PoetryCard = ({
     }
 
     try {
-      await apiRequest("POST", `/api/poems/${id}/rate`, { rating });
+      await axios.post(`${API_BASE_URL}/api/poems/${id}/rate`, { rating });
       setCurrentRating(rating);
 
       toast({
         title: "Rating Submitted",
         description: `You rated this poem ${rating} stars`
       });
-
-      // Invalidate poems cache
-      queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
     } catch (error) {
       toast({
         title: "Error",
@@ -268,28 +216,21 @@ const PoetryCard = ({
     setIsSubmitting(true);
 
     try {
-      const response = await apiRequest("PATCH", `/api/poems/${id}`, data);
+      const response = await axios.patch(`${API_BASE_URL}/api/poems/${id}`, data);
 
       if (response.status >= 200 && response.status < 300) {
-        // Close the dialog
         setEditDialogOpen(false);
-
-        // Show success message
         toast({
           title: "Poem Updated",
           description: "Your poem has been updated successfully"
         });
-
-        // Refresh poems data
-        queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
       } else {
-        const errorData = response.data;
-        throw new Error(errorData.message || "Failed to update poem");
+        throw new Error(response.data?.message || "Failed to update poem");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update poem",
+        description: error?.message || "Failed to update poem",
         variant: "destructive"
       });
     } finally {
@@ -311,28 +252,21 @@ const PoetryCard = ({
     setIsSubmitting(true);
 
     try {
-      const response = await apiRequest("DELETE", `/api/poems/${id}`);
+      const response = await axios.delete(`${API_BASE_URL}/api/poems/${id}`);
 
       if (response.status >= 200 && response.status < 300) {
-        // Close the dialog
         setDeleteDialogOpen(false);
-
-        // Show success message
         toast({
           title: "Poem Deleted",
           description: "Your poem has been deleted successfully"
         });
-
-        // Refresh poems data
-        queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
       } else {
-        const errorData = response.data;
-        throw new Error(errorData.message || "Failed to delete poem");
+        throw new Error(response.data?.message || "Failed to delete poem");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete poem",
+        description: error?.message || "Failed to delete poem",
         variant: "destructive"
       });
     } finally {
@@ -432,14 +366,14 @@ const PoetryCard = ({
             <span>{currentLikes}</span>
           </button>
 
-          <Link href={`/poems/${id}#comments`}>
-            <button
-              className="flex items-center text-gray-500 hover:text-primary"
-            >
-              <MessageSquare className="h-5 w-5 mr-1" />
-              <span>{currentCommentCount}</span>
-            </button>
-          </Link>
+          <Button
+            variant="ghost"
+            className="flex items-center text-gray-500 hover:text-primary"
+            onClick={() => setCommentsDialogOpen(true)}
+          >
+            <MessageSquare className="h-5 w-5 mr-1" />
+            <span>{currentCommentCount}</span>
+          </Button>
         </div>
 
         <div className="flex items-center space-x-1">
@@ -572,7 +506,9 @@ interface CommentsSectionProps {
 const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [newComment, setNewComment] = useState("");
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Comment form schema
@@ -589,21 +525,23 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
   });
 
   // Fetch comments for this poem
-  const {
-    data: comments = [],
-    isLoading,
-    error,
-    refetch
-  } = useQuery<Comment[]>({
-    queryKey: ["/api/poems", poemId, "comments"],
-    queryFn: async () => {
-      const res = await apiRequest("GET", `/api/poems/${poemId}/comments`);
-      if (!(res.status >= 200 && res.status < 300)) {
-        throw new Error('Failed to fetch comments');
-      }
-      return res.data;
+  const fetchComments = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/poems/${poemId}/comments`);
+      setComments(res.data);
+    } catch {
+      setError("Failed to load comments. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-  });
+  };
+
+  useEffect(() => {
+    fetchComments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [poemId]);
 
   // Submit new comment
   const onSubmit = async (data: z.infer<typeof commentSchema>) => {
@@ -619,25 +557,24 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
     setIsSubmitting(true);
 
     try {
-      const response = await apiRequest("POST", `/api/poems/${poemId}/comments`, { content: data.content });
+      const response = await axios.post(`${API_BASE_URL}/api/poems/${poemId}/comments`, { content: data.content });
 
       if (response.status >= 200 && response.status < 300) {
         form.reset();
-        refetch(); // Refresh comments
-        onCommentAdded(); // Update comment count
+        fetchComments();
+        onCommentAdded();
 
         toast({
           title: "Comment Added",
           description: "Your comment has been posted successfully"
         });
       } else {
-        const errorData = response.data;
-        throw new Error(errorData.message || "Failed to post comment");
+        throw new Error(response.data?.message || "Failed to post comment");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to post comment",
+        description: error?.message || "Failed to post comment",
         variant: "destructive"
       });
     } finally {
@@ -657,22 +594,21 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
     }
 
     try {
-      const response = await apiRequest("DELETE", `/api/poems/comments/${commentId}`);
+      const response = await axios.delete(`${API_BASE_URL}/api/poems/comments/${commentId}`);
 
       if (response.status >= 200 && response.status < 300) {
-        refetch(); // Refresh comments
+        fetchComments();
         toast({
           title: "Comment Deleted",
           description: "Your comment has been deleted successfully"
         });
       } else {
-        const errorData = response.data;
-        throw new Error(errorData.message || "Failed to delete comment");
+        throw new Error(response.data?.message || "Failed to delete comment");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete comment",
+        description: error?.message || "Failed to delete comment",
         variant: "destructive"
       });
     }
@@ -701,7 +637,7 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
 
         {error && (
           <div className="py-4 text-center text-red-500">
-            Failed to load comments. Please try again.
+            {error}
           </div>
         )}
 

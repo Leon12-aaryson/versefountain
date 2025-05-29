@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
 import MainLayout from '@/components/shared/MainLayout';
 import BookCard from '@/components/books/BookCard';
 import { useAuth } from '@/hooks/use-auth';
@@ -26,10 +25,11 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlusCircle, Search, FileText, BookOpen, Library } from 'lucide-react';
-import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useForm } from 'react-hook-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import axios from 'axios';
+import { API_BASE_URL } from '@/constants/constants';
 
 // Define the Book type
 interface Book {
@@ -50,14 +50,18 @@ export default function BooksPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const booksPerPage = 8;
 
-  const { data: books, isLoading } = useQuery<Book[]>({
-    queryKey: ['/api/books'],
-    queryFn: async () => {
-      const res = await fetch('/api/books');
-      if (!res.ok) throw new Error('Failed to fetch books');
-      return res.json();
-    }
-  });
+  // State for books
+  const [books, setBooks] = useState<Book[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch books on mount
+  useEffect(() => {
+    setIsLoading(true);
+    axios.get(`${API_BASE_URL}/api/books`)
+      .then(res => setBooks(res.data))
+      .catch(() => setBooks([]))
+      .finally(() => setIsLoading(false));
+  }, []);
 
   // Remove zodResolver and schema, use react-hook-form rules instead
   const bookForm = useForm({
@@ -74,83 +78,68 @@ export default function BooksPage() {
   const [uploadedCoverPath, setUploadedCoverPath] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  // File upload mutation
-  const uploadFileMutation = useMutation({
-    mutationFn: async (file: File) => {
+  // File upload handler
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setUploadedFile(file);
+
       const formData = new FormData();
       formData.append('coverImage', file);
 
       setIsUploading(true);
-      const res = await fetch('/api/upload/bookcover', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to upload file');
+      try {
+        const res = await axios.post(`${API_BASE_URL}/api/upload/bookcover`, formData, {
+          withCredentials: true,
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        setUploadedCoverPath(res.data.filePath);
+        toast({
+          title: 'File Uploaded',
+          description: 'Cover image uploaded successfully',
+        });
+      } catch (error: any) {
+        toast({
+          title: 'Upload Failed',
+          description: error?.message || 'Failed to upload cover image',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsUploading(false);
       }
-
-      return res.json();
-    },
-    onSuccess: (data) => {
-      setUploadedCoverPath(data.filePath);
-      setIsUploading(false);
-      toast({
-        title: 'File Uploaded',
-        description: 'Cover image uploaded successfully',
-      });
-    },
-    onError: (error) => {
-      setIsUploading(false);
-      toast({
-        title: 'Upload Failed',
-        description: error instanceof Error ? error.message : 'Failed to upload cover image',
-        variant: 'destructive',
-      });
-    }
-  });
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setUploadedFile(file);
-      uploadFileMutation.mutate(file);
     }
   };
 
-  const createBookMutation = useMutation({
-    mutationFn: async (data: any) => {
+  // Book creation handler
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const onSubmit = async (data: any) => {
+    setIsSubmitting(true);
+    try {
       const bookData = {
         ...data,
         coverImage: uploadedCoverPath || data.coverImage,
       };
-
-      const res = await apiRequest('POST', '/api/books', bookData);
-      return res.data;
-    },
-    onSuccess: () => {
+      await axios.post(`${API_BASE_URL}/api/books`, bookData, { withCredentials: true });
       toast({
         title: 'Book Submitted',
         description: 'Your book has been submitted successfully and is pending approval.',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/books'] });
+      // Refetch books
+      const res = await axios.get(`${API_BASE_URL}/api/books`);
+      setBooks(res.data);
       bookForm.reset();
       setUploadedFile(null);
       setUploadedCoverPath(null);
       setDialogOpen(false);
-    },
-    onError: (error) => {
+    } catch (error: any) {
       toast({
         title: 'Submission Failed',
-        description: error instanceof Error ? error.message : 'Failed to submit book',
+        description: error?.message || 'Failed to submit book',
         variant: 'destructive',
       });
+    } finally {
+      setIsSubmitting(false);
     }
-  });
-
-  const onSubmit = (data: any) => {
-    createBookMutation.mutate(data);
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -373,8 +362,8 @@ export default function BooksPage() {
                     </div>
 
                     <DialogFooter>
-                      <Button type="submit" disabled={createBookMutation.isPending}>
-                        {createBookMutation.isPending ? 'Uploading...' : 'Upload Book'}
+                      <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? 'Uploading...' : 'Upload Book'}
                       </Button>
                     </DialogFooter>
                   </form>

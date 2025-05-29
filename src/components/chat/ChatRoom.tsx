@@ -85,25 +85,25 @@ const ChatRoom = ({ roomId, roomName, onBack }: ChatRoomProps) => {
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className={`flex ${msg.user_id === user?.id ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${msg.user_id === user?.user_id ? 'justify-end' : 'justify-start'}`}
               >
-                <div className={`flex ${msg.user_id === user?.id ? 'flex-row-reverse' : 'flex-row'} items-start max-w-[80%]`}>
+                <div className={`flex ${msg.user_id === user?.user_id ? 'flex-row-reverse' : 'flex-row'} items-start max-w-[80%]`}>
                   <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
-                    <AvatarFallback className={msg.user_id === user?.id ? 'bg-primary' : 'bg-secondary'}>
+                    <AvatarFallback className={msg.user_id === user?.user_id ? 'bg-primary' : 'bg-secondary'}>
                       {msg.username.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   
-                  <div className={`mx-2 ${msg.user_id === user?.id ? 'bg-primary text-white' : 'bg-white'} rounded-lg p-3 shadow-sm`}>
+                  <div className={`mx-2 ${msg.user_id === user?.user_id ? 'bg-primary text-white' : 'bg-white'} rounded-lg p-3 shadow-sm`}>
                     <div className="flex justify-between items-baseline mb-1">
-                      <span className={`text-xs font-medium ${msg.user_id === user?.id ? 'text-primary-foreground' : 'text-gray-700'}`}>
+                      <span className={`text-xs font-medium ${msg.user_id === user?.user_id ? 'text-primary-foreground' : 'text-gray-700'}`}>
                         {msg.username}
                       </span>
-                      <span className={`text-xs ${msg.user_id === user?.id ? 'text-primary-foreground/70' : 'text-gray-500'} ml-2`}>
+                      <span className={`text-xs ${msg.user_id === user?.user_id ? 'text-primary-foreground/70' : 'text-gray-500'} ml-2`}>
                         {formatMessageTime(msg.timestamp)}
                       </span>
                     </div>
-                    <p className={`whitespace-pre-wrap break-words ${msg.user_id === user?.id ? 'text-primary-foreground' : 'text-gray-800'}`}>
+                    <p className={`whitespace-pre-wrap break-words ${msg.user_id === user?.user_id ? 'text-primary-foreground' : 'text-gray-800'}`}>
                       {msg.message}
                     </p>
                   </div>

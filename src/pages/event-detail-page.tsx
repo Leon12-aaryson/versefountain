@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useParams, useLocation } from 'wouter';
 import MainLayout from '@/components/shared/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,6 @@ import { format } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
 import { usePayment } from '@/contexts/PaymentContext';
 import { useToast } from '@/hooks/use-toast';
-import { queryClient } from '@/lib/queryClient';
 import axios from 'axios';
 import { API_BASE_URL } from '@/constants/constants';
 
@@ -21,30 +19,36 @@ export default function EventDetailPage() {
   const { toast } = useToast();
   const { startCheckout, initializePaddle } = usePayment();
 
+  const [event, setEvent] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
+
+  const [userTickets, setUserTickets] = useState<any[]>([]);
+  const [isLoadingTickets, setIsLoadingTickets] = useState(false);
+
   // Fetch event details
-  const { data: event, isLoading, isError } = useQuery({
-    queryKey: ['event', id],
-    queryFn: async () => {
-      const res = await axios.get(`${API_BASE_URL}/api/events/${id}`);
-      return res.data;
-    },
-    enabled: !!id,
-  });
+  useEffect(() => {
+    if (!id) return;
+    setIsLoading(true);
+    setIsError(false);
+    axios.get(`${API_BASE_URL}/api/events/${id}`)
+      .then(res => setEvent(res.data))
+      .catch(() => setIsError(true))
+      .finally(() => setIsLoading(false));
+  }, [id]);
 
   // Fetch user's tickets
-  const { data: userTickets, isLoading: isLoadingTickets } = useQuery({
-    queryKey: ['userTickets'],
-    queryFn: async () => {
-      try {
-        const res = await axios.get(`${API_BASE_URL}/api/tickets/user`);
-        return res.data;
-      } catch (error: any) {
-        if (error.response && error.response.status === 404) return [];
-        throw new Error('Failed to fetch tickets');
-      }
-    },
-    enabled: !!user,
-  });
+  useEffect(() => {
+    if (!user) {
+      setUserTickets([]);
+      return;
+    }
+    setIsLoadingTickets(true);
+    axios.get(`${API_BASE_URL}/api/tickets/user`)
+      .then(res => setUserTickets(res.data))
+      .catch(() => setUserTickets([]))
+      .finally(() => setIsLoadingTickets(false));
+  }, [user]);
 
   // Check registration
   const isRegistered = userTickets?.some((ticket: { eventId: number }) => ticket.eventId === Number(id));
@@ -98,7 +102,14 @@ export default function EventDetailPage() {
         title: "Registration Successful",
         description: `You have successfully registered for ${event.title}`,
       });
-      queryClient.invalidateQueries({ queryKey: ['userTickets'] });
+      // Refetch tickets
+      if (user) {
+        setIsLoadingTickets(true);
+        axios.get(`${API_BASE_URL}/api/tickets/user`)
+          .then(res => setUserTickets(res.data))
+          .catch(() => setUserTickets([]))
+          .finally(() => setIsLoadingTickets(false));
+      }
     } catch (error: any) {
       toast({
         title: "Registration Failed",

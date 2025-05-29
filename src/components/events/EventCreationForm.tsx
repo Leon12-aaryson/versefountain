@@ -4,7 +4,6 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
 import axios from "axios";
 import { API_BASE_URL } from "@/constants/constants";
 
@@ -50,7 +49,7 @@ type EventFormData = {
   category: string;
 };
 
-export default function EventCreationForm() {
+export default function EventCreationForm({ onEventCreated }: { onEventCreated?: () => void } = {}) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -95,18 +94,15 @@ export default function EventCreationForm() {
         createdById: user.user_id,
       };
 
-      const response = await axios.post(`${API_BASE_URL}/api/events`, eventData);
+      await axios.post(`${API_BASE_URL}/api/events`, eventData);
 
       toast({
         title: "Event Created",
         description: "Your event has been successfully created",
       });
 
-      // Update the events cache
-      queryClient.invalidateQueries({ queryKey: ['event'] });
-      queryClient.invalidateQueries({ queryKey: ['events'] });
-
       setFormSubmitted(true);
+      if (onEventCreated) onEventCreated();
     } catch (error: any) {
       toast({
         title: "Failed to Create Event",

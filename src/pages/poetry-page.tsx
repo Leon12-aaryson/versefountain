@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import axios from 'axios';
+import { API_BASE_URL } from '@/constants/constants';
 import MainLayout from '@/components/shared/MainLayout';
 import PoetryCard from '@/components/poetry/PoetryCard';
 import VideoPoetryCard from '@/components/poetry/VideoPoetryCard';
@@ -32,7 +33,6 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useForm } from 'react-hook-form';
-import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useLocation } from 'wouter';
@@ -51,6 +51,15 @@ interface Poem {
   createdAt: string;
 }
 
+// Define the Event type
+interface Event {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  location: string;
+}
+
 export default function PoetryPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -61,105 +70,74 @@ export default function PoetryPage() {
   const [editPoemDialogOpen, setEditPoemDialogOpen] = useState(false);
   const [editingPoem, setEditingPoem] = useState<{id: number; title: string; content: string; isVideo: boolean; videoUrl: string}>();
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [poems, setPoems] = useState<Poem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedPoem, setSelectedPoem] = useState<Poem | null>(null);
+  const [isLoadingSelectedPoem, setIsLoadingSelectedPoem] = useState(false);
+  const [featuredPoets, setFeaturedPoets] = useState<Array<{id: number; username: string; poemCount: number}>>([]);
+  const [isLoadingFeaturedPoets, setIsLoadingFeaturedPoets] = useState(false);
+  const [poetryEvents, setPoetryEvents] = useState<Event[]>([]);
+  const [isLoadingPoetryEvents, setIsLoadingPoetryEvents] = useState(false);
 
   // Parse URL parameters to get poem ID if present
   const searchParams = new URLSearchParams(window.location.search);
   const poemId = searchParams.get('poemId');
   const [detailView, setDetailView] = useState(!!poemId);
 
-  // Query for all poems
-  const { data: poems, isLoading } = useQuery<Poem[]>({
-    queryKey: ['/api/poems'],
-    queryFn: async () => {
-      const res = await fetch('/api/poems');
-      if (!res.ok) throw new Error('Failed to fetch poems');
-      return res.json();
-    }
-  });
+  // Fetch all poems
+  useEffect(() => {
+    setIsLoading(true);
+    axios.get(`${API_BASE_URL}/api/poems`)
+      .then(res => setPoems(res.data))
+      .catch(() => setPoems([]))
+      .finally(() => setIsLoading(false));
+  }, []);
 
-  // Query for individual poem if in detail view
-  const { data: selectedPoem, isLoading: isLoadingSelectedPoem } = useQuery<Poem>({
-    queryKey: ['/api/poems', poemId],
-    queryFn: async () => {
-      if (!poemId) throw new Error('No poem ID provided');
-      const res = await fetch(`/api/poems/${poemId}`);
-      if (!res.ok) throw new Error('Failed to fetch poem');
-      return res.json();
-    },
-    enabled: !!poemId // Only run this query if poemId exists
-  });
+  // Fetch selected poem if in detail view
+  useEffect(() => {
+    if (!poemId) return;
+    setIsLoadingSelectedPoem(true);
+    axios.get(`${API_BASE_URL}/api/poems/${poemId}`)
+      .then(res => setSelectedPoem(res.data))
+      .catch(() => setSelectedPoem(null))
+      .finally(() => setIsLoadingSelectedPoem(false));
+  }, [poemId]);
 
-  // Query for featured poets
-  const { data: featuredPoets, isLoading: isLoadingFeaturedPoets } = useQuery<Array<{id: number; username: string; poemCount: number}>>({
-    queryKey: ['/api/poets/featured'],
-    queryFn: async () => {
-      const res = await fetch('/api/poets/featured?limit=5');
-      if (!res.ok) throw new Error('Failed to fetch featured poets');
-      return res.json();
-    }
-  });
+  // Fetch featured poets
+  useEffect(() => {
+    setIsLoadingFeaturedPoets(true);
+    axios.get(`${API_BASE_URL}/api/poets/featured`, { params: { limit: 5 } })
+      .then(res => setFeaturedPoets(res.data))
+      .catch(() => setFeaturedPoets([]))
+      .finally(() => setIsLoadingFeaturedPoets(false));
+  }, []);
 
-  // Poet following mutations and state
+  // Fetch poetry events
+  useEffect(() => {
+    setIsLoadingPoetryEvents(true);
+    axios.get(`${API_BASE_URL}/api/events/poetry`, { params: { limit: 3 } })
+      .then(res => setPoetryEvents(res.data))
+      .catch(() => setPoetryEvents([]))
+      .finally(() => setIsLoadingPoetryEvents(false));
+  }, []);
+
+  // Poet following state and actions
   const [poetFollowingStatus, setPoetFollowingStatus] = useState<Record<number, boolean>>({});
   const [followedPoetIds, setFollowedPoetIds] = useState<number[]>([]);
-
-  const followPoetMutation = useMutation({
-    mutationFn: async (poetId: number) => {
-      const res = await apiRequest('POST', `/api/poets/${poetId}/follow`, {});
-      return res.data;
-    },
-    onSuccess: (data, variables) => {
-      toast({ title: 'Success', description: 'You are now following this poet' });
-      setPoetFollowingStatus(prev => ({ ...prev, [variables]: true }));
-      setFollowedPoetIds(prev => prev.includes(variables) ? prev : [...prev, variables]);
-      queryClient.invalidateQueries({ queryKey: ['/api/user/followed-poets'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/poets/featured'] });
-    },
-    onError: (error) => {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to follow poet',
-        variant: 'destructive',
-      });
-    }
-  });
-
-  const unfollowPoetMutation = useMutation({
-    mutationFn: async (poetId: number) => {
-      const res = await apiRequest('POST', `/api/poets/${poetId}/unfollow`, {});
-      return res.data;
-    },
-    onSuccess: (data, variables) => {
-      toast({ title: 'Success', description: 'You have unfollowed this poet' });
-      setPoetFollowingStatus(prev => ({ ...prev, [variables]: false }));
-      setFollowedPoetIds(prev => prev.filter(id => id !== variables));
-      queryClient.invalidateQueries({ queryKey: ['/api/user/followed-poets'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/poets/featured'] });
-    },
-    onError: (error) => {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to unfollow poet',
-        variant: 'destructive',
-      });
-    }
-  });
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
 
   // Check following status for poets if user is logged in
   useEffect(() => {
-    if (user && featuredPoets) {
+    if (user && featuredPoets.length > 0) {
       featuredPoets.forEach(async (poet) => {
         try {
-          const res = await fetch(`/api/poets/${poet.id}/following-status`);
-          if (res.ok) {
-            const data = await res.json();
-            setPoetFollowingStatus(prev => ({
-              ...prev,
-              [poet.id]: data.isFollowing
-            }));
-            if (data.isFollowing) {
-              setFollowedPoetIds(prev => prev.includes(poet.id) ? prev : [...prev, poet.id]);
-            }
+          const res = await axios.get(`${API_BASE_URL}/api/poets/${poet.id}/following-status`);
+          setPoetFollowingStatus(prev => ({
+            ...prev,
+            [poet.id]: res.data.isFollowing
+          }));
+          if (res.data.isFollowing) {
+            setFollowedPoetIds(prev => prev.includes(poet.id) ? prev : [...prev, poet.id]);
           }
         } catch (error) {
           // ignore
@@ -173,38 +151,16 @@ export default function PoetryPage() {
     if (user) {
       const fetchFollowedPoets = async () => {
         try {
-          const res = await fetch('/api/user/followed-poets');
-          if (res.ok) {
-            const data = await res.json();
-            const poetIds = data.map((poet: any) => poet.id);
-            setFollowedPoetIds(poetIds);
-          }
+          const res = await axios.get(`${API_BASE_URL}/api/user/followed-poets`);
+          const poetIds = res.data.map((poet: any) => poet.id);
+          setFollowedPoetIds(poetIds);
         } catch (error) {}
       };
       fetchFollowedPoets();
     }
   }, [user]);
 
-  // Define the Event type
-  interface Event {
-    id: number;
-    title: string;
-    description: string;
-    date: string;
-    location: string;
-  }
-
-  // Query for upcoming poetry events
-  const { data: poetryEvents, isLoading: isLoadingPoetryEvents } = useQuery<Event[]>({
-    queryKey: ['/api/events/poetry'],
-    queryFn: async () => {
-      const res = await fetch('/api/events/poetry?limit=3');
-      if (!res.ok) throw new Error('Failed to fetch poetry events');
-      return await res.json();
-    }
-  });
-
-  // Remove zodResolver and schema, use react-hook-form rules instead
+  // Form for creating poems
   const poemForm = useForm({
     defaultValues: {
       title: '',
@@ -214,34 +170,121 @@ export default function PoetryPage() {
     }
   });
 
-  const createPoemMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const res = await apiRequest('POST', '/api/poems', data);
-      return res.data;
-    },
-    onSuccess: () => {
+  // Create poem
+  const [isCreatingPoem, setIsCreatingPoem] = useState(false);
+  const onSubmit = async (data: any) => {
+    setIsCreatingPoem(true);
+    try {
+      await axios.post(`${API_BASE_URL}/api/poems`, {
+        ...data,
+        isVideo: isVideoPoetry,
+      });
       toast({
         title: 'Poetry Submitted',
         description: 'Your poetry has been submitted successfully and is pending approval.',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/poems'] });
       poemForm.reset();
       setDialogOpen(false);
-    },
-    onError: (error) => {
+      // Refresh poems
+      const res = await axios.get(`${API_BASE_URL}/api/poems`);
+      setPoems(res.data);
+    } catch (error: any) {
       toast({
         title: 'Submission Failed',
-        description: error instanceof Error ? error.message : 'Failed to submit poetry',
+        description: error?.response?.data?.message || 'Failed to submit poetry',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsCreatingPoem(false);
+    }
+  };
+
+  // Follow/unfollow poet
+  const handleFollowPoet = async (poetId: number) => {
+    setIsFollowLoading(true);
+    try {
+      await axios.post(`${API_BASE_URL}/api/poets/${poetId}/follow`);
+      setPoetFollowingStatus(prev => ({ ...prev, [poetId]: true }));
+      setFollowedPoetIds(prev => prev.includes(poetId) ? prev : [...prev, poetId]);
+      toast({ title: 'Success', description: 'You are now following this poet' });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error?.response?.data?.message || 'Failed to follow poet',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsFollowLoading(false);
+    }
+  };
+
+  const handleUnfollowPoet = async (poetId: number) => {
+    setIsFollowLoading(true);
+    try {
+      await axios.post(`${API_BASE_URL}/api/poets/${poetId}/unfollow`);
+      setPoetFollowingStatus(prev => ({ ...prev, [poetId]: false }));
+      setFollowedPoetIds(prev => prev.filter(id => id !== poetId));
+      toast({ title: 'Success', description: 'You have unfollowed this poet' });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error?.response?.data?.message || 'Failed to unfollow poet',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsFollowLoading(false);
+    }
+  };
+
+  // Edit poem
+  const handleEditPoem = async () => {
+    if (!editingPoem) return;
+    try {
+      await axios.patch(`${API_BASE_URL}/api/poems/${editingPoem.id}`, {
+        title: editingPoem.title,
+        content: editingPoem.content,
+        isVideo: editingPoem.isVideo,
+        videoUrl: editingPoem.videoUrl,
+      });
+      toast({
+        title: 'Poem Updated',
+        description: 'Your poem has been updated successfully',
+      });
+      setEditPoemDialogOpen(false);
+      // Refresh poems
+      const res = await axios.get(`${API_BASE_URL}/api/poems`);
+      setPoems(res.data);
+    } catch (error: any) {
+      toast({
+        title: 'Update Failed',
+        description: error?.response?.data?.message || 'Failed to update poem',
         variant: 'destructive',
       });
     }
-  });
+  };
 
-  const onSubmit = (data: any) => {
-    createPoemMutation.mutate({
-      ...data,
-      isVideo: isVideoPoetry,
-    });
+  // Delete poem
+  const handleDeletePoem = async () => {
+    if (!selectedPoem) return;
+    try {
+      await axios.delete(`${API_BASE_URL}/api/poems/${selectedPoem.id}`);
+      toast({
+        title: 'Poem Deleted',
+        description: 'Your poem has been deleted successfully',
+      });
+      setDeleteConfirmOpen(false);
+      setDetailView(false);
+      navigate('/poetry', { replace: true });
+      // Refresh poems
+      const res = await axios.get(`${API_BASE_URL}/api/poems`);
+      setPoems(res.data);
+    } catch (error: any) {
+      toast({
+        title: 'Deletion Failed',
+        description: error?.response?.data?.message || 'Failed to delete poem',
+        variant: 'destructive',
+      });
+    }
   };
 
   useEffect(() => {
@@ -543,8 +586,8 @@ export default function PoetryPage() {
                             />
                           )}
                           <DialogFooter>
-                            <Button type="submit" disabled={createPoemMutation.isPending}>
-                              {createPoemMutation.isPending ? 'Submitting...' : 'Submit Poetry'}
+                            <Button type="submit" disabled={isCreatingPoem}>
+                              {isCreatingPoem ? 'Submitting...' : 'Submit Poetry'}
                             </Button>
                           </DialogFooter>
                         </form>
@@ -595,8 +638,8 @@ export default function PoetryPage() {
                               variant="outline" 
                               size="sm" 
                               className="text-muted-foreground hover:text-foreground border-gray-200 hover:border-gray-300"
-                              onClick={() => unfollowPoetMutation.mutate(poet.id)}
-                              disabled={unfollowPoetMutation.isPending}
+                              onClick={() => handleUnfollowPoet(poet.id)}
+                              disabled={isFollowLoading}
                             >
                               Unfollow
                             </Button>
@@ -605,8 +648,8 @@ export default function PoetryPage() {
                               variant="link" 
                               size="sm" 
                               className="text-primary hover:text-blue-700"
-                              onClick={() => followPoetMutation.mutate(poet.id)}
-                              disabled={followPoetMutation.isPending}
+                              onClick={() => handleFollowPoet(poet.id)}
+                              disabled={isFollowLoading}
                             >
                               Follow
                             </Button>
@@ -732,39 +775,7 @@ export default function PoetryPage() {
                 Cancel
               </Button>
               <Button 
-                onClick={() => {
-                  // Implement the update functionality here
-                  fetch(`/api/poems/${editingPoem.id}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      title: editingPoem.title,
-                      content: editingPoem.content,
-                      isVideo: editingPoem.isVideo,
-                      videoUrl: editingPoem.videoUrl,
-                    }),
-                  })
-                    .then(res => {
-                      if (!res.ok) throw new Error('Failed to update poem');
-                      return res.json();
-                    })
-                    .then(() => {
-                      queryClient.invalidateQueries({ queryKey: ['/api/poems'] });
-                      queryClient.invalidateQueries({ queryKey: ['/api/poems', poemId] });
-                      toast({
-                        title: 'Poem Updated',
-                        description: 'Your poem has been updated successfully',
-                      });
-                      setEditPoemDialogOpen(false);
-                    })
-                    .catch(error => {
-                      toast({
-                        title: 'Update Failed',
-                        description: error.message,
-                        variant: 'destructive',
-                      });
-                    });
-                }}
+                onClick={handleEditPoem}
               >
                 Save Changes
               </Button>
@@ -788,32 +799,7 @@ export default function PoetryPage() {
               </Button>
               <Button 
                 variant="destructive" 
-                onClick={() => {
-                  fetch(`/api/poems/${selectedPoem.id}`, {
-                    method: 'DELETE',
-                  })
-                    .then(res => {
-                      if (!res.ok) throw new Error('Failed to delete poem');
-                      return res.json();
-                    })
-                    .then(() => {
-                      // Redirect back to poetry list after deletion
-                      navigate('/poetry', { replace: true });
-                      setDetailView(false);
-                      queryClient.invalidateQueries({ queryKey: ['/api/poems'] });
-                      toast({
-                        title: 'Poem Deleted',
-                        description: 'Your poem has been deleted successfully',
-                      });
-                    })
-                    .catch(error => {
-                      toast({
-                        title: 'Deletion Failed',
-                        description: error.message,
-                        variant: 'destructive',
-                      });
-                    });
-                }}
+                onClick={handleDeletePoem}
               >
                 Delete
               </Button>

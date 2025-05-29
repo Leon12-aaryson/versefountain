@@ -1,7 +1,10 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import { getApiBaseUrl } from "./netlifyConfig";
-import axios, { AxiosRequestConfig } from "axios";
+// This file previously set up @tanstack/react-query's QueryClient.
+// Now, we use only axios and utility functions for API requests.
 
+import axios, { AxiosRequestConfig } from "axios";
+import { API_BASE_URL } from "@/constants/constants";
+
+// Helper to throw if response is not OK (for fetch, if you still use it elsewhere)
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -9,64 +12,47 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-// Get the API base URL based on environment
-const apiBase = getApiBaseUrl();
-
-export async function apiRequest(
-  method: string,
+// Generic API request using axios
+export async function apiRequest<T = any>(
+  method: AxiosRequestConfig["method"],
   url: string,
-  data?: unknown
-) {
-  const config: AxiosRequestConfig = {
-    method,
-    url,
-    data,
-    withCredentials: true,
-    headers: { "Content-Type": "application/json" },
-  };
+  data?: unknown,
+  config?: Omit<AxiosRequestConfig, "method" | "url" | "data">
+): Promise<T> {
   try {
-    const response = await axios(config);
-    return response;
+    const response = await axios({
+      method,
+      url: url.startsWith("http") ? url : `${API_BASE_URL}${url}`,
+      data,
+      withCredentials: true,
+      headers: { "Content-Type": "application/json" },
+      ...config,
+    });
+    return response.data;
   } catch (error: any) {
     if (error.response) throw error.response;
     throw error;
   }
 }
 
-type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
-  on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
-  ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
-    // Prepend API base URL if queryKey starts with /api
-    const url = (queryKey[0] as string).startsWith('/api')
-      ? `${apiBase}${(queryKey[0] as string).substring(4)}`
-      : queryKey[0] as string;
-      
-    const res = await fetch(url, {
-      credentials: "include",
-    });
+// Example: fetch data (GET)
+export async function fetchData<T = any>(endpoint: string, config?: AxiosRequestConfig): Promise<T> {
+  return apiRequest<T>("get", endpoint, undefined, config);
+}
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
-    }
+// Example: post data (POST)
+export async function postData<T = any>(endpoint: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
+  return apiRequest<T>("post", endpoint, data, config);
+}
 
-    await throwIfResNotOk(res);
-    return await res.json();
-  };
+// Example: update data (PATCH/PUT)
+export async function updateData<T = any>(endpoint: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
+  return apiRequest<T>("patch", endpoint, data, config);
+}
 
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      queryFn: getQueryFn({ on401: "throw" }),
-      refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
-    },
-    mutations: {
-      retry: false,
-    },
-  },
-});
+// Example: delete data (DELETE)
+export async function deleteData<T = any>(endpoint: string, config?: AxiosRequestConfig): Promise<T> {
+  return apiRequest<T>("delete", endpoint, undefined, config);
+}
+
+// If you need to handle 401s gracefully, wrap your calls in try/catch in your components or hooks.

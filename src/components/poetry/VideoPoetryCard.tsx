@@ -3,7 +3,6 @@ import { Heart, MessageSquare, Star, Play } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
 import axios from 'axios';
 import { API_BASE_URL } from '@/constants/constants';
 
@@ -42,7 +41,7 @@ const VideoPoetryCard = ({
   const [isLiked, setIsLiked] = useState(false);
   const [currentLikes, setCurrentLikes] = useState(likes);
   const [currentRating, setCurrentRating] = useState(rating);
-  
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(
@@ -50,10 +49,9 @@ const VideoPoetryCard = ({
       'day'
     );
   };
-  
+
   const handleVideoPlay = () => {
     if (videoUrl) {
-      // In a real implementation, this would open a video player or modal
       window.open(videoUrl, '_blank');
     } else {
       toast({
@@ -63,7 +61,7 @@ const VideoPoetryCard = ({
       });
     }
   };
-  
+
   const handleLike = async () => {
     if (!user) {
       toast({
@@ -84,9 +82,6 @@ const VideoPoetryCard = ({
         setCurrentLikes(prev => prev + 1);
         setIsLiked(true);
       }
-
-      // Invalidate poems cache
-      queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
     } catch (error) {
       toast({
         title: "Error",
@@ -95,7 +90,7 @@ const VideoPoetryCard = ({
       });
     }
   };
-  
+
   const handleRate = async (rating: number) => {
     if (!user) {
       toast({
@@ -114,9 +109,6 @@ const VideoPoetryCard = ({
         title: "Rating Submitted",
         description: `You rated this poem ${rating} stars`
       });
-
-      // Invalidate poems cache
-      queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
     } catch (error) {
       toast({
         title: "Error",

@@ -4,7 +4,6 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
 import axios from "axios";
 import { API_BASE_URL } from "@/constants/constants";
 
@@ -103,8 +102,6 @@ export default function EventEditForm({ event, onSuccess }: EventEditFormProps) 
         title: "Event Updated",
         description: "Your event has been successfully updated",
       });
-
-      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
 
       setFormSubmitted(true);
       if (onSuccess) {

@@ -1,11 +1,8 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest, getQueryFn, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/constants/constants";
 import axios from "axios";
 
-// Add this interceptor ONCE, outside the component
 axios.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("auth_token");
@@ -22,106 +19,122 @@ type User = {
   user_id: number;
   username: string;
   email: string;
-  role: string; // e.g., 'user', 'admin'
+  role: string;
 };
 
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   error: Error | null;
-  logoutMutation: any;
-  loginMutation: any;
-  registerMutation: any;
+  login: (credentials: { email: string; password: string }) => Promise<void>;
+  register: (userData: { username: string; email: string; password: string }) => Promise<void>;
+  logout: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-  const [tokenReady, setTokenReady] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   // Helper to store token
   const setToken = (token: string) => {
     localStorage.setItem("auth_token", token);
-    // No need to set axios.defaults.headers here anymore
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   };
 
-  // On mount, check for token in localStorage and set tokenReady
+  // Fetch user on mount
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
-    if (token) {
-      // Optionally, set axios header here if not already set by interceptor
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    }
-    setTokenReady(true);
+    const fetchUser = async () => {
+      setIsLoading(true);
+      setError(null);
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        setUser(null);
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const res = await axios.get(`${API_BASE_URL}/api/user`, { withCredentials: true });
+        setUser(res.data);
+      } catch (err: any) {
+        setUser(null);
+        setError(err);
+        localStorage.removeItem("auth_token");
+        delete axios.defaults.headers.common["Authorization"];
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchUser();
   }, []);
 
-  // Query to get user data from backend
-  const { data: user, isLoading, error } = useQuery<User | null, Error>({
-    queryKey: ['/api/user'],
-    queryFn: getQueryFn({ on401: "returnNull" }),
-    staleTime: 300000,
-    retry: false,
-    enabled: tokenReady, // Only run query after token is set
-  });
-
   // Login
-  const loginMutation = useMutation({
-    mutationFn: async (credentials: { email: string; password: string }) => {
-      const response = await apiRequest("POST", `${API_BASE_URL}/api/login`, credentials);
-      return response.data;
-    },
-    onSuccess: (data) => {
-      if (data.token) setToken(data.token);
-      queryClient.setQueryData(['/api/user'], data.user || data);
-      toast({ title: "Login successful", description: `Welcome back, ${data.user?.username || data.username}!` });
-    },
-    onError: (error: any) => {
-      toast({ title: "Login failed", description: error.data?.message || error.statusText || "Invalid email or password", variant: "destructive" });
-    },
-  });
+  const login = async (credentials: { email: string; password: string }) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await axios.post(`${API_BASE_URL}/api/login`, credentials, { withCredentials: true });
+      if (res.data.token) setToken(res.data.token);
+      setUser(res.data.user || res.data);
+      toast({ title: "Login successful", description: `Welcome back, ${res.data.user?.username || res.data.username}!` });
+    } catch (err: any) {
+      setError(err);
+      toast({ title: "Login failed", description: err.response?.data?.message || "Invalid email or password", variant: "destructive" });
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Register
-  const registerMutation = useMutation({
-    mutationFn: async (userData: any) => {
-      const response = await apiRequest("POST", `${API_BASE_URL}/api/register`, userData);
-      return response.data;
-    },
-    onSuccess: (data) => {
-      if (data.token) setToken(data.token);
-      queryClient.setQueryData(['/api/user'], data.user || data);
-      toast({ title: "Registration successful", description: `Welcome, ${data.user?.username || data.username}!` });
-    },
-    onError: (error: any) => {
-      toast({ title: "Registration failed", description: error.data?.message || "Registration failed", variant: "destructive" });
-    },
-  });
+  const register = async (userData: { username: string; email: string; password: string }) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await axios.post(`${API_BASE_URL}/api/register`, userData, { withCredentials: true });
+      if (res.data.token) setToken(res.data.token);
+      setUser(res.data.user || res.data);
+      toast({ title: "Registration successful", description: `Welcome, ${res.data.user?.username || res.data.username}!` });
+    } catch (err: any) {
+      setError(err);
+      toast({ title: "Registration failed", description: err.response?.data?.message || "Registration failed", variant: "destructive" });
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Logout
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      await apiRequest("POST", `${API_BASE_URL}/api/logout`);
-    },
-    onSuccess: () => {
+  const logout = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await axios.post(`${API_BASE_URL}/api/logout`, {}, { withCredentials: true });
       localStorage.removeItem("auth_token");
       delete axios.defaults.headers.common["Authorization"];
-      queryClient.setQueryData(['/api/user'], null);
+      setUser(null);
       toast({ title: "Logout successful", description: "You have been logged out" });
-    },
-    onError: (error: any) => {
-      toast({ title: "Logout failed", description: error.data?.message || "Logout failed", variant: "destructive" });
-    },
-  });
+    } catch (err: any) {
+      setError(err);
+      toast({ title: "Logout failed", description: err.response?.data?.message || "Logout failed", variant: "destructive" });
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <AuthContext.Provider
       value={{
-        user: user ?? null,
+        user,
         isLoading,
         error,
-        logoutMutation,
-        loginMutation,
-        registerMutation,
+        login,
+        register,
+        logout,
       }}
     >
       {children}

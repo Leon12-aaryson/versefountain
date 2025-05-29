@@ -1,6 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { API_BASE_URL } from '@/constants/constants';
 import MainLayout from '@/components/shared/MainLayout';
@@ -48,52 +47,35 @@ type Event = {
 };
 
 export default function HomePage() {
-  // Fetch featured poems
-  const { data: poems } = useQuery<Poem[]>({
-    queryKey: ['/api/poems'],
-    queryFn: async () => {
-      const response = await axios.get(`${API_BASE_URL}/api/poems`, {
-        params: { limit: 2 }
-      });
-      return response.data;
-    }
-  });
-
-  // Fetch popular books
-  const { data: books } = useQuery<Book[]>({
-    queryKey: ['/api/books'],
-    queryFn: async () => {
-      const response = await axios.get(`${API_BASE_URL}/api/books`, {
-        params: { limit: 5 }
-      });
-      return response.data;
-    }
-  });
-
-  // Fetch upcoming events
-  const { data: events } = useQuery<Event[]>({
-    queryKey: ['/api/events'],
-    queryFn: async () => {
-      const response = await axios.get(`${API_BASE_URL}/api/events`, {
-        params: { limit: 2 }
-      });
-      return response.data;
-    }
-  });
-
-  // Fetch academic resources
-  const { data: resources } = useQuery<AcademicResource[]>({
-    queryKey: ['/api/academic-resources'],
-    queryFn: async () => {
-      const response = await axios.get(`${API_BASE_URL}/api/academic-resources`, {
-        params: { limit: 3 }
-      });
-      return response.data;
-    }
-  });
+  const [poems, setPoems] = useState<Poem[] | null>(null);
+  const [books, setBooks] = useState<Book[] | null>(null);
+  const [events, setEvents] = useState<Event[] | null>(null);
+  const [resources, setResources] = useState<AcademicResource[] | null>(null);
 
   useEffect(() => {
     document.title = 'eLibrary - Home';
+
+    // Fetch all data in parallel
+    const fetchData = async () => {
+      try {
+        const [poemsRes, booksRes, eventsRes, resourcesRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/api/poems`, { params: { limit: 2 }, withCredentials: true }),
+          axios.get(`${API_BASE_URL}/api/books`, { params: { limit: 5 }, withCredentials: true }),
+          axios.get(`${API_BASE_URL}/api/events`, { params: { limit: 2 }, withCredentials: true }),
+          axios.get(`${API_BASE_URL}/api/academic-resources`, { params: { limit: 3 }, withCredentials: true }),
+        ]);
+        setPoems(poemsRes.data);
+        setBooks(booksRes.data);
+        setEvents(eventsRes.data);
+        setResources(resourcesRes.data);
+      } catch {
+        setPoems([]);
+        setBooks([]);
+        setEvents([]);
+        setResources([]);
+      }
+    };
+    fetchData();
   }, []);
 
   return (

@@ -4,7 +4,6 @@ import ChatRoom from '@/components/chat/ChatRoom';
 import { useChat } from '@/contexts/ChatContext';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { useMutation } from '@tanstack/react-query';
 import { 
   Card, 
   CardContent, 
@@ -37,7 +36,8 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { MessageSquare, Users, Lock, PlusCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import axios from 'axios';
+import { API_BASE_URL } from '@/constants/constants';
 
 export default function ChatPage() {
   const { user } = useAuth();
@@ -67,31 +67,30 @@ export default function ChatPage() {
     }
   });
 
-  const createChatRoomMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const res = await apiRequest('POST', '/api/chat/rooms', data);
-      return res.data;
-    },
-    onSuccess: () => {
+  // Remove tanstack query, use axios for chat room creation
+  const [isCreating, setIsCreating] = useState(false);
+
+  const onSubmit = async (data: any) => {
+    setIsCreating(true);
+    try {
+      await axios.post(`${API_BASE_URL}/api/chat/rooms`, data, { withCredentials: true });
       toast({
         title: 'Chat Room Created',
         description: 'Your chat room has been created successfully.',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/chat/rooms'] });
       chatRoomForm.reset();
       setDialogOpen(false);
-    },
-    onError: (error) => {
+      // Optionally, you may want to refresh rooms here if your context doesn't auto-refresh
+      // await fetchRooms();
+    } catch (error: any) {
       toast({
         title: 'Creation Failed',
-        description: error instanceof Error ? error.message : 'Failed to create chat room',
+        description: error?.message || 'Failed to create chat room',
         variant: 'destructive',
       });
+    } finally {
+      setIsCreating(false);
     }
-  });
-
-  const onSubmit = (data: any) => {
-    createChatRoomMutation.mutate(data);
   };
 
   const handleJoinRoom = (roomId: number) => {
@@ -241,8 +240,8 @@ export default function ChatPage() {
                         />
                         
                         <DialogFooter>
-                          <Button type="submit" disabled={createChatRoomMutation.isPending}>
-                            {createChatRoomMutation.isPending ? 'Creating...' : 'Create Room'}
+                          <Button type="submit" disabled={isCreating}>
+                            {isCreating ? 'Creating...' : 'Create Room'}
                           </Button>
                         </DialogFooter>
                       </form>
