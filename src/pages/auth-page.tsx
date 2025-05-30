@@ -27,6 +27,7 @@ type RegisterFormData = {
   email: string;
   password: string;
   confirmPassword: string;
+  role: 'user' | 'admin'; // Default role for new users
 };
 
 export default function AuthPage() {
@@ -50,6 +51,7 @@ export default function AuthPage() {
       email: '',
       password: '',
       confirmPassword: '',
+      role: 'user', // Default role for new users
     },
   });
 
@@ -83,6 +85,8 @@ export default function AuthPage() {
         username: data.username,
         email: data.email,
         password: data.password,
+        password_confirmation: data.confirmPassword, // Laravel expects this field
+        role: data.role, // Send the role field
       });
       toast({
         title: 'Registration Successful',
