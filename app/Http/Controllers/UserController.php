@@ -14,16 +14,14 @@ class UserController extends Controller
      * Retrieve a list of "featured" poets.
      * (Logic for "featured" can be customized, e.g., most followers, active users)
      */
-    public function featuredPoets()
+    public function featuredPoets(Request $request)
     {
-        // Example: Get users with at least one poem, ordered by number of followers
-        $featuredPoets = User::has('poems')
-            ->withCount('followers')
-            ->orderByDesc('followers_count')
-            ->limit(10) // Example limit
-            ->get(['id', 'username', 'email']); // Select only necessary fields
-
-        return response()->json($featuredPoets);
+        $limit = $request->input('limit', 5);
+        $poets = User::withCount('poems')
+            ->orderBy('poems_count', 'desc')
+            ->take($limit)
+            ->get(['id', 'username']);
+        return response()->json($poets);
     }
 
     /**
@@ -88,7 +86,8 @@ class UserController extends Controller
         if (!$user) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
-        $followedPoets = $user->following()->get(['id', 'username', 'email']);
+        // Specify users.id to avoid ambiguity
+        $followedPoets = $user->following()->get(['users.id', 'users.username']);
         return response()->json($followedPoets);
     }
 

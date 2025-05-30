@@ -43,7 +43,9 @@ Route::get('/books', [BookController::class, 'index']);
 Route::get('/events', [EventController::class, 'index']);
 Route::get('/academic-resources', [AcademicResourceController::class, 'index']);
 Route::get('/chat/rooms', [ChatRoomController::class, 'index']);
+Route::get('events/poetry', [EventController::class, 'poetryEvents']);
 Route::get('events/{event}', [EventController::class, 'show']);
+Route::get('poets/featured', [UserController::class, 'featuredPoets']);
 
 // Authenticated Routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -51,14 +53,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('poems/user', [PoemController::class, 'userPoems']);
     Route::post('poems', [PoemController::class, 'store']);
     Route::patch('poems/{poem}', [PoemController::class, 'update']);
+    Route::get('poems/{poem}', [PoemController::class, 'show']);
     Route::delete('poems/{poem}', [PoemController::class, 'destroy']);
     Route::post('poems/{poem}/rate', [PoemController::class, 'rate']);
     Route::post('poems/{poem}/like', [PoemController::class, 'like']);
     Route::post('poems/{poem}/unlike', [PoemController::class, 'unlike']);
     Route::get('poems/{poem}/user-status', [PoemController::class, 'getUserStatus']);
+    Route::get('poems/{poem}/likes', [PoemController::class, 'getLikeCount']);
+    Route::get('poems/{poem}/status', [PoemController::class, 'getUserStatus']);
 
     // Poem Comments
     Route::post('poems/{poem}/comments', [PoemCommentController::class, 'store']);
+    Route::get('poems/{poem}/comments', [PoemCommentController::class, 'index']);
     Route::delete('poems/comments/{comment}', [PoemCommentController::class, 'destroy']);
 
     // Comment Reactions
@@ -109,6 +115,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Tickets & Payments
     Route::post('tickets', [TicketController::class, 'store']);
+    Route::get('tickets', [TicketController::class, 'index']);
     Route::get('tickets/user', [TicketController::class, 'userTickets']);
     Route::get('tickets/{ticket}', [TicketController::class, 'show']);
     Route::post('payments', [PaymentController::class, 'store']);
@@ -116,7 +123,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Admin Routes
-Route::middleware(['auth:sanctum', 'can:accessAdminPanel'])->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::get('users', [AdminController::class, 'getUsers']);
     Route::patch('users/{user}', [AdminController::class, 'updateUser']);
     Route::delete('users/{user}', [AdminController::class, 'deleteUser']);

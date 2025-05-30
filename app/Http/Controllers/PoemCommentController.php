@@ -15,7 +15,7 @@ class PoemCommentController extends Controller
      */
     public function index(Poem $poem)
     {
-        $comments = $poem->comments()->with('user:id,username')->orderBy('createdAt', 'asc')->get();
+        $comments = $poem->comments()->with('user')->orderBy('created_at', 'asc')->get();
         return response()->json($comments);
     }
 

@@ -44,7 +44,7 @@
     * [POST /api/poems/:id/rate](#post-apipoemsidrate)
     * [POST /api/poems/:id/like](#post-apipoemsidlike)
     * [POST /api/poems/:id/unlike](#post-apipoemsidunlike)
-    * [GET /api/poems/:id/like-count](#get-apipoemsidlike-count)
+    * [GET /api/poems/:id/likes](#get-apipoemsidlike-count)
     * [GET /api/poems/:id/user-status](#get-apipoemsiduser-status)
   * [3.3. Resource: Poem Comments](#33-resource-poem-comments)
     * [GET /api/poems/:id/comments](#get-apipoemsidcomments)
@@ -903,9 +903,9 @@ Endpoints related to user authentication (login, logout, signup, status). These 
     *   **Error (401 Unauthorized):** If the user is not authenticated.
     *   **Error (500 Internal Server Error):** If there's an issue unliking the poem.
 
-#### GET /api/poems/:id/like-count
+#### GET /api/poems/:id/likes
 *   **Method:** `GET`
-*   **Path:** `/api/poems/:id/like-count`
+*   **Path:** `/api/poems/:id/likes`
 *   **Description:** Gets the like count for a specific poem.
 *   **Authentication:** None
 *   **Request Parameters:**

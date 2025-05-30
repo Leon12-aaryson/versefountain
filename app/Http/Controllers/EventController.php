@@ -47,8 +47,12 @@ class EventController extends Controller
      */
     public function poetryEvents(Request $request)
     {
-        $request->merge(['category' => 'poetry']); // Force category to 'poetry'
-        return $this->index($request); // Reuse the index method
+        $limit = $request->input('limit', 3);
+        $events = Event::where('category', 'poetry')
+            ->orderBy('date', 'asc')
+            ->limit($limit)
+            ->get();
+        return response()->json($events);
     }
 
     /**
