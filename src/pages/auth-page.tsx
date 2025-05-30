@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import {
   Card,
   CardContent,
@@ -20,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
 type LoginFormData = {
-  username: string;
+  email: string;
   password: string;
 };
 
@@ -31,41 +29,22 @@ type RegisterFormData = {
   confirmPassword: string;
 };
 
-// Login form schema
-const loginSchema = z.object({
-  username: z.string().min(1, 'Username is required'),
-  password: z.string().min(1, 'Password is required'),
-});
-
-// Registration form schema
-const registerSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters'),
-  email: z.string().email('Please enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string(),
-}).refine(data => data.password === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword'],
-});
-
 export default function AuthPage() {
   const [, navigate] = useLocation();
-  const { user, loginMutation, registerMutation } = useAuth();
+  const { user, login, register, isLoading } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('register');
 
   // Login form
-  const loginForm = useForm({
-    resolver: zodResolver(loginSchema),
+  const loginForm = useForm<LoginFormData>({
     defaultValues: {
-      username: '',
+      email: '',
       password: '',
     },
   });
 
   // Register form
-  const registerForm = useForm({
-    resolver: zodResolver(registerSchema),
+  const registerForm = useForm<RegisterFormData>({
     defaultValues: {
       username: '',
       email: '',
@@ -76,53 +55,51 @@ export default function AuthPage() {
 
   useEffect(() => {
     document.title = 'VerseFountain - Authentication';
-
-    // Redirect if already logged in
     if (user) {
       navigate('/');
     }
   }, [user, navigate]);
 
-  const handleLogin = (data) => {
-    loginMutation.mutate(data, {
-      onSuccess: () => {
-        navigate('/');
-        toast({
-          title: 'Welcome back!',
-          description: 'You have been successfully logged in.',
-        });
-      },
-      onError: (error) => {
-        toast({
-          title: 'Login Failed',
-          description: error.message || 'Invalid username or password',
-          variant: 'destructive',
-        });
-      }
-    });
+  const handleLogin = async (data: LoginFormData) => {
+    try {
+      await login(data);
+      navigate('/');
+      toast({
+        title: 'Welcome back!',
+        description: 'You have been successfully logged in.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Login Failed',
+        description: error?.response?.data?.message || error?.message || 'Invalid email or password',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleRegister = (data) => {
-    registerMutation.mutate(data, {
-      onSuccess: () => {
-        toast({
-          title: 'Registration Successful',
-          description: 'Your account has been created and you are now logged in.',
-        });
-        navigate('/');
-      },
-      onError: (error) => {
-        toast({
-          title: 'Registration Failed',
-          description: error.message || 'Could not register. Please try again.',
-          variant: 'destructive',
-        });
-      }
-    });
+  const handleRegister = async (data: RegisterFormData) => {
+    try {
+      await register({
+        username: data.username,
+        email: data.email,
+        password: data.password,
+      });
+      toast({
+        title: 'Registration Successful',
+        description: 'Your account has been created and you are now logged in.',
+      });
+      navigate('/');
+    } catch (error: any) {
+      toast({
+        title: 'Registration Failed',
+        description: error?.response?.data?.message || error?.message || 'Could not register. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   if (user) {
-    return null; // Prevents flicker while redirecting
+    return null;
   }
 
   return (
@@ -162,7 +139,7 @@ export default function AuthPage() {
                             id="register-username"
                             type="text"
                             placeholder="Choose a username"
-                            {...registerForm.register('username')}
+                            {...registerForm.register('username', { required: 'Username is required', minLength: { value: 3, message: 'Username must be at least 3 characters' } })}
                           />
                           {registerForm.formState.errors.username && (
                             <p className="text-sm text-red-500">{registerForm.formState.errors.username.message}</p>
@@ -175,7 +152,7 @@ export default function AuthPage() {
                             id="register-email"
                             type="email"
                             placeholder="you@example.com"
-                            {...registerForm.register('email')}
+                            {...registerForm.register('email', { required: 'Email is required', pattern: { value: /^\S+@\S+$/i, message: 'Please enter a valid email' } })}
                           />
                           {registerForm.formState.errors.email && (
                             <p className="text-sm text-red-500">{registerForm.formState.errors.email.message}</p>
@@ -188,7 +165,7 @@ export default function AuthPage() {
                             id="register-password"
                             type="password"
                             placeholder="Create a password"
-                            {...registerForm.register('password')}
+                            {...registerForm.register('password', { required: 'Password is required', minLength: { value: 6, message: 'Password must be at least 6 characters' } })}
                           />
                           {registerForm.formState.errors.password && (
                             <p className="text-sm text-red-500">{registerForm.formState.errors.password.message}</p>
@@ -201,7 +178,10 @@ export default function AuthPage() {
                             id="register-confirm-password"
                             type="password"
                             placeholder="Confirm your password"
-                            {...registerForm.register('confirmPassword')}
+                            {...registerForm.register('confirmPassword', {
+                              required: 'Please confirm your password',
+                              validate: value => value === registerForm.watch('password') || 'Passwords do not match'
+                            })}
                           />
                           {registerForm.formState.errors.confirmPassword && (
                             <p className="text-sm text-red-500">{registerForm.formState.errors.confirmPassword.message}</p>
@@ -211,9 +191,9 @@ export default function AuthPage() {
                         <Button
                           type="submit"
                           className="w-full"
-                          disabled={registerMutation.isPending}
+                          disabled={isLoading}
                         >
-                          {registerMutation.isPending ? (
+                          {isLoading ? (
                             <>
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               Creating account...
@@ -228,15 +208,15 @@ export default function AuthPage() {
                     <TabsContent value="login">
                       <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="login-username">Username</Label>
+                          <Label htmlFor="login-email">Email</Label>
                           <Input
-                            id="login-username"
-                            type="text"
-                            placeholder="Enter your username"
-                            {...loginForm.register('username')}
+                            id="login-email"
+                            type="email"
+                            placeholder="Enter your email"
+                            {...loginForm.register('email', { required: 'Email is required', pattern: { value: /^\S+@\S+$/i, message: 'Please enter a valid email' } })}
                           />
-                          {loginForm.formState.errors.username && (
-                            <p className="text-sm text-red-500">{loginForm.formState.errors.username.message}</p>
+                          {loginForm.formState.errors.email && (
+                            <p className="text-sm text-red-500">{loginForm.formState.errors.email.message}</p>
                           )}
                         </div>
 
@@ -246,7 +226,7 @@ export default function AuthPage() {
                             id="login-password"
                             type="password"
                             placeholder="Enter your password"
-                            {...loginForm.register('password')}
+                            {...loginForm.register('password', { required: 'Password is required' })}
                           />
                           {loginForm.formState.errors.password && (
                             <p className="text-sm text-red-500">{loginForm.formState.errors.password.message}</p>
@@ -256,9 +236,9 @@ export default function AuthPage() {
                         <Button
                           type="submit"
                           className="w-full"
-                          disabled={loginMutation.isPending}
+                          disabled={isLoading}
                         >
-                          {loginMutation.isPending ? (
+                          {isLoading ? (
                             <>
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               Signing in...
@@ -270,8 +250,6 @@ export default function AuthPage() {
                       </form>
                     </TabsContent>
                   </Tabs>
-
-
                 </CardContent>
                 <CardFooter>
                   <p className="text-center text-xs text-gray-600 w-full">

@@ -1,18 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Heart, MessageSquare, ThumbsUp, ThumbsDown, Smile, Frown, Star } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
+import { Loader2, Heart, MessageSquare, ThumbsUp, ThumbsDown, Smile, Frown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
 import MainLayout from "@/components/shared/MainLayout";
+import axios from "axios";
+import { API_BASE_URL } from "@/constants/constants";
 
 interface PoemComment {
   id: number;
@@ -23,18 +21,8 @@ interface PoemComment {
   user?: {
     username: string;
   };
-}
-
-interface CommentReaction {
-  id: number;
-  commentId: number;
-  userId: number;
-  reaction: string;
-  createdAt: string;
-}
-
-interface ReactionCounts {
-  [key: string]: number;
+  reactionCounts?: Record<string, number>;
+  userReaction?: string | null;
 }
 
 const PoemDetailPage: React.FC = () => {
@@ -42,233 +30,159 @@ const PoemDetailPage: React.FC = () => {
   const poemId = parseInt(id);
   const { user } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [commentText, setCommentText] = useState("");
+  const [poem, setPoem] = useState<any>(null);
+  const [author, setAuthor] = useState<any>(null);
+  const [comments, setComments] = useState<PoemComment[]>([]);
+  const [userStatus, setUserStatus] = useState<any>(null);
+  const [likeCount, setLikeCount] = useState<number>(0);
+  const [isLoadingPoem, setIsLoadingPoem] = useState(true);
+  const [isLoadingAuthor, setIsLoadingAuthor] = useState(true);
+  const [isLoadingComments, setIsLoadingComments] = useState(true);
+  const [isLiking, setIsLiking] = useState(false);
+  const [isUnliking, setIsUnliking] = useState(false);
+  const [isAddingComment, setIsAddingComment] = useState(false);
+  const [isDeletingComment, setIsDeletingComment] = useState(false);
+  const [isReacting, setIsReacting] = useState(false);
 
   // Fetch poem details
-  const { data: poem, isLoading: isLoadingPoem } = useQuery({
-    queryKey: ["/api/poems", poemId],
-    queryFn: async () => {
-      const response = await fetch(`/api/poems/${poemId}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch poem");
-      }
-      return response.json();
-    },
-    enabled: !isNaN(poemId),
-  });
+  useEffect(() => {
+    setIsLoadingPoem(true);
+    axios.get(`${API_BASE_URL}/api/poems/${poemId}`)
+      .then(res => setPoem(res.data))
+      .catch(() => setPoem(null))
+      .finally(() => setIsLoadingPoem(false));
+  }, [poemId]);
 
   // Fetch poem author
-  const { data: author, isLoading: isLoadingAuthor } = useQuery({
-    queryKey: ["/api/users", poem?.authorId],
-    queryFn: async () => {
-      const response = await fetch(`/api/users/${poem?.authorId}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch author information");
-      }
-      return response.json();
-    },
-    enabled: !!poem?.authorId,
-  });
+  useEffect(() => {
+    if (!poem?.authorId) return;
+    setIsLoadingAuthor(true);
+    axios.get(`${API_BASE_URL}/api/users/${poem.authorId}`)
+      .then(res => setAuthor(res.data))
+      .catch(() => setAuthor(null))
+      .finally(() => setIsLoadingAuthor(false));
+  }, [poem?.authorId]);
 
   // Fetch poem comments
-  const { data: comments = [], isLoading: isLoadingComments } = useQuery({
-    queryKey: ["/api/poems/comments", poemId],
-    queryFn: async () => {
-      const response = await fetch(`/api/poems/${poemId}/comments`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch comments");
-      }
-      return response.json();
-    },
-    enabled: !isNaN(poemId),
-  });
+  const fetchComments = () => {
+    setIsLoadingComments(true);
+    axios.get(`${API_BASE_URL}/api/poems/${poemId}/comments`)
+      .then(res => setComments(res.data))
+      .catch(() => setComments([]))
+      .finally(() => setIsLoadingComments(false));
+  };
+  useEffect(() => {
+    fetchComments();
+  }, [poemId]);
 
-  // Fetch user status (liked, rating)
-  const { data: userStatus, isLoading: isLoadingUserStatus } = useQuery({
-    queryKey: ["/api/poems/status", poemId],
-    queryFn: async () => {
-      const response = await fetch(`/api/poems/${poemId}/status`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch user status");
-      }
-      return response.json();
-    },
-    enabled: !isNaN(poemId) && !!user,
-  });
+  // Fetch user status (liked)
+  const fetchUserStatus = () => {
+    if (!user) return setUserStatus(null);
+    axios.get(`${API_BASE_URL}/api/poems/${poemId}/status`, { withCredentials: true })
+      .then(res => setUserStatus(res.data))
+      .catch(() => setUserStatus(null));
+  };
+  useEffect(() => {
+    fetchUserStatus();
+  }, [poemId, user]);
 
   // Fetch like count
-  const { data: likeCount, isLoading: isLoadingLikeCount } = useQuery({
-    queryKey: ["/api/poems/likes", poemId],
-    queryFn: async () => {
-      const response = await fetch(`/api/poems/${poemId}/likes`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch like count");
-      }
-      return response.json();
-    },
-    enabled: !isNaN(poemId),
-  });
+  const fetchLikeCount = () => {
+    axios.get(`${API_BASE_URL}/api/poems/${poemId}/likes`)
+      .then(res => setLikeCount(res.data))
+      .catch(() => setLikeCount(0));
+  };
+  useEffect(() => {
+    fetchLikeCount();
+  }, [poemId]);
 
-  // Like/unlike mutations
-  const likeMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", `/api/poems/${poemId}/like`);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/poems/status", poemId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/poems/likes", poemId] });
-    },
-    onError: (error: Error) => {
-      console.error("Failed to like poem:", error.message);
-    },
-  });
-
-  const unlikeMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", `/api/poems/${poemId}/unlike`);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/poems/status", poemId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/poems/likes", poemId] });
-    },
-    onError: (error: Error) => {
-      console.error("Failed to unlike poem:", error.message);
-    },
-  });
-
-  // Add comment mutation
-  const addCommentMutation = useMutation({
-    mutationFn: async (content: string) => {
-      const res = await apiRequest("POST", `/api/poems/${poemId}/comments`, { content });
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/poems/comments", poemId] });
-      setCommentText("");
-      toast({
-        title: "Comment added",
-        description: "Your comment has been added successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      console.error("Failed to add comment:", error.message);
-    },
-  });
-
-  // Delete comment mutation
-  const deleteCommentMutation = useMutation({
-    mutationFn: async (commentId: number) => {
-      const res = await apiRequest("DELETE", `/api/poems/comments/${commentId}`);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/poems/comments", poemId] });
-      toast({
-        title: "Comment deleted",
-        description: "Your comment has been deleted successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      console.error("Failed to delete comment:", error.message);
-    },
-  });
-
-  const toggleLike = () => {
+  // Like/unlike handlers
+  const toggleLike = async () => {
+    if (!user) return;
     if (userStatus?.liked) {
-      unlikeMutation.mutate();
+      setIsUnliking(true);
+      try {
+        await axios.post(`${API_BASE_URL}/api/poems/${poemId}/unlike`, {}, { withCredentials: true });
+        fetchUserStatus();
+        fetchLikeCount();
+      } catch {
+        toast({ title: "Error", description: "Failed to unlike poem" });
+      } finally {
+        setIsUnliking(false);
+      }
     } else {
-      likeMutation.mutate();
+      setIsLiking(true);
+      try {
+        await axios.post(`${API_BASE_URL}/api/poems/${poemId}/like`, {}, { withCredentials: true });
+        fetchUserStatus();
+        fetchLikeCount();
+      } catch {
+        toast({ title: "Error", description: "Failed to like poem" });
+      } finally {
+        setIsLiking(false);
+      }
     }
   };
 
-  const handleAddComment = () => {
+  // Add comment handler
+  const handleAddComment = async () => {
     if (!commentText.trim()) {
-      console.error("Empty comment: Please enter some text for your comment.");
+      toast({ title: "Empty comment", description: "Please enter some text for your comment." });
       return;
     }
-
-    addCommentMutation.mutate(commentText);
-  };
-
-  const handleDeleteComment = (commentId: number) => {
-    if (window.confirm("Are you sure you want to delete this comment?")) {
-      deleteCommentMutation.mutate(commentId);
+    setIsAddingComment(true);
+    try {
+      await axios.post(`${API_BASE_URL}/api/poems/${poemId}/comments`, { content: commentText }, { withCredentials: true });
+      setCommentText("");
+      fetchComments();
+      toast({ title: "Comment added", description: "Your comment has been added successfully." });
+    } catch {
+      toast({ title: "Error", description: "Failed to add comment" });
+    } finally {
+      setIsAddingComment(false);
     }
   };
 
-  // Comment reaction handlers
-  const addReactionMutation = useMutation({
-    mutationFn: async ({ commentId, reaction }: { commentId: number; reaction: string }) => {
-      const res = await apiRequest("POST", `/api/comments/${commentId}/reactions`, { reaction });
-      return res.json();
-    },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/comments", variables.commentId, "reactions"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/comments", variables.commentId, "reaction-counts"] });
-      toast({
-        title: "Reaction added",
-        description: "Your reaction has been added successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      console.error("Failed to add reaction:", error.message);
-    },
-  });
-
-  const removeReactionMutation = useMutation({
-    mutationFn: async (commentId: number) => {
-      const res = await apiRequest("DELETE", `/api/comments/${commentId}/reactions`);
-      return res.json();
-    },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/comments", variables, "reactions"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/comments", variables, "reaction-counts"] });
-      toast({
-        title: "Reaction removed",
-        description: "Your reaction has been removed successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      console.error("Failed to remove reaction:", error.message);
-    },
-  });
-
-  const handleReaction = (commentId: number, reaction: string, currentReaction?: string) => {
-    if (currentReaction === reaction) {
-      removeReactionMutation.mutate(commentId);
-    } else {
-      addReactionMutation.mutate({ commentId, reaction });
+  // Delete comment handler
+  const handleDeleteComment = async (commentId: number) => {
+    if (!window.confirm("Are you sure you want to delete this comment?")) return;
+    setIsDeletingComment(true);
+    try {
+      await axios.delete(`${API_BASE_URL}/api/poems/comments/${commentId}`, { withCredentials: true });
+      fetchComments();
+      toast({ title: "Comment deleted", description: "Your comment has been deleted successfully." });
+    } catch {
+      toast({ title: "Error", description: "Failed to delete comment" });
+    } finally {
+      setIsDeletingComment(false);
     }
   };
 
-  // Fetch all reaction data and user reaction data in a single query
-  const { data: allReactionsData = {} } = useQuery({
-    queryKey: ["/api/comments/reactions", poemId],
-    queryFn: async () => {
-      if (comments.length === 0) return {};
-      
-      const commentIds = comments.map((c: PoemComment) => c.id).join(',');
-      const response = await fetch(`/api/comments/reactions?commentIds=${commentIds}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch reaction data");
+  // Reaction handlers
+  const handleReaction = async (commentId: number, reaction: string, currentReaction?: string) => {
+    if (!user) return;
+    setIsReacting(true);
+    try {
+      if (currentReaction === reaction) {
+        await axios.delete(`${API_BASE_URL}/api/comments/${commentId}/reactions`, { withCredentials: true });
+      } else {
+        await axios.post(`${API_BASE_URL}/api/comments/${commentId}/reactions`, { reaction }, { withCredentials: true });
       }
-      return response.json();
-    },
-    enabled: comments.length > 0,
-  });
+      fetchComments();
+    } catch {
+      toast({ title: "Error", description: "Failed to react to comment" });
+    } finally {
+      setIsReacting(false);
+    }
+  };
 
-  // Combine comments with their reaction data
-  const commentsWithReactions = comments.map((comment: PoemComment) => {
-    const reactionData = allReactionsData[comment.id] || {};
-    return {
-      ...comment,
-      reactionCounts: reactionData.counts || {},
-      userReaction: reactionData.userReaction || null,
-    };
-  });
+  // Combine comments with their reaction data (if present)
+  const commentsWithReactions = comments.map((comment: PoemComment) => ({
+    ...comment,
+    reactionCounts: comment.reactionCounts || {},
+    userReaction: comment.userReaction || null,
+  }));
 
   if (isLoadingPoem || isLoadingAuthor) {
     return (
@@ -314,15 +228,11 @@ const PoemDetailPage: React.FC = () => {
                   variant="ghost"
                   size="sm"
                   onClick={toggleLike}
-                  disabled={!user || likeMutation.isPending || unlikeMutation.isPending}
+                  disabled={!user || isLiking || isUnliking}
                   className={userStatus?.liked ? "text-red-500" : ""}
                 >
                   <Heart className={`h-5 w-5 mr-1 ${userStatus?.liked ? "fill-red-500" : ""}`} />
-                  {isLoadingLikeCount ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <span>{likeCount || 0}</span>
-                  )}
+                  <span>{likeCount || 0}</span>
                 </Button>
               </div>
             </div>
@@ -368,9 +278,9 @@ const PoemDetailPage: React.FC = () => {
                 <div className="flex justify-end">
                   <Button 
                     onClick={handleAddComment} 
-                    disabled={addCommentMutation.isPending || !commentText.trim()}
+                    disabled={isAddingComment || !commentText.trim()}
                   >
-                    {addCommentMutation.isPending ? (
+                    {isAddingComment ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
                         Posting...
@@ -400,7 +310,7 @@ const PoemDetailPage: React.FC = () => {
           ) : (
             <div className="rounded-md p-4">
               <div className="space-y-4">
-                {commentsWithReactions.map((comment: PoemComment & { reactionsData?: any }) => (
+                {commentsWithReactions.map((comment: PoemComment) => (
                   <div key={comment.id} className="rounded-lg border p-4">
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-2">
@@ -416,14 +326,14 @@ const PoemDetailPage: React.FC = () => {
                           </p>
                         </div>
                       </div>
-                      {user && (user.id === comment.userId || user.isAdmin) && (
+                      {user && (user.user_id === comment.userId || user.role === "admin") && (
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteComment(comment.id)}
-                          disabled={deleteCommentMutation.isPending}
+                          disabled={isDeletingComment}
                         >
-                          {deleteCommentMutation.isPending ? (
+                          {isDeletingComment ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
                             "Delete"
@@ -438,8 +348,8 @@ const PoemDetailPage: React.FC = () => {
                         variant="ghost"
                         size="sm"
                         className={comment.userReaction === "like" ? "bg-primary/10" : ""}
-                        onClick={() => handleReaction(comment.id, "like", comment.userReaction)}
-                        disabled={!user || addReactionMutation.isPending}
+                        onClick={() => handleReaction(comment.id, "like", comment.userReaction ?? undefined)}
+                        disabled={!user || isReacting}
                       >
                         <ThumbsUp className={`h-4 w-4 mr-1 ${comment.userReaction === "like" ? "text-primary" : ""}`} />
                         <span>{comment.reactionCounts?.like || 0}</span>
@@ -449,8 +359,8 @@ const PoemDetailPage: React.FC = () => {
                         variant="ghost"
                         size="sm"
                         className={comment.userReaction === "dislike" ? "bg-primary/10" : ""}
-                        onClick={() => handleReaction(comment.id, "dislike", comment.userReaction)}
-                        disabled={!user || addReactionMutation.isPending}
+                        onClick={() => handleReaction(comment.id, "dislike", comment.userReaction ?? undefined)}
+                        disabled={!user || isReacting}
                       >
                         <ThumbsDown className={`h-4 w-4 mr-1 ${comment.userReaction === "dislike" ? "text-primary" : ""}`} />
                         <span>{comment.reactionCounts?.dislike || 0}</span>
@@ -460,8 +370,8 @@ const PoemDetailPage: React.FC = () => {
                         variant="ghost"
                         size="sm"
                         className={comment.userReaction === "smile" ? "bg-primary/10" : ""}
-                        onClick={() => handleReaction(comment.id, "smile", comment.userReaction)}
-                        disabled={!user || addReactionMutation.isPending}
+                        onClick={() => handleReaction(comment.id, "smile", comment.userReaction ?? undefined)}
+                        disabled={!user || isReacting}
                       >
                         <Smile className={`h-4 w-4 mr-1 ${comment.userReaction === "smile" ? "text-primary" : ""}`} />
                         <span>{comment.reactionCounts?.smile || 0}</span>
@@ -471,8 +381,8 @@ const PoemDetailPage: React.FC = () => {
                         variant="ghost"
                         size="sm"
                         className={comment.userReaction === "frown" ? "bg-primary/10" : ""}
-                        onClick={() => handleReaction(comment.id, "frown", comment.userReaction)}
-                        disabled={!user || addReactionMutation.isPending}
+                        onClick={() => handleReaction(comment.id, "frown", comment.userReaction ?? undefined)}
+                        disabled={!user || isReacting}
                       >
                         <Frown className={`h-4 w-4 mr-1 ${comment.userReaction === "frown" ? "text-primary" : ""}`} />
                         <span>{comment.reactionCounts?.frown || 0}</span>

@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Redirect } from 'wouter';
 import MainLayout from '@/components/shared/MainLayout';
 import { 
@@ -51,18 +49,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2, UserCircle, Book, ScrollText, Calendar, MessageCircle, GraduationCap, Ticket, Plus, Check, X, Edit, Trash2, Eye } from 'lucide-react';
+import axios from 'axios';
+import { API_BASE_URL } from '@/constants/constants';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [selectedTab, setSelectedTab] = useState('users');
   
-  // Redirect if not an admin
+  // Redirect if not authenticated
   if (!user) {
     return <Redirect to="/auth" />;
   }
-  
-  if (user && !user.isAdmin) {
+
+  // Allow access if user.role === 'admin'
+  if (user && user.role !== 'admin') {
     toast({
       title: "Access Denied",
       description: "You don't have permission to access the admin dashboard.",
@@ -73,7 +74,7 @@ export default function AdminDashboard() {
   
   return (
     <MainLayout>
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-8 px-4 md:px-8">
         <div className="flex flex-col space-y-4">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
           <p className="text-gray-600">Manage your VerseFountain eLibrary application</p>
@@ -144,96 +145,82 @@ export default function AdminDashboard() {
   );
 }
 
+// --- USERS MANAGEMENT ---
 function UserManagement() {
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  
-  const { data: users = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['/api/admin/users'],
-    queryFn: async () => {
-      try {
-        const response = await fetch('/api/admin/users');
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to fetch users');
-        }
-        return response.json();
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        throw error;
-      }
+  const [users, setUsers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch users
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/admin/users`, { withCredentials: true });
+      setUsers(response.data);
+    } catch (error: any) {
+      setError(error?.response?.data?.message || 'Failed to fetch users');
+    } finally {
+      setIsLoading(false);
     }
-  });
-  
-  const toggleAdminStatusMutation = useMutation({
-    mutationFn: async ({ userId, isAdmin }: { userId: number, isAdmin: boolean }) => {
-      const res = await apiRequest('PATCH', `/api/admin/users/${userId}`, { isAdmin });
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Failed to update user');
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
-      refetch();
+  };
+
+  useEffect(() => {
+    fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleToggleAdmin = async (userId: number, currentStatus: boolean) => {
+    setIsPending(true);
+    try {
+      await axios.patch(`${API_BASE_URL}/api/admin/users/${userId}`, { isAdmin: !currentStatus }, { withCredentials: true });
       toast({
         title: "User Updated",
         description: "User admin status has been updated successfully.",
       });
-    },
-    onError: (error) => {
+      fetchUsers();
+    } catch (error: any) {
       toast({
         title: "Update Failed",
-        description: error instanceof Error ? error.message : "Failed to update user admin status",
+        description: error?.response?.data?.message || "Failed to update user admin status",
         variant: "destructive",
       });
+    } finally {
+      setIsPending(false);
     }
-  });
-  
-  const deleteUserMutation = useMutation({
-    mutationFn: async (userId: number) => {
-      const res = await apiRequest('DELETE', `/api/admin/users/${userId}`, {});
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Failed to delete user');
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
-      refetch();
+  };
+
+  const openDeleteDialog = (user: any) => {
+    setSelectedUser(user);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+    setIsPending(true);
+    try {
+      await axios.delete(`${API_BASE_URL}/api/admin/users/${selectedUser.id}`, { withCredentials: true });
       setDeleteDialogOpen(false);
       toast({
         title: "User Deleted",
         description: "User has been deleted successfully.",
       });
-    },
-    onError: (error) => {
+      fetchUsers();
+    } catch (error: any) {
       toast({
         title: "Delete Failed",
-        description: error instanceof Error ? error.message : "Failed to delete user",
+        description: error?.response?.data?.message || "Failed to delete user",
         variant: "destructive",
       });
-    }
-  });
-  
-  const handleToggleAdmin = (userId: number, currentStatus: boolean) => {
-    toggleAdminStatusMutation.mutate({ userId, isAdmin: !currentStatus });
-  };
-  
-  const openDeleteDialog = (user: any) => {
-    setSelectedUser(user);
-    setDeleteDialogOpen(true);
-  };
-  
-  const handleDeleteUser = () => {
-    if (selectedUser) {
-      deleteUserMutation.mutate(selectedUser.id);
+    } finally {
+      setIsPending(false);
     }
   };
-  
+
   if (isLoading) {
     return (
       <Card>
@@ -254,9 +241,9 @@ function UserManagement() {
             <X className="h-8 w-8 text-destructive mb-2" />
             <h3 className="text-lg font-medium">Error Loading Users</h3>
             <p className="text-sm text-gray-500">
-              {error instanceof Error ? error.message : "An unknown error occurred"}
+              {error}
             </p>
-            <Button onClick={() => refetch()} className="mt-4">
+            <Button onClick={fetchUsers} className="mt-4">
               Try Again
             </Button>
           </div>
@@ -272,7 +259,7 @@ function UserManagement() {
           <CardTitle>User Management</CardTitle>
           <CardDescription>Manage user accounts and permissions</CardDescription>
         </div>
-        <Button onClick={() => refetch()}>
+        <Button onClick={fetchUsers}>
           Refresh Users
         </Button>
       </CardHeader>
@@ -305,7 +292,7 @@ function UserManagement() {
                     <Switch 
                       checked={user.isAdmin} 
                       onCheckedChange={() => handleToggleAdmin(user.id, user.isAdmin)}
-                      disabled={toggleAdminStatusMutation.isPending}
+                      disabled={isPending}
                     />
                   </TableCell>
                   <TableCell>
@@ -349,9 +336,9 @@ function UserManagement() {
               <Button 
                 variant="destructive" 
                 onClick={handleDeleteUser}
-                disabled={deleteUserMutation.isPending}
+                disabled={isPending}
               >
-                {deleteUserMutation.isPending ? "Deleting..." : "Delete User"}
+                {isPending ? "Deleting..." : "Delete User"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -361,42 +348,13 @@ function UserManagement() {
   );
 }
 
+// --- BOOKS MANAGEMENT ---
 function BookManagement() {
   const { toast } = useToast();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  
-  const { data: books = [], isLoading } = useQuery({
-    queryKey: ['/api/books'],
-    queryFn: async () => {
-      const response = await fetch('/api/books');
-      if (!response.ok) {
-        throw new Error('Failed to fetch books');
-      }
-      return response.json();
-    }
-  });
-  
-  const approveBookMutation = useMutation({
-    mutationFn: async (bookId: number) => {
-      const res = await apiRequest('PATCH', `/api/admin/books/${bookId}/approve`, {});
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/books'] });
-      toast({
-        title: "Book Approved",
-        description: "Book has been approved successfully.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Approval Failed",
-        description: error instanceof Error ? error.message : "Failed to approve book",
-        variant: "destructive",
-      });
-    }
-  });
-  
+  const [books, setBooks] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPending, setIsPending] = useState(false);
   const [newBook, setNewBook] = useState({
     title: '',
     author: '',
@@ -404,14 +362,33 @@ function BookManagement() {
     genre: '',
     coverImage: ''
   });
-  
-  const createBookMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const res = await apiRequest('POST', '/api/books', data);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/books'] });
+
+  // Fetch books
+  const fetchBooks = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/books`);
+      setBooks(response.data);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error?.response?.data?.message || "Failed to fetch books",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBooks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleCreateBook = async () => {
+    setIsPending(true);
+    try {
+      await axios.post(`${API_BASE_URL}/api/books`, newBook, { withCredentials: true });
       setCreateDialogOpen(false);
       setNewBook({
         title: '',
@@ -424,24 +401,38 @@ function BookManagement() {
         title: "Book Created",
         description: "New book has been created successfully.",
       });
-    },
-    onError: (error) => {
+      fetchBooks();
+    } catch (error: any) {
       toast({
         title: "Creation Failed",
-        description: error instanceof Error ? error.message : "Failed to create book",
+        description: error?.response?.data?.message || "Failed to create book",
         variant: "destructive",
       });
+    } finally {
+      setIsPending(false);
     }
-  });
-  
-  const handleCreateBook = () => {
-    createBookMutation.mutate(newBook);
   };
-  
-  const handleApproveBook = (id: number) => {
-    approveBookMutation.mutate(id);
+
+  const handleApproveBook = async (id: number) => {
+    setIsPending(true);
+    try {
+      await axios.patch(`${API_BASE_URL}/api/admin/books/${id}/approve`, {}, { withCredentials: true });
+      toast({
+        title: "Book Approved",
+        description: "Book has been approved successfully.",
+      });
+      fetchBooks();
+    } catch (error: any) {
+      toast({
+        title: "Approval Failed",
+        description: error?.response?.data?.message || "Failed to approve book",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPending(false);
+    }
   };
-  
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -535,8 +526,8 @@ function BookManagement() {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleCreateBook} disabled={createBookMutation.isPending}>
-                {createBookMutation.isPending ? 'Creating...' : 'Create Book'}
+              <Button onClick={handleCreateBook} disabled={isPending}>
+                {isPending ? 'Creating...' : 'Create Book'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -614,6 +605,7 @@ function BookManagement() {
   );
 }
 
+// --- POEMS MANAGEMENT ---
 function PoemManagement() {
   return (
     <Card>
@@ -634,6 +626,7 @@ function PoemManagement() {
   );
 }
 
+// --- EVENTS MANAGEMENT ---
 function EventManagement() {
   return (
     <Card>
@@ -654,6 +647,7 @@ function EventManagement() {
   );
 }
 
+// --- CHAT MANAGEMENT ---
 function ChatManagement() {
   return (
     <Card>
@@ -674,6 +668,7 @@ function ChatManagement() {
   );
 }
 
+// --- ACADEMIC MANAGEMENT ---
 function AcademicManagement() {
   return (
     <Card>
@@ -694,6 +689,7 @@ function AcademicManagement() {
   );
 }
 
+// --- TICKET MANAGEMENT ---
 function TicketManagement() {
   return (
     <Card>

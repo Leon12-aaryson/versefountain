@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import axios from 'axios'; // Add axios
 import { format } from 'date-fns';
 import { jsPDF } from 'jspdf';
 import QRCode from 'qrcode';
 import MainLayout from '@/components/shared/MainLayout';
-import { queryClient } from '@/lib/queryClient';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/hooks/use-auth';
 import { useLocation } from 'wouter';
@@ -33,7 +32,7 @@ import { useToast } from '@/hooks/use-toast';
 interface TicketWithEvent {
   id: number;
   eventId: number;
-  userId: number;
+  user_id: number;
   purchaseDate: string;
   ticketCode: string;
   status: string;
@@ -63,25 +62,36 @@ export default function TicketsPage() {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [isCancelling, setIsCancelling] = useState(false);
-  
+
+  // New: State for tickets and loading
+  const [tickets, setTickets] = useState<TicketWithEvent[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
   // Parse URL parameters to get ticket ID if present
   const searchParams = new URLSearchParams(window.location.search);
   const ticketId = searchParams.get('ticketId');
   const [detailView, setDetailView] = useState(!!ticketId);
-  
-  const { data: tickets, isLoading } = useQuery<TicketWithEvent[]>({
-    queryKey: ['/api/tickets'],
-    queryFn: async () => {
-      const res = await fetch('/api/tickets');
-      if (!res.ok) throw new Error('Failed to fetch tickets');
-      return res.json();
-    },
-    enabled: !!user,
-  });
-  
+
+  // Fetch tickets with axios
+  useEffect(() => {
+    if (!user) return;
+    setIsLoading(true);
+    axios.get('/api/tickets', { withCredentials: true })
+      .then(res => setTickets(Array.isArray(res.data) ? res.data : []))
+      .catch(err => {
+        setTickets([]);
+        toast({
+          title: "Error",
+          description: "Failed to fetch tickets.",
+          variant: "destructive",
+        });
+      })
+      .finally(() => setIsLoading(false));
+  }, [user]);
+
   useEffect(() => {
     document.title = 'VerseFountain - My Tickets';
-    
+
     // If a ticket ID is provided in the URL, find and select that ticket
     if (ticketId && tickets) {
       const ticket = tickets.find(t => t.id === parseInt(ticketId));
@@ -99,7 +109,7 @@ export default function TicketsPage() {
       }
     }
   }, [ticketId, tickets, toast, navigate]);
-  
+
   // Generate QR code when a ticket is selected
   useEffect(() => {
     if (selectedTicket) {
@@ -122,9 +132,9 @@ export default function TicketsPage() {
         eventLocation: ticket.event.location,
         eventVirtual: ticket.event.isVirtual,
         price: ticket.event.isFree ? 'FREE' : `$${(ticket.event.ticketPrice / 100).toFixed(2)}`,
-        userId: ticket.userId,
+        user_id: ticket.user_id,
         purchaseDate: ticket.purchaseDate,
-        validationHash: `${ticket.id}-${ticket.userId}-${ticket.ticketCode}`, // Simple validation hash
+        validationHash: `${ticket.id}-${ticket.user_id}-${ticket.ticketCode}`, // Simple validation hash
         timestamp: new Date().toISOString(),
         attendee: user?.username
       };
@@ -168,9 +178,9 @@ export default function TicketsPage() {
         eventLocation: ticket.event.location,
         eventVirtual: ticket.event.isVirtual,
         price: ticket.event.isFree ? 'FREE' : `$${(ticket.event.ticketPrice / 100).toFixed(2)}`,
-        userId: ticket.userId,
+        user_id: ticket.user_id,
         purchaseDate: ticket.purchaseDate,
-        validationHash: `${ticket.id}-${ticket.userId}-${ticket.ticketCode}`, // Simple validation hash
+        validationHash: `${ticket.id}-${ticket.user_id}-${ticket.ticketCode}`, // Simple validation hash
         timestamp: new Date().toISOString(),
         attendee: user?.username
       };
@@ -307,7 +317,7 @@ export default function TicketsPage() {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7);
       doc.setTextColor(120, 120, 140);
-      const validationHash = `${ticket.id}-${ticket.userId}-${ticket.ticketCode}`;
+      const validationHash = `${ticket.id}-${ticket.user_id}-${ticket.ticketCode}`;
       doc.text(validationHash.substring(0, 24) + '...', 74, currentY);
       
       // Add footer
@@ -341,57 +351,52 @@ export default function TicketsPage() {
     navigate(`/tickets?ticketId=${ticket.id}`, { replace: true });
   };
   
+  // Replace queryClient.invalidateQueries with refetch
+  const refetchTickets = () => {
+    setIsLoading(true);
+    axios.get('/api/tickets', { withCredentials: true })
+      .then(res => setTickets(res.data))
+      .catch(() => setTickets([]))
+      .finally(() => setIsLoading(false));
+  };
+
   // Function to cancel a ticket
   const cancelTicket = async () => {
     if (!selectedTicket) return;
-    
+
     setIsCancelling(true);
     try {
-      // Always send the reason for both free and paid tickets
       const payload = {
         reason: cancelReason || 'User requested cancellation'
       };
-      
-      console.log(`Cancelling ticket ${selectedTicket.id} for event ${selectedTicket.eventId}`);
-      
-      const response = await fetch(`/api/tickets/${selectedTicket.id}/cancel`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to cancel ticket');
-      }
-      
-      const data = await response.json();
-      
+
+      const response = await axios.post(
+        `/api/tickets/${selectedTicket.id}/cancel`,
+        payload,
+        { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
+      );
+
       // Close the dialog
       setShowCancelDialog(false);
       setCancelReason('');
-      
-      // Show success message
+
       toast({
         title: selectedTicket.event.isFree ? "Ticket Cancelled" : "Ticket Refunded",
-        description: data.message,
+        description: response.data.message,
         variant: "default",
       });
-      
+
       // Refresh tickets data
-      queryClient.invalidateQueries({ queryKey: ['/api/tickets'] });
-      
+      refetchTickets();
+
       // Go back to ticket list
       setDetailView(false);
       setSelectedTicket(null);
       navigate('/tickets', { replace: true });
-    } catch (error) {
-      console.error('Error cancelling ticket:', error);
+    } catch (error: any) {
       toast({
         title: "Cancellation Failed",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
+        description: error?.response?.data?.message || error.message || "An unknown error occurred",
         variant: "destructive",
       });
     } finally {
@@ -582,8 +587,8 @@ export default function TicketsPage() {
                 <span className="hidden sm:inline-block"> {format(new Date(selectedTicket.purchaseDate), 'MMMM d, yyyy')}</span>
               </p>
               <p>Attendee: {user?.username}</p>
-              <p className="truncate" title={`${selectedTicket.id}-${selectedTicket.userId}-${selectedTicket.ticketCode}`}>
-                Validation: {`${selectedTicket.id}-${selectedTicket.userId}-${selectedTicket.ticketCode}`.substring(0, 16)}...
+              <p className="truncate" title={`${selectedTicket.id}-${selectedTicket.user_id}-${selectedTicket.ticketCode}`}>
+                Validation: {`${selectedTicket.id}-${selectedTicket.user_id}-${selectedTicket.ticketCode}`.substring(0, 16)}...
               </p>
             </div>
           </div>
@@ -893,8 +898,8 @@ export default function TicketsPage() {
                       <div className="truncate">{user?.username}</div>
                       
                       <div className="font-medium">Validation:</div>
-                      <div className="text-xs text-gray-500 truncate" title={`${selectedTicket.id}-${selectedTicket.userId}-${selectedTicket.ticketCode}`}>
-                        {`${selectedTicket.id}-${selectedTicket.userId}-${selectedTicket.ticketCode}`.substring(0, 16)}...
+                      <div className="text-xs text-gray-500 truncate" title={`${selectedTicket.id}-${selectedTicket.user_id}-${selectedTicket.ticketCode}`}>
+                        {`${selectedTicket.id}-${selectedTicket.user_id}-${selectedTicket.ticketCode}`.substring(0, 16)}...
                       </div>
                     </div>
                     

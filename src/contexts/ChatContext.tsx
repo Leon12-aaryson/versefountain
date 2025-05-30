@@ -1,14 +1,13 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { getWebSocketUrl } from '@/lib/netlifyConfig';
+import axios from 'axios';
+import { API_BASE_URL } from '@/constants/constants';
 
 interface ChatMessage {
   type: string;
   roomId: number;
-  userId: number;
+  user_id: number;
   username: string;
   message: string;
   timestamp: string;
@@ -46,42 +45,42 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [connected, setConnected] = useState(false);
   const [activeRoom, setActiveRoom] = useState<number | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [rooms, setRooms] = useState<ChatRoom[]>([]);
+  const [userRooms, setUserRooms] = useState<ChatRoom[]>([]);
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
   const [membershipCache, setMembershipCache] = useState<Record<number, boolean>>({});
   const [loadingMembership, setLoadingMembership] = useState(false);
   const maxReconnectAttempts = 5;
-  
-  // Query for all chat rooms
-  const { data: rooms = [] } = useQuery<ChatRoom[]>({
-    queryKey: ['/api/chat/rooms'],
-    queryFn: async () => {
-      const response = await fetch('/api/chat/rooms');
-      if (!response.ok) {
-        throw new Error('Failed to fetch chat rooms');
+
+  // Fetch all chat rooms
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/api/chat/rooms`, { withCredentials: true });
+        setRooms(res.data);
+      } catch (err) {
+        setRooms([]);
       }
-      return response.json();
-    },
-    staleTime: 30000, // 30 seconds
-    refetchOnWindowFocus: false,
-  });
-  
-  // Query for user's joined chat rooms
-  const { data: userRooms = [] } = useQuery<ChatRoom[]>({
-    queryKey: ['/api/user/chat/rooms'],
-    queryFn: async () => {
-      if (!user) return [];
-      
-      const response = await fetch('/api/user/chat/rooms');
-      if (response.status === 401) return [];
-      if (!response.ok) {
-        throw new Error('Failed to fetch user chat rooms');
+    };
+    fetchRooms();
+  }, []);
+
+  // Fetch user's joined chat rooms
+  useEffect(() => {
+    if (!user) {
+      setUserRooms([]);
+      return;
+    }
+    const fetchUserRooms = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/api/user/chat/rooms`, { withCredentials: true });
+        setUserRooms(res.data);
+      } catch (err) {
+        setUserRooms([]);
       }
-      return response.json();
-    },
-    enabled: !!user,
-    staleTime: 30000, // 30 seconds
-    refetchOnWindowFocus: false,
-  });
+    };
+    fetchUserRooms();
+  }, [user, loadingMembership]);
 
   // Simplified WebSocket connection approach to fix recurring connection issues
   useEffect(() => {
@@ -90,6 +89,25 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     let isUnmounting = false; // Flag to prevent reconnecting during unmount
     let pingInterval: ReturnType<typeof setInterval>;
     
+    // Helper function to determine the WebSocket URL
+    const getWebSocketUrl = (): string | null => {
+      if (typeof window === 'undefined') return null;
+
+      // Always fallback: convert http(s) to ws(s) using API_BASE_URL
+      try {
+        const apiUrl = API_BASE_URL;
+        if (apiUrl.startsWith('http://')) {
+          return apiUrl.replace('http://', 'ws://') + '/ws/chat';
+        }
+        if (apiUrl.startsWith('https://')) {
+          return apiUrl.replace('https://', 'wss://') + '/ws/chat';
+        }
+      } catch {
+        return null;
+      }
+      return null;
+    };
+
     const connectWebSocket = () => {
       // Don't attempt to reconnect if we're unmounting or already reached max attempts
       if (isUnmounting) return;
@@ -145,7 +163,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             try {
               ws.send(JSON.stringify({
                 type: 'authenticate',
-                userId: user.id,
+                user_id: user.user_id,
                 username: user.username
               }));
             } catch (err) {
@@ -341,81 +359,41 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     return userRooms.some(room => room.id === roomId);
   };
   
-  // API call to join a chat room (persistent membership)
-  const joinChatRoomMutation = useMutation({
-    mutationFn: async (roomId: number) => {
-      const response = await apiRequest('POST', `/api/chat/rooms/${roomId}/join`);
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user/chat/rooms'] });
-    },
-    onError: (error: Error) => {
-      console.error("Failed to join room:", error.message);
-    }
-  });
-  
-  // API call to leave a chat room (remove membership)
-  const leaveChatRoomMutation = useMutation({
-    mutationFn: async (roomId: number) => {
-      const response = await apiRequest('POST', `/api/chat/rooms/${roomId}/leave`);
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user/chat/rooms'] });
-    },
-    onError: (error: Error) => {
-      console.error("Failed to leave room:", error.message);
-    }
-  });
-  
-  // Helper function to join a chat room with API call
+  // Join a chat room (persistent membership)
   const joinChatRoom = async (roomId: number): Promise<void> => {
     if (!user) {
-      console.error("Authentication Required: You must be logged in to join chat rooms");
+      toast({ title: "Authentication Required", description: "You must be logged in to join chat rooms" });
       return;
     }
-    
     setLoadingMembership(true);
     try {
-      await joinChatRoomMutation.mutateAsync(roomId);
-      // Update local cache
-      setMembershipCache(prev => ({
-        ...prev,
-        [roomId]: true
-      }));
-      
-      toast({
-        title: "Joined Chat Room",
-        description: "You are now a member of this chat room",
-      });
+      await axios.post(`${API_BASE_URL}/api/chat/rooms/${roomId}/join`, {}, { withCredentials: true });
+      setMembershipCache(prev => ({ ...prev, [roomId]: true }));
+      toast({ title: "Joined Chat Room", description: "You are now a member of this chat room" });
+      // Refetch userRooms
+      const res = await axios.get(`${API_BASE_URL}/api/user/chat/rooms`, { withCredentials: true });
+      setUserRooms(res.data);
+    } catch (err) {
+      toast({ title: "Failed to join room", description: "Could not join the chat room" });
     } finally {
       setLoadingMembership(false);
     }
   };
   
-  // Helper function to leave a chat room with API call
+  // Leave a chat room (remove membership)
   const leaveChatRoom = async (roomId: number): Promise<void> => {
     if (!user) return;
-    
     setLoadingMembership(true);
     try {
-      await leaveChatRoomMutation.mutateAsync(roomId);
-      // Update local cache
-      setMembershipCache(prev => ({
-        ...prev,
-        [roomId]: false
-      }));
-      
-      // If currently viewing this room, exit the view
-      if (activeRoom === roomId) {
-        leaveRoom();
-      }
-      
-      toast({
-        title: "Left Chat Room",
-        description: "You have left this chat room",
-      });
+      await axios.post(`${API_BASE_URL}/api/chat/rooms/${roomId}/leave`, {}, { withCredentials: true });
+      setMembershipCache(prev => ({ ...prev, [roomId]: false }));
+      if (activeRoom === roomId) leaveRoom();
+      toast({ title: "Left Chat Room", description: "You have left this chat room" });
+      // Refetch userRooms
+      const res = await axios.get(`${API_BASE_URL}/api/user/chat/rooms`, { withCredentials: true });
+      setUserRooms(res.data);
+    } catch (err) {
+      toast({ title: "Failed to leave room", description: "Could not leave the chat room" });
     } finally {
       setLoadingMembership(false);
     }

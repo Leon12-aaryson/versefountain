@@ -4,21 +4,22 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Link } from 'wouter';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
+import axios from 'axios';
+import { API_BASE_URL } from '@/constants/constants';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
   FormLabel,
   FormMessage
 } from '@/components/ui/form';
@@ -27,13 +28,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -43,7 +44,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { useQuery, useMutation } from '@tanstack/react-query';
 
 interface Author {
   id: number;
@@ -54,7 +54,7 @@ interface Comment {
   id: number;
   content: string;
   poemId: number;
-  userId: number;
+  user_id: number;
   createdAt: string | Date;
   user?: {
     id: number;
@@ -73,15 +73,15 @@ interface PoetryCardProps {
   comments?: number;
 }
 
-const PoetryCard = ({ 
-  id, 
-  title, 
-  content, 
-  author, 
-  createdAt, 
-  rating = 4, 
-  likes = 0, 
-  comments = 0 
+const PoetryCard = ({
+  id,
+  title,
+  content,
+  author,
+  createdAt,
+  rating = 4,
+  likes = 0,
+  comments = 0
 }: PoetryCardProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -94,49 +94,33 @@ const PoetryCard = ({
   const [commentsDialogOpen, setCommentsDialogOpen] = useState(false);
   const [currentCommentCount, setCurrentCommentCount] = useState(comments);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Fetch the user's like status for this poem
-  const { data: userPoemData } = useQuery({
-    queryKey: ["/api/poems", id, "user-status"],
-    queryFn: async () => {
-      if (!user) return null;
-      try {
-        const res = await apiRequest("GET", `/api/poems/${id}/user-status`);
-        if (res.ok) {
-          return res.json();
+  useEffect(() => {
+    if (!user) return;
+    axios.get(`${API_BASE_URL}/api/poems/${id}/user-status`)
+      .then(res => {
+        setIsLiked(res.data.liked ?? false);
+        if (res.data.rating !== undefined && res.data.rating !== null) {
+          setCurrentRating(res.data.rating);
         }
-        return null;
-      } catch (error) {
-        console.error("Error fetching poem user status:", error);
-        return null;
-      }
-    },
-    enabled: !!user
-  });
-  
+      })
+      .catch(() => {});
+  }, [user, id]);
+
   // Fetch the like count for this poem
-  const { data: likeCountData } = useQuery<{ likeCount: number }>({
-    queryKey: ["/api/poems", id, "like-count"],
-    queryFn: async () => {
-      const res = await apiRequest("GET", `/api/poems/${id}/like-count`);
-      if (!res.ok) {
-        throw new Error('Failed to fetch like count');
-      }
-      return res.json();
-    }
-  });
-  
+  useEffect(() => {
+    axios.get(`${API_BASE_URL}/api/poems/${id}/like-count`)
+      .then(res => setCurrentLikes(res.data.likeCount ?? 0))
+      .catch(() => {});
+  }, [id]);
+
   // Fetch comments count
-  const { data: commentsData } = useQuery<Comment[]>({
-    queryKey: ["/api/poems", id, "comments"],
-    queryFn: async () => {
-      const res = await apiRequest("GET", `/api/poems/${id}/comments`);
-      if (!res.ok) {
-        throw new Error('Failed to fetch comments');
-      }
-      return res.json();
-    }
-  });
+  useEffect(() => {
+    axios.get(`${API_BASE_URL}/api/poems/${id}/comments`)
+      .then(res => setCurrentCommentCount(res.data.length ?? 0))
+      .catch(() => {});
+  }, [id]);
 
   // Define validation schema for the edit form
   const formSchema = z.object({
@@ -152,43 +136,16 @@ const PoetryCard = ({
       content
     }
   });
-  
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(
-      Math.ceil((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
-      'day'
-    );
+    return date.toLocaleDateString();
   };
-  
-  // Update state when data loads
-  useEffect(() => {
-    if (userPoemData) {
-      if (userPoemData.liked !== undefined) setIsLiked(userPoemData.liked);
-      if (userPoemData.rating !== undefined && userPoemData.rating !== null) {
-        setCurrentRating(userPoemData.rating);
-      }
-    }
-  }, [userPoemData]);
-  
-  // Update like count when like count data loads
-  useEffect(() => {
-    if (likeCountData && likeCountData.likeCount !== undefined) {
-      setCurrentLikes(likeCountData.likeCount);
-    }
-  }, [likeCountData]);
-  
-  // Update comments count when comments data loads
-  useEffect(() => {
-    if (commentsData) {
-      setCurrentCommentCount(commentsData.length);
-    }
-  }, [commentsData]);
-  
+
   const toggleExpand = () => {
     setExpanded(!expanded);
   };
-  
+
   const handleLike = async () => {
     if (!user) {
       toast({
@@ -198,23 +155,17 @@ const PoetryCard = ({
       });
       return;
     }
-    
+
     try {
       let response;
       if (isLiked) {
-        response = await apiRequest("POST", `/api/poems/${id}/unlike`);
-        const data = await response.json();
-        setCurrentLikes(data.likeCount);
+        response = await axios.post(`${API_BASE_URL}/api/poems/${id}/unlike`);
         setIsLiked(false);
       } else {
-        response = await apiRequest("POST", `/api/poems/${id}/like`);
-        const data = await response.json();
-        setCurrentLikes(data.likeCount);
+        response = await axios.post(`${API_BASE_URL}/api/poems/${id}/like`);
         setIsLiked(true);
       }
-      
-      // Invalidate poems cache
-      queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
+      setCurrentLikes(response.data.likeCount ?? currentLikes);
     } catch (error) {
       toast({
         title: "Error",
@@ -223,7 +174,7 @@ const PoetryCard = ({
       });
     }
   };
-  
+
   const handleRate = async (rating: number) => {
     if (!user) {
       toast({
@@ -233,18 +184,15 @@ const PoetryCard = ({
       });
       return;
     }
-    
+
     try {
-      await apiRequest("POST", `/api/poems/${id}/rate`, { rating });
+      await axios.post(`${API_BASE_URL}/api/poems/${id}/rate`, { rating });
       setCurrentRating(rating);
-      
+
       toast({
         title: "Rating Submitted",
         description: `You rated this poem ${rating} stars`
       });
-      
-      // Invalidate poems cache
-      queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
     } catch (error) {
       toast({
         title: "Error",
@@ -253,7 +201,7 @@ const PoetryCard = ({
       });
     }
   };
-  
+
   // Handle poem edit submission
   const onEditSubmit = async (data: z.infer<typeof formSchema>) => {
     if (!user) {
@@ -264,39 +212,32 @@ const PoetryCard = ({
       });
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
-      const response = await apiRequest("PATCH", `/api/poems/${id}`, data);
-      
-      if (response.ok) {
-        // Close the dialog
+      const response = await axios.patch(`${API_BASE_URL}/api/poems/${id}`, data);
+
+      if (response.status >= 200 && response.status < 300) {
         setEditDialogOpen(false);
-        
-        // Show success message
         toast({
           title: "Poem Updated",
           description: "Your poem has been updated successfully"
         });
-        
-        // Refresh poems data
-        queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update poem");
+        throw new Error(response.data?.message || "Failed to update poem");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update poem",
+        description: error?.message || "Failed to update poem",
         variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   // Handle poem deletion
   const handleDeletePoem = async () => {
     if (!user) {
@@ -307,32 +248,25 @@ const PoetryCard = ({
       });
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
-      const response = await apiRequest("DELETE", `/api/poems/${id}`);
-      
-      if (response.ok) {
-        // Close the dialog
+      const response = await axios.delete(`${API_BASE_URL}/api/poems/${id}`);
+
+      if (response.status >= 200 && response.status < 300) {
         setDeleteDialogOpen(false);
-        
-        // Show success message
         toast({
           title: "Poem Deleted",
           description: "Your poem has been deleted successfully"
         });
-        
-        // Refresh poems data
-        queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to delete poem");
+        throw new Error(response.data?.message || "Failed to delete poem");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete poem",
+        description: error?.message || "Failed to delete poem",
         variant: "destructive"
       });
     } finally {
@@ -357,9 +291,9 @@ const PoetryCard = ({
               </p>
             </div>
           </div>
-          
+
           {/* Show edit/delete options if the user is the author or an admin */}
-          {user && (user.id === author.id || user.isAdmin) && (
+          {user && (user.user_id === author.id || user.role === "admin") && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -371,7 +305,7 @@ const PoetryCard = ({
                   <Pencil className="h-4 w-4 mr-2" />
                   Edit
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => setDeleteDialogOpen(true)}
                   className="text-red-500 focus:text-red-500"
                 >
@@ -382,11 +316,11 @@ const PoetryCard = ({
             </DropdownMenu>
           )}
         </div>
-        
+
         <Link href={`/poems/${id}`}>
           <h2 className="text-lg font-semibold text-gray-800 mb-2 hover:text-primary cursor-pointer">{title}</h2>
         </Link>
-        
+
         <div className="prose prose-sm text-gray-600">
           <div className="rounded-md p-1 -m-1">
             {expanded ? (
@@ -398,7 +332,7 @@ const PoetryCard = ({
             )}
           </div>
         </div>
-        
+
         {content.length > 200 && (
           <div className="flex items-center gap-2 mt-2">
             <Button
@@ -408,7 +342,7 @@ const PoetryCard = ({
             >
               {expanded ? "Read less" : "Read more"}
             </Button>
-            
+
             <Link href={`/poems/${id}`}>
               <Button
                 variant="link"
@@ -421,34 +355,33 @@ const PoetryCard = ({
           </div>
         )}
       </div>
-      
+
       <div className="border-t border-gray-100 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <button 
+          <button
             className={`flex items-center text-gray-500 hover:text-red-500 ${isLiked ? 'text-red-500' : ''}`}
             onClick={handleLike}
           >
             <Heart className="h-5 w-5 mr-1" fill={isLiked ? 'currentColor' : 'none'} />
             <span>{currentLikes}</span>
           </button>
-          
-          <Link href={`/poems/${id}#comments`}>
-            <button 
-              className="flex items-center text-gray-500 hover:text-primary"
-            >
-              <MessageSquare className="h-5 w-5 mr-1" />
-              <span>{currentCommentCount}</span>
-            </button>
-          </Link>
+
+          <Button
+            variant="ghost"
+            className="flex items-center text-gray-500 hover:text-primary"
+            onClick={() => setCommentsDialogOpen(true)}
+          >
+            <MessageSquare className="h-5 w-5 mr-1" />
+            <span>{currentCommentCount}</span>
+          </Button>
         </div>
-        
+
         <div className="flex items-center space-x-1">
           {[1, 2, 3, 4, 5].map((star) => (
             <button key={star} onClick={() => handleRate(star)}>
-              <Star 
-                className={`h-5 w-5 ${
-                  star <= currentRating ? 'text-yellow-500' : 'text-gray-300'
-                }`} 
+              <Star
+                className={`h-5 w-5 ${star <= currentRating ? 'text-yellow-500' : 'text-gray-300'
+                  }`}
                 fill={star <= currentRating ? 'currentColor' : 'none'}
               />
             </button>
@@ -456,7 +389,7 @@ const PoetryCard = ({
           <span className="text-sm text-gray-600 ml-1">{currentRating ? currentRating.toFixed(1) : '0.0'}</span>
         </div>
       </div>
-      
+
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
@@ -466,7 +399,7 @@ const PoetryCard = ({
               Make changes to your poem. Click save when you're done.
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onEditSubmit)} className="space-y-4">
               <FormField
@@ -482,7 +415,7 @@ const PoetryCard = ({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="content"
@@ -490,22 +423,22 @@ const PoetryCard = ({
                   <FormItem>
                     <FormLabel>Content</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        {...field} 
+                      <Textarea
+                        {...field}
                         rows={10}
-                        placeholder="Write your poem here..." 
-                        className="resize-none" 
+                        placeholder="Write your poem here..."
+                        className="resize-none"
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => setEditDialogOpen(false)}
                   disabled={isSubmitting}
                 >
@@ -519,7 +452,7 @@ const PoetryCard = ({
           </Form>
         </DialogContent>
       </Dialog>
-      
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
@@ -532,7 +465,7 @@ const PoetryCard = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleDeletePoem}
               disabled={isSubmitting}
               className="bg-red-600 hover:bg-red-700"
@@ -542,7 +475,7 @@ const PoetryCard = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      
+
       {/* Comments Dialog */}
       <Dialog open={commentsDialogOpen} onOpenChange={setCommentsDialogOpen}>
         <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
@@ -552,12 +485,12 @@ const PoetryCard = ({
               Join the conversation about this poem.
             </DialogDescription>
           </DialogHeader>
-          
-          <CommentsSection 
-            poemId={id} 
-            onCommentAdded={() => setCurrentCommentCount(prev => prev + 1)} 
+
+          <CommentsSection
+            poemId={id}
+            onCommentAdded={() => setCurrentCommentCount(prev => prev + 1)}
           />
-          
+
         </DialogContent>
       </Dialog>
     </div>
@@ -573,14 +506,16 @@ interface CommentsSectionProps {
 const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [newComment, setNewComment] = useState("");
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Comment form schema
   const commentSchema = z.object({
     content: z.string().min(1, "Comment cannot be empty").max(500, "Comment is too long")
   });
-  
+
   // Comment form
   const form = useForm<z.infer<typeof commentSchema>>({
     resolver: zodResolver(commentSchema),
@@ -588,24 +523,26 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
       content: ""
     }
   });
-  
+
   // Fetch comments for this poem
-  const { 
-    data: comments = [], 
-    isLoading, 
-    error,
-    refetch 
-  } = useQuery<Comment[]>({
-    queryKey: ["/api/poems", poemId, "comments"],
-    queryFn: async () => {
-      const res = await apiRequest("GET", `/api/poems/${poemId}/comments`);
-      if (!res.ok) {
-        throw new Error('Failed to fetch comments');
-      }
-      return res.json();
+  const fetchComments = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/poems/${poemId}/comments`);
+      setComments(res.data);
+    } catch {
+      setError("Failed to load comments. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-  });
-  
+  };
+
+  useEffect(() => {
+    fetchComments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [poemId]);
+
   // Submit new comment
   const onSubmit = async (data: z.infer<typeof commentSchema>) => {
     if (!user) {
@@ -616,36 +553,35 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
       });
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
-      const response = await apiRequest("POST", `/api/poems/${poemId}/comments`, { content: data.content });
-      
-      if (response.ok) {
+      const response = await axios.post(`${API_BASE_URL}/api/poems/${poemId}/comments`, { content: data.content });
+
+      if (response.status >= 200 && response.status < 300) {
         form.reset();
-        refetch(); // Refresh comments
-        onCommentAdded(); // Update comment count
-        
+        fetchComments();
+        onCommentAdded();
+
         toast({
           title: "Comment Added",
           description: "Your comment has been posted successfully"
         });
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to post comment");
+        throw new Error(response.data?.message || "Failed to post comment");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to post comment",
+        description: error?.message || "Failed to post comment",
         variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   // Delete comment
   const handleDeleteComment = async (commentId: number) => {
     if (!user) {
@@ -656,29 +592,28 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
       });
       return;
     }
-    
+
     try {
-      const response = await apiRequest("DELETE", `/api/poems/comments/${commentId}`);
-      
-      if (response.ok) {
-        refetch(); // Refresh comments
+      const response = await axios.delete(`${API_BASE_URL}/api/poems/comments/${commentId}`);
+
+      if (response.status >= 200 && response.status < 300) {
+        fetchComments();
         toast({
           title: "Comment Deleted",
           description: "Your comment has been deleted successfully"
         });
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to delete comment");
+        throw new Error(response.data?.message || "Failed to delete comment");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete comment",
+        description: error?.message || "Failed to delete comment",
         variant: "destructive"
       });
     }
   };
-  
+
   // Format date for display
   const formatCommentDate = (dateStr: string | Date) => {
     const date = new Date(dateStr);
@@ -689,7 +624,7 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
       minute: '2-digit'
     }).format(date);
   };
-  
+
   return (
     <div className="space-y-4">
       {/* Comments List */}
@@ -699,19 +634,19 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
             <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full"></div>
           </div>
         )}
-        
+
         {error && (
           <div className="py-4 text-center text-red-500">
-            Failed to load comments. Please try again.
+            {error}
           </div>
         )}
-        
+
         {!isLoading && comments.length === 0 && (
           <div className="py-4 text-center text-gray-500">
             No comments yet. Be the first to comment!
           </div>
         )}
-        
+
         {comments.map((comment) => (
           <div key={comment.id} className="bg-gray-50 p-3 rounded-md">
             <div className="flex justify-between items-start">
@@ -726,10 +661,10 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
                   <p className="text-xs text-gray-500">{formatCommentDate(comment.createdAt)}</p>
                 </div>
               </div>
-              
-              {user && (user.id === comment.userId || user.isAdmin) && (
-                <Button 
-                  variant="ghost" 
+
+              {user && (user.user_id === comment.user_id || user.role === "admin") && (
+                <Button
+                  variant="ghost"
                   size="icon"
                   className="h-6 w-6"
                   onClick={() => handleDeleteComment(comment.id)}
@@ -738,12 +673,12 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
                 </Button>
               )}
             </div>
-            
+
             <p className="mt-2 text-sm text-gray-700 whitespace-pre-line">{comment.content}</p>
           </div>
         ))}
       </div>
-      
+
       {/* Comment Form */}
       {user ? (
         <Form {...form}>
@@ -755,15 +690,15 @@ const CommentsSection = ({ poemId, onCommentAdded }: CommentsSectionProps) => {
                 <FormItem>
                   <FormControl>
                     <div className="flex items-end gap-2">
-                      <Textarea 
-                        {...field} 
-                        placeholder="Write a comment..." 
-                        className="resize-none" 
+                      <Textarea
+                        {...field}
+                        placeholder="Write a comment..."
+                        className="resize-none"
                         disabled={isSubmitting}
                         rows={3}
                       />
-                      <Button 
-                        type="submit" 
+                      <Button
+                        type="submit"
                         size="sm"
                         disabled={isSubmitting}
                         className="mb-1"

@@ -12,75 +12,69 @@ import {
   Calendar,
   Ticket
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
+import axios from 'axios';
+import { API_BASE_URL } from '@/constants/constants';
 
 export default function ProfilePage() {
-  const { user, logoutMutation } = useAuth();
+  const { user, logout } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("profile");
 
-  const { data: userTickets = [], isLoading: isLoadingTickets } = useQuery({
-    queryKey: ['/api/tickets'],
-    queryFn: async () => {
-      if (!user) return [];
-      try {
-        const response = await fetch('/api/tickets');
-        if (!response.ok) {
-          console.error('Failed to fetch tickets', response.status);
-          return []; // Return empty array on error
-        }
-        return response.json();
-      } catch (error) {
-        console.error('Error fetching tickets:', error);
-        return []; // Return empty array on error
-      }
-    },
-    enabled: !!user
-  });
+  // State for tickets and poems
+  const [userTickets, setUserTickets] = useState<any[]>([]);
+  const [isLoadingTickets, setIsLoadingTickets] = useState(false);
+  const [userPoems, setUserPoems] = useState<any[]>([]);
+  const [isLoadingPoems, setIsLoadingPoems] = useState(false);
 
-  const { data: userPoems = [], isLoading: isLoadingPoems } = useQuery({
-    queryKey: ['/api/poems/user'],
-    queryFn: async () => {
-      if (!user) return [];
-      try {
-        const response = await fetch('/api/poems/user');
-        if (response.status === 404) {
-          return []; // Return empty array if no poems found
-        }
-        if (!response.ok) {
-          throw new Error('Failed to fetch poems');
-        }
-        return response.json();
-      } catch (error) {
-        console.error('Error fetching poems:', error);
-        return []; // Return empty array on error
-      }
-    },
-    enabled: !!user
-  });
+  // Fetch tickets
+  useEffect(() => {
+    if (!user) return;
+    setIsLoadingTickets(true);
+    axios.get(`${API_BASE_URL}/api/tickets`, { withCredentials: true })
+      .then(res => setUserTickets(res.data))
+      .catch(err => {
+        console.error('Error fetching tickets:', err);
+        setUserTickets([]);
+      })
+      .finally(() => setIsLoadingTickets(false));
+  }, [user]);
 
-  const handleLogout = () => {
-    logoutMutation.mutate(undefined, {
-      onSuccess: () => {
-        navigate('/');
-        toast({
-          title: "Logged out",
-          description: "You have been successfully logged out",
-        });
-      },
-      onError: (error) => {
-        toast({
-          title: "Error",
-          description: "Failed to log out. Please try again.",
-          variant: "destructive",
-        });
-      }
-    });
+  // Fetch poems
+  useEffect(() => {
+    if (!user) return;
+    setIsLoadingPoems(true);
+    axios.get(`${API_BASE_URL}/api/poems/user`, { withCredentials: true })
+      .then(res => setUserPoems(res.data))
+      .catch(err => {
+        if (err.response && err.response.status === 404) {
+          setUserPoems([]);
+        } else {
+          console.error('Error fetching poems:', err);
+        }
+      })
+      .finally(() => setIsLoadingPoems(false));
+  }, [user]);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (!user) {
@@ -144,13 +138,13 @@ export default function ProfilePage() {
                   <span className="text-sm font-medium">Status</span>
                   <span className="text-sm text-green-500 font-medium">Active</span>
                 </div>
-                {user.isAdmin && (
+                {user?.role === "admin" && (
                   <div className="flex justify-between w-full">
                     <span className="text-sm font-medium">Role</span>
                     <span className="text-sm text-purple-500 font-medium">Administrator</span>
                   </div>
                 )}
-                {user.isAdmin && (
+                {user?.role === "admin" && (
                   <Button 
                     variant="outline" 
                     className="w-full bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100 hover:text-purple-700"

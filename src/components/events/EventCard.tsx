@@ -6,8 +6,8 @@ import { EventBadge } from '@/components/ui/event-badge';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { usePayment } from '@/contexts/PaymentContext';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useQuery } from '@tanstack/react-query';
+import axios from "axios";
+import { API_BASE_URL } from "@/constants/constants";
 import { useLocation } from 'wouter';
 import {
   Dialog,
@@ -18,8 +18,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import EventEditForm from './EventEditForm';
-
-import { Event } from "@shared/schema";
 
 interface EventCardProps {
   id: number;
@@ -37,12 +35,17 @@ interface EventCardProps {
   fullEvent?: Event; // For the edit form
 }
 
-const EventCard = ({ 
-  id, 
-  title, 
-  date, 
-  location, 
-  isFree, 
+interface Ticket {
+  eventId: number;
+  // Add other ticket properties if needed
+}
+
+const EventCard = ({
+  id,
+  title,
+  date,
+  location,
+  isFree,
   isVirtual,
   price = 0,
   organizer,
@@ -57,22 +60,29 @@ const EventCard = ({
   const { startCheckout, userTickets: paymentTickets, initializePaddle } = usePayment();
   const eventDate = new Date(date);
   const [_, navigate] = useLocation();
-  
-  // Get the user's tickets to check if they're registered
-  const { data: userTickets } = useQuery({
-    queryKey: ['/api/tickets/user'],
-    queryFn: async () => {
-      const res = await fetch('/api/tickets/user');
-      if (res.status === 404) return []; // No tickets found
-      if (!res.ok) throw new Error('Failed to fetch tickets');
-      return res.json();
-    },
-    enabled: !!user, // Only run query if user is logged in
-  });
-  
+
+  // Local state for user tickets
+  const [userTickets, setUserTickets] = useState<Ticket[]>([]);
+  const [isTicketsLoading, setIsTicketsLoading] = useState(false);
+
+  // Fetch user tickets if logged in
+  useEffect(() => {
+    if (!user) {
+      setUserTickets([]);
+      return;
+    }
+    setIsTicketsLoading(true);
+    axios.get(`${API_BASE_URL}/api/tickets/user`, { withCredentials: true })
+      .then(res => setUserTickets(res.data))
+      .catch(() => setUserTickets([]))
+      .finally(() => setIsTicketsLoading(false));
+  }, [user]);
+
   // Check if user is already registered for this event
-  const isRegistered = userTickets?.some((ticket: {eventId: number}) => ticket.eventId === id);
-  
+  const isRegistered = Array.isArray(userTickets)
+    ? userTickets.some((ticket: Ticket) => ticket.eventId === id)
+    : false;
+
   // Initialize Paddle on component mount
   useEffect(() => {
     if (user && !isFree && price > 0) {
@@ -89,7 +99,7 @@ const EventCard = ({
       });
       return;
     }
-    
+
     if (isRegistered) {
       toast({
         title: "Already Registered",
@@ -97,33 +107,35 @@ const EventCard = ({
       });
       return;
     }
-    
+
     if (onRegister) {
       onRegister();
       return;
     }
-    
+
     // For paid events, use the payment system
     if (!isFree && price > 0) {
       try {
-        // Create an event object that matches what startCheckout expects
         const event = {
           id,
           title,
-          date: eventDate,
+          date: typeof date === 'string' ? date : eventDate.toISOString(),
           location: location || '',
-          isFree: isFree as boolean | null,
-          isVirtual: isVirtual as boolean | null,
-          description: description || null,
+          isFree: Boolean(isFree),
+          isVirtual: Boolean(isVirtual),
+          description: description || "",
           ticketPrice: price,
-          organizer: organizer || null,
-          streamUrl: streamUrl || null,
-          createdById: createdById || null,
-          category: fullEvent?.category || 'general'
+          organizer: organizer || undefined,
+          streamUrl: streamUrl || undefined,
+          createdById: createdById ?? undefined,
         };
-        
-        // Start the Paddle checkout flow
         await startCheckout(event);
+        // Optionally, refetch tickets after checkout
+        setTimeout(() => {
+          axios.get(`${API_BASE_URL}/api/tickets/user`, { withCredentials: true })
+            .then(res => setUserTickets(res.data))
+            .catch(() => setUserTickets([]));
+        }, 2000);
         return;
       } catch (error) {
         toast({
@@ -134,28 +146,33 @@ const EventCard = ({
         return;
       }
     }
-    
+
     // For free events, create a ticket directly
     try {
-      const response = await apiRequest("POST", "/api/tickets", { 
-        eventId: id,
-        userId: user.id 
-      });
-      
-      if (!response.ok) {
+      const response = await axios.post(
+        `${API_BASE_URL}/api/tickets`,
+        {
+          eventId: id,
+          user_id: user.user_id
+        },
+        { withCredentials: true }
+      );
+
+      if (response.status < 200 || response.status >= 300) {
         throw new Error("Failed to register for event");
       }
-      
-      const ticket = await response.json();
-      
+
+      const ticket = response.data;
+
       toast({
         title: "Registration Successful",
         description: `You have successfully registered for ${title}`,
       });
-      
-      // Invalidate tickets cache
-      queryClient.invalidateQueries({ queryKey: ['/api/tickets'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/tickets/user'] });
+
+      // Refetch tickets
+      axios.get(`${API_BASE_URL}/api/tickets/user`, { withCredentials: true })
+        .then(res => setUserTickets(res.data))
+        .catch(() => setUserTickets([]));
     } catch (error) {
       toast({
         title: "Registration Failed",
@@ -164,7 +181,7 @@ const EventCard = ({
       });
     }
   };
-  
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -175,7 +192,7 @@ const EventCard = ({
 
   return (
     <div className="flex flex-col sm:flex-row border-b border-gray-100 pb-4 gap-3 sm:gap-4">
-      {/* Date box - slightly smaller on mobile */}
+      {/* Date box */}
       <div className="flex-shrink-0 flex flex-col items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-primary bg-opacity-10 rounded-lg">
         <span className="text-primary font-bold text-base sm:text-lg">
           {format(eventDate, 'd')}
@@ -184,22 +201,17 @@ const EventCard = ({
           {format(eventDate, 'MMM')}
         </span>
       </div>
-      
+
       <div className="flex-1">
-        {/* Event title - easier to read on mobile */}
-        <h3 
+        <h3
           className="font-medium text-gray-800 hover:text-primary hover:underline cursor-pointer text-sm sm:text-base"
           onClick={() => navigate(`/events/${id}`)}
         >
           {title}
         </h3>
-        
-        {/* Event details - smaller on mobile */}
         <p className="text-xs sm:text-sm text-gray-600 mt-1">
           {isVirtual ? 'Virtual Event' : location} • {format(eventDate, 'h:mm a')}
         </p>
-        
-        {/* Event badges */}
         <div className="mt-2 flex flex-wrap gap-1 sm:gap-2">
           {isFree ? (
             <EventBadge variant="success">Free Entry</EventBadge>
@@ -208,22 +220,18 @@ const EventCard = ({
               {formatPrice(price)}
             </EventBadge>
           )}
-          
           {isVirtual && (
             <EventBadge variant="secondary">Virtual</EventBadge>
           )}
         </div>
-        
-        {/* Action buttons - mobile-friendly layout */}
         <div className="flex flex-wrap gap-3 mt-3">
-          {/* Register button */}
-          <Button 
+          <Button
             variant={isRegistered ? "outline" : "default"}
             size="sm"
             className={`${isRegistered ? 'text-green-600 border-green-200 bg-green-50' : 'text-white'} 
                         text-xs sm:text-sm h-7 sm:h-8 px-2 sm:px-3`}
             onClick={handleRegister}
-            disabled={isRegistered}
+            disabled={isRegistered || isTicketsLoading}
           >
             {isRegistered ? (
               <span className="flex items-center">
@@ -237,8 +245,6 @@ const EventCard = ({
               </span>
             )}
           </Button>
-          
-          {/* Event details button */}
           <Button
             variant="outline"
             size="sm"
@@ -248,14 +254,12 @@ const EventCard = ({
             <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
             View Details
           </Button>
-          
-          {/* Edit button for event creators */}
-          {user && createdById && user.id === createdById && fullEvent && (
+          {user && createdById && user.user_id === createdById && fullEvent && (
             <Dialog>
               <DialogTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3"
                 >
                   <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />

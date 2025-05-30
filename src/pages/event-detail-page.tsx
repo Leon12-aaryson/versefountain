@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useParams, useLocation } from 'wouter';
 import MainLayout from '@/components/shared/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -8,10 +7,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
-import { Event } from '@shared/schema';
 import { usePayment } from '@/contexts/PaymentContext';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import axios from 'axios';
+import { API_BASE_URL } from '@/constants/constants';
 
 export default function EventDetailPage() {
   const { id } = useParams();
@@ -20,45 +19,50 @@ export default function EventDetailPage() {
   const { toast } = useToast();
   const { startCheckout, initializePaddle } = usePayment();
 
-  // Query to get event details
-  const { data: event, isLoading, isError } = useQuery<Event>({
-    queryKey: ['/api/events', id],
-    queryFn: async () => {
-      const res = await fetch(`/api/events/${id}`);
-      if (!res.ok) throw new Error('Failed to fetch event details');
-      return res.json();
-    },
-    enabled: !!id
-  });
+  const [event, setEvent] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
 
-  // Query to check if user has a ticket for this event
-  const { data: userTickets, isLoading: isLoadingTickets } = useQuery({
-    queryKey: ['/api/tickets/user'],
-    queryFn: async () => {
-      const res = await fetch('/api/tickets/user');
-      if (res.status === 404) return []; // No tickets found
-      if (!res.ok) throw new Error('Failed to fetch tickets');
-      return res.json();
-    },
-    enabled: !!user, // Only run query if user is logged in
-  });
+  const [userTickets, setUserTickets] = useState<any[]>([]);
+  const [isLoadingTickets, setIsLoadingTickets] = useState(false);
 
-  // Check if user is already registered for this event
-  const isRegistered = userTickets?.some((ticket: {eventId: number}) => 
-    ticket.eventId === Number(id)
-  );
+  // Fetch event details
+  useEffect(() => {
+    if (!id) return;
+    setIsLoading(true);
+    setIsError(false);
+    axios.get(`${API_BASE_URL}/api/events/${id}`)
+      .then(res => setEvent(res.data))
+      .catch(() => setIsError(true))
+      .finally(() => setIsLoading(false));
+  }, [id]);
 
-  // Initialize Paddle for payment processing
+  // Fetch user's tickets
+  useEffect(() => {
+    if (!user) {
+      setUserTickets([]);
+      return;
+    }
+    setIsLoadingTickets(true);
+    axios.get(`${API_BASE_URL}/api/tickets/user`)
+      .then(res => setUserTickets(res.data))
+      .catch(() => setUserTickets([]))
+      .finally(() => setIsLoadingTickets(false));
+  }, [user]);
+
+  // Check registration
+  const isRegistered = userTickets?.some((ticket: { eventId: number }) => ticket.eventId === Number(id));
+
+  // Initialize Paddle if needed
   useEffect(() => {
     if (user && event && !event.isFree && event.ticketPrice && event.ticketPrice > 0) {
       initializePaddle();
     }
   }, [user, event, initializePaddle]);
 
-  // Handle event registration
+  // Register handler
   const handleRegister = async () => {
     if (!event) return;
-    
     if (!user) {
       toast({
         title: "Authentication Required",
@@ -67,7 +71,6 @@ export default function EventDetailPage() {
       });
       return;
     }
-
     if (isRegistered) {
       toast({
         title: "Already Registered",
@@ -75,8 +78,6 @@ export default function EventDetailPage() {
       });
       return;
     }
-
-    // For paid events, use the payment system
     if (!event.isFree && event.ticketPrice && event.ticketPrice > 0) {
       try {
         await startCheckout(event);
@@ -89,27 +90,27 @@ export default function EventDetailPage() {
       }
       return;
     }
-
-    // For free events, create a ticket directly
     try {
-      const response = await apiRequest("POST", "/api/tickets", { 
+      const response = await axios.post(`${API_BASE_URL}/api/tickets`, {
         eventId: event.id,
-        userId: user.id 
+        user_id: user.user_id
       });
-      
-      if (!response.ok) {
+      if (response.status !== 200 && response.status !== 201) {
         throw new Error("Failed to register for event");
       }
-      
       toast({
         title: "Registration Successful",
         description: `You have successfully registered for ${event.title}`,
       });
-      
-      // Invalidate tickets cache
-      queryClient.invalidateQueries({ queryKey: ['/api/tickets'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/tickets/user'] });
-    } catch (error) {
+      // Refetch tickets
+      if (user) {
+        setIsLoadingTickets(true);
+        axios.get(`${API_BASE_URL}/api/tickets/user`)
+          .then(res => setUserTickets(res.data))
+          .catch(() => setUserTickets([]))
+          .finally(() => setIsLoadingTickets(false));
+      }
+    } catch (error: any) {
       toast({
         title: "Registration Failed",
         description: error instanceof Error ? error.message : "Failed to register for event",
@@ -118,23 +119,22 @@ export default function EventDetailPage() {
     }
   };
 
-  // Helper function to format price
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+  // Price formatter
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2
     }).format(price / 100);
-  };
 
-  // Display loading state
+  // Loading state
   if (isLoading) {
     return (
       <MainLayout activeSection="events">
         <div className="py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center mb-6">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="flex items-center text-muted-foreground hover:text-foreground"
               onClick={() => navigate('/events')}
             >
@@ -155,14 +155,14 @@ export default function EventDetailPage() {
     );
   }
 
-  // Display error state
+  // Error state
   if (isError || !event) {
     return (
       <MainLayout activeSection="events">
         <div className="py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center mb-6">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="flex items-center text-muted-foreground hover:text-foreground"
               onClick={() => navigate('/events')}
             >
@@ -173,8 +173,8 @@ export default function EventDetailPage() {
           <div className="max-w-3xl mx-auto text-center py-12">
             <h1 className="text-xl font-semibold text-gray-900 mb-2">Event Not Found</h1>
             <p className="text-gray-600">The event you're looking for doesn't exist or has been removed.</p>
-            <Button 
-              variant="default" 
+            <Button
+              variant="default"
               className="mt-6"
               onClick={() => navigate('/events')}
             >
@@ -186,15 +186,14 @@ export default function EventDetailPage() {
     );
   }
 
-  // Parse event date
   const eventDate = new Date(event.date);
 
   return (
     <MainLayout activeSection="events">
       <div className="py-6 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center mb-6">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             className="flex items-center text-muted-foreground hover:text-foreground"
             onClick={() => navigate('/events')}
           >
@@ -202,7 +201,6 @@ export default function EventDetailPage() {
             Back to events
           </Button>
         </div>
-        
         <div className="max-w-3xl mx-auto">
           <Card className="border border-gray-200 shadow-sm">
             <CardHeader className="pb-4">
@@ -232,10 +230,8 @@ export default function EventDetailPage() {
                 </div>
               </div>
             </CardHeader>
-            
             <CardContent className="pb-6 pt-2">
               <div className="space-y-6">
-                {/* Location */}
                 <div className="flex items-start">
                   <MapPin className="h-5 w-5 mr-3 text-gray-500 mt-1 flex-shrink-0" />
                   <div>
@@ -249,7 +245,7 @@ export default function EventDetailPage() {
                           <LinkIcon className="h-3 w-3 mr-1" />
                           <span>Stream Link</span>
                         </div>
-                        <a 
+                        <a
                           href={event.streamUrl}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -262,16 +258,12 @@ export default function EventDetailPage() {
                     )}
                   </div>
                 </div>
-                
-                {/* Description */}
                 <div>
                   <h3 className="text-sm font-medium text-gray-900 mb-2">About this event</h3>
                   <div className="text-sm text-gray-600 whitespace-pre-line">
                     {event.description}
                   </div>
                 </div>
-                
-                {/* Organizer */}
                 {event.organizer && (
                   <div className="flex items-start">
                     <User className="h-5 w-5 mr-3 text-gray-500 mt-1 flex-shrink-0" />
@@ -283,24 +275,23 @@ export default function EventDetailPage() {
                 )}
               </div>
             </CardContent>
-            
             <CardFooter className="border-t bg-gray-50 px-6 py-4">
               <div className="w-full flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div className="text-sm text-gray-600 text-center sm:text-left">
-                  {isRegistered 
-                    ? 'You are registered for this event' 
+                  {isRegistered
+                    ? 'You are registered for this event'
                     : 'Register now to reserve your spot'}
                 </div>
-                <Button 
+                <Button
                   variant={isRegistered ? "outline" : "default"}
                   className={`${isRegistered ? 'text-green-600 border-green-200' : ''} w-full sm:w-auto`}
                   onClick={handleRegister}
                   disabled={isRegistered || isLoadingTickets}
                 >
-                  {isRegistered 
-                    ? 'Already Registered' 
-                    : event.isFree 
-                      ? 'Register for Free' 
+                  {isRegistered
+                    ? 'Already Registered'
+                    : event.isFree
+                      ? 'Register for Free'
                       : `Register (${formatPrice(event.ticketPrice || 0)})`}
                 </Button>
               </div>

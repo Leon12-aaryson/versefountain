@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { API_BASE_URL } from '@/constants/constants';
 import MainLayout from '@/components/shared/MainLayout';
 import ResourceCard from '@/components/academics/ResourceCard';
-import { AcademicResource } from '@shared/schema';
 import { 
   Card,
   CardContent,
@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/select';
 import {
   Tabs,
-  TabsContent,
   TabsList,
   TabsTrigger
 } from '@/components/ui/tabs';
@@ -36,29 +35,34 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
+interface AcademicResource {
+  id: string;
+  title: string;
+  description?: string;
+  type: string;
+  subject: string;
+  resourceUrl: string;
+}
+
 export default function AcademicsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedSubject, setSelectedSubject] = useState('all');
-  
-  const { data: resources, isLoading } = useQuery<AcademicResource[]>({
-    queryKey: ['/api/academic-resources'],
-    queryFn: async () => {
-      const res = await fetch('/api/academic-resources');
-      if (!res.ok) throw new Error('Failed to fetch academic resources');
-      return res.json();
-    }
-  });
-  
+  const [resources, setResources] = useState<AcademicResource[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     document.title = 'eLibrary - Academic Resources';
   }, []);
-  
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Search functionality would be implemented here
-  };
-  
+
+  useEffect(() => {
+    setIsLoading(true);
+    axios.get(`${API_BASE_URL}/api/academic-resources`)
+      .then(res => setResources(res.data))
+      .catch(() => setResources([]))
+      .finally(() => setIsLoading(false));
+  }, []);
+
   const filteredResources = resources?.filter(resource => {
     const matchesSearch = searchQuery === '' || 
       resource.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -69,13 +73,13 @@ export default function AcademicsPage() {
     
     return matchesSearch && matchesType && matchesSubject;
   });
-  
+
   const getSubjects = () => {
     if (!resources) return [];
     const subjects = new Set(resources.map(resource => resource.subject).filter(Boolean));
     return Array.from(subjects);
   };
-  
+
   const getResourceIcon = (type: string) => {
     switch (type) {
       case 'study_guide':
@@ -119,7 +123,7 @@ export default function AcademicsPage() {
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row md:items-center gap-4">
-              <form onSubmit={handleSearch} className="flex-1">
+              <form className="flex-1" onSubmit={e => e.preventDefault()}>
                 <div className="relative">
                   <Input
                     type="text"
@@ -181,7 +185,7 @@ export default function AcademicsPage() {
             filteredResources.map(resource => (
               <ResourceCard
                 key={resource.id}
-                id={resource.id}
+                id={Number(resource.id)}
                 title={resource.title}
                 description={resource.description || ''}
                 type={resource.type}

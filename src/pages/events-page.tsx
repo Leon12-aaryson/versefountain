@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import MainLayout from '@/components/shared/MainLayout';
 import EventCard from '@/components/events/EventCard';
 import EventCreationForm from '@/components/events/EventCreationForm';
 import EventEditForm from '@/components/events/EventEditForm';
-import { Event } from '@shared/schema';
 import { 
   Card, 
   CardContent, 
@@ -29,64 +27,81 @@ import { Calendar, MapPin, Users, CalendarDays, Check, Edit } from 'lucide-react
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { usePayment } from '@/contexts/PaymentContext';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import axios from 'axios';
+import { API_BASE_URL } from '@/constants/constants';
+
+interface Event {
+  id: number;
+  title: string;
+  date: string;
+  location?: string;
+  isFree?: boolean | null;
+  isVirtual?: boolean | null;
+  ticketPrice?: number | null;
+  organizer?: string;
+  createdById?: number | null;
+  description?: string;
+  streamUrl?: string;
+}
 
 export default function EventsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { startCheckout, userTickets: paymentTickets, initializePaddle } = usePayment();
-  
-  const { data: events, isLoading } = useQuery<Event[]>({
-    queryKey: ['/api/events'],
-    queryFn: async () => {
-      const res = await fetch('/api/events');
-      if (!res.ok) throw new Error('Failed to fetch events');
-      return res.json();
+
+  // Remove tanstack query, use axios for fetching events and tickets
+  const [events, setEvents] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userTickets, setUserTickets] = useState<any[]>([]);
+  const [ticketsLoading, setTicketsLoading] = useState(false);
+
+  useEffect(() => {
+    setIsLoading(true);
+    axios.get(`${API_BASE_URL}/api/events`)
+      .then(res => setEvents(res.data))
+      .catch(() => setEvents([]))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      setTicketsLoading(true);
+      axios.get(`${API_BASE_URL}/api/tickets/user`)
+        .then(res => setUserTickets(res.data))
+        .catch(() => setUserTickets([]))
+        .finally(() => setTicketsLoading(false));
+    } else {
+      setUserTickets([]);
     }
-  });
-  
-  // Get the user's tickets to check registration status
-  const { data: userTickets } = useQuery({
-    queryKey: ['/api/tickets/user'],
-    queryFn: async () => {
-      const res = await fetch('/api/tickets/user');
-      if (res.status === 404) return []; // No tickets found
-      if (!res.ok) throw new Error('Failed to fetch tickets');
-      return res.json();
-    },
-    enabled: !!user, // Only run query if user is logged in
-  });
-  
+  }, [user]);
+
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
-  
+
   useEffect(() => {
     document.title = 'VerseFountain - Events';
-    // Initialize Paddle when user is logged in
     if (user) {
       initializePaddle();
     }
   }, [user, initializePaddle]);
-  
+
   const getUniqueMonths = () => {
     if (!events) return [];
-    
-    const months = new Set();
+    const months = new Set<string>();
     events.forEach(event => {
       const month = format(new Date(event.date), 'MMMM');
       months.add(month);
     });
-    
-    return Array.from(months) as string[];
+    return Array.from(months);
   };
-  
+
   const filteredEvents = events?.filter(event => {
     if (selectedMonth === 'all') return true;
     return format(new Date(event.date), 'MMMM') === selectedMonth;
   });
-  
+
   const upcomingEvents = filteredEvents?.filter(event => new Date(event.date) > new Date())
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  
+
   const featuredEvents = upcomingEvents?.filter(event => (event.ticketPrice || 0) > 0).slice(0, 3);
 
   return (
@@ -142,10 +157,7 @@ export default function EventsPage() {
                   </CardContent>
                   <CardFooter className="p-3 pt-0 sm:p-6 sm:pt-0">
                     {(() => {
-                      // Check if the user is already registered for this event
                       const isRegistered = userTickets?.some((ticket: {eventId: number}) => ticket.eventId === event.id);
-                      
-                      // Show edit button and registration button
                       return (
                         <div className="flex flex-col w-full space-y-2">
                           {/* Registration button */}
@@ -170,12 +182,15 @@ export default function EventsPage() {
                                   });
                                   return;
                                 }
-                                
-                                // For paid events, use the payment system
                                 if (!event.isFree && (event.ticketPrice || 0) > 0) {
                                   try {
-                                    // Start the Paddle checkout flow
-                                    await startCheckout(event);
+                                    await startCheckout({
+                                      ...event, 
+                                      description: event.description || "",
+                                      isFree: event.isFree === null || event.isFree === undefined ? false : event.isFree,
+                                      isVirtual: event.isVirtual === null || event.isVirtual === undefined ? false : event.isVirtual,
+                                      ticketPrice: event.ticketPrice === null || event.ticketPrice === undefined ? undefined : event.ticketPrice
+                                    });
                                   } catch (error) {
                                     toast({
                                       title: "Payment Error",
@@ -185,30 +200,29 @@ export default function EventsPage() {
                                   }
                                   return;
                                 }
-                                
-                                // For free events, create a ticket directly
                                 try {
-                                  // Free event registration
-                                  const response = await apiRequest("POST", "/api/tickets", { 
+                                  await axios.post(`${API_BASE_URL}/api/tickets`, {
                                     eventId: event.id,
-                                    userId: user.id
+                                    user_id: user.user_id
                                   });
-                                  
-                                  if (!response.ok) {
-                                    throw new Error("Failed to register for event");
-                                  }
-                                  
                                   toast({
                                     title: "Registration Successful",
                                     description: `You have successfully registered for ${event.title}`,
                                   });
-                                  
-                                  // Invalidate tickets cache
-                                  queryClient.invalidateQueries({ queryKey: ['/api/tickets/user'] });
+                                  // Refetch tickets
+                                  if (user) {
+                                    setTicketsLoading(true);
+                                    axios.get(`${API_BASE_URL}/api/tickets/user`)
+                                      .then(res => setUserTickets(res.data))
+                                      .catch(() => setUserTickets([]))
+                                      .finally(() => setTicketsLoading(false));
+                                  }
                                 } catch (error) {
                                   toast({
                                     title: "Registration Failed",
-                                    description: error instanceof Error ? error.message : "Failed to register for event",
+                                    description: axios.isAxiosError(error) 
+                                      ? error.response?.data?.message || error.message 
+                                      : "Failed to register for event",
                                     variant: "destructive"
                                   });
                                 }
@@ -218,9 +232,8 @@ export default function EventsPage() {
                               Register Now
                             </Button>
                           )}
-
                           {/* Edit button if user created this event */}
-                          {user && user.id && event.createdById && user.id === event.createdById && (
+                          {user && user.user_id && event.createdById && user.user_id === event.createdById && (
                             <Dialog>
                               <DialogTrigger asChild>
                                 <Button 
@@ -299,14 +312,13 @@ export default function EventsPage() {
                         title={event.title}
                         date={event.date}
                         location={event.location || ""}
-                        isFree={event.isFree === null ? true : event.isFree}
-                        isVirtual={event.isVirtual === null ? false : event.isVirtual}
+                        isFree={event.isFree === null || event.isFree === undefined ? true : event.isFree}
+                        isVirtual={event.isVirtual === null || event.isVirtual === undefined ? false : event.isVirtual}
                         price={event.ticketPrice || 0}
                         organizer={event.organizer || ""}
                         createdById={event.createdById || undefined}
                         description={event.description || ""}
                         streamUrl={event.streamUrl || ""}
-                        fullEvent={event}
                       />
                     </div>
                   ))}

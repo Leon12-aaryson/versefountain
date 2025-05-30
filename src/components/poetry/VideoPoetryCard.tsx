@@ -3,7 +3,8 @@ import { Heart, MessageSquare, Star, Play } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import axios from 'axios';
+import { API_BASE_URL } from '@/constants/constants';
 
 interface Author {
   id: number;
@@ -40,7 +41,7 @@ const VideoPoetryCard = ({
   const [isLiked, setIsLiked] = useState(false);
   const [currentLikes, setCurrentLikes] = useState(likes);
   const [currentRating, setCurrentRating] = useState(rating);
-  
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(
@@ -48,10 +49,9 @@ const VideoPoetryCard = ({
       'day'
     );
   };
-  
+
   const handleVideoPlay = () => {
     if (videoUrl) {
-      // In a real implementation, this would open a video player or modal
       window.open(videoUrl, '_blank');
     } else {
       toast({
@@ -61,7 +61,7 @@ const VideoPoetryCard = ({
       });
     }
   };
-  
+
   const handleLike = async () => {
     if (!user) {
       toast({
@@ -71,20 +71,17 @@ const VideoPoetryCard = ({
       });
       return;
     }
-    
+
     try {
       if (isLiked) {
-        await apiRequest("POST", `/api/poems/${id}/unlike`);
+        await axios.post(`${API_BASE_URL}/poems/${id}/unlike`);
         setCurrentLikes(prev => prev - 1);
         setIsLiked(false);
       } else {
-        await apiRequest("POST", `/api/poems/${id}/like`);
+        await axios.post(`${API_BASE_URL}/poems/${id}/like`);
         setCurrentLikes(prev => prev + 1);
         setIsLiked(true);
       }
-      
-      // Invalidate poems cache
-      queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
     } catch (error) {
       toast({
         title: "Error",
@@ -93,7 +90,7 @@ const VideoPoetryCard = ({
       });
     }
   };
-  
+
   const handleRate = async (rating: number) => {
     if (!user) {
       toast({
@@ -103,18 +100,15 @@ const VideoPoetryCard = ({
       });
       return;
     }
-    
+
     try {
-      await apiRequest("POST", `/api/poems/${id}/rate`, { rating });
+      await axios.post(`${API_BASE_URL}/poems/${id}/rate`, { rating });
       setCurrentRating(rating);
-      
+
       toast({
         title: "Rating Submitted",
         description: `You rated this poem ${rating} stars`
       });
-      
-      // Invalidate poems cache
-      queryClient.invalidateQueries({ queryKey: ["/api/poems"] });
     } catch (error) {
       toast({
         title: "Error",
