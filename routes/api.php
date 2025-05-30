@@ -30,13 +30,25 @@ Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)->middlewar
 Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('auth')->name('logout');
 
+use Illuminate\Support\Facades\Auth;
+
+Route::get('/user', function () {
+    return response()->json(Auth::user());
+})->middleware('auth:sanctum')->name('user');
+
+// PUBLIC ROUTES (no auth required)
+Route::get('/poems', [PoemController::class, 'index']);
+Route::get('/books', [BookController::class, 'index']);
+Route::get('/events', [EventController::class, 'index']);
+Route::get('/academic-resources', [AcademicResourceController::class, 'index']);
+Route::get('/chat/rooms', [ChatRoomController::class, 'index']);
+Route::get('events/{event}', [EventController::class, 'show']);
 
 // Authenticated Routes
 Route::middleware('auth:sanctum')->group(function () {
     // Poems
     Route::get('poems/user', [PoemController::class, 'userPoems']);
     Route::post('poems', [PoemController::class, 'store']);
-    Route::get('poems', [PoemController::class, 'index']);
     Route::patch('poems/{poem}', [PoemController::class, 'update']);
     Route::delete('poems/{poem}', [PoemController::class, 'destroy']);
     Route::post('poems/{poem}/rate', [PoemController::class, 'rate']);
@@ -56,7 +68,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Books
     Route::post('books', [BookController::class, 'store']);
-    Route::get('books', [BookController::class, 'index']);
     Route::get('books/{book}', [BookController::class, 'show']);
     Route::patch('books/{book}', [BookController::class, 'update']);
     Route::delete('books/{book}', [BookController::class, 'destroy']);
@@ -64,10 +75,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Events
     Route::post('events', [EventController::class, 'store']);
-    Route::get('events', [EventController::class, 'index']);
     Route::put('events/{event}', [EventController::class, 'update']);
     Route::post('events', [EventController::class, 'store']);
-    Route::get('events/{event}', [EventController::class, 'show']);
     Route::post('events/{event}/register', [EventController::class, 'registerForEvent']);
     Route::post('events/{event}/unregister', [EventController::class, 'unregisterFromEvent']);
     Route::get('events/user-registrations', [EventController::class, 'userRegistrations']);
@@ -86,7 +95,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Academic Resources
     Route::post('academic-resources', [AcademicResourceController::class, 'store']);
-    Route::get('academic-resources', [AcademicResourceController::class, 'index']);
     Route::get('academic-resources/{academicResource}', [AcademicResourceController::class, 'show']);
     Route::patch('academic-resources/{academicResource}', [AcademicResourceController::class, 'update']);
     Route::delete('academic-resources/{academicResource}', [AcademicResourceController::class, 'destroy']);
@@ -107,7 +115,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Admin Routes
-Route::middleware(['auth:sanctum', 'can:accessAdminPanel'])->group(function () {
+Route::middleware(['auth:sanctum', 'can:accessAdminPanel'])->prefix('admin')->group(function () {
     Route::get('users', [AdminController::class, 'getUsers']);
     Route::patch('users/{user}', [AdminController::class, 'updateUser']);
     Route::delete('users/{user}', [AdminController::class, 'deleteUser']);
