@@ -40,11 +40,10 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): JsonResponse
     {
-        Auth::guard('web')->logout();
-
-        $request->session()->invalidate();
-
-        $request->session()->regenerateToken();
+        // For Sanctum: Revoke all tokens for the user
+        if ($request->user()) {
+            $request->user()->tokens()->delete();
+        }
 
         return response()->json(null, 204);
     }
