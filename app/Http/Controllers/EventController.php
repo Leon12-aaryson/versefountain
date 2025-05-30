@@ -86,8 +86,8 @@ class EventController extends Controller
             'category' => ['nullable', 'string', Rule::in(['poetry', 'book_launch', 'workshop', 'lecture', 'general'])],
         ]);
 
-        // Set createdById from authenticated user
-        $validatedData['createdById'] = $user->id;
+        // Set created_by_id from authenticated user
+        $validatedData['created_by_id'] = $user->id;
 
         // Ensure isFree aligns with ticketPrice if not explicitly set
         if (!isset($validatedData['isFree'])) {
@@ -110,7 +110,7 @@ class EventController extends Controller
         }
 
         // Authorization check
-        if ($user->id !== $event->createdById && !$user->isAdmin) {
+        if ($user->id !== $event->created_by_id && !$user->isAdmin) {
             return response()->json(['message' => 'Forbidden. You did not create this event or are not an administrator.'], 403);
         }
 
@@ -163,7 +163,7 @@ class EventController extends Controller
         }
 
         // Authorization check
-        if ($user->id !== $event->createdById && !$user->isAdmin) {
+        if ($user->id !== $event->created_by_id && !$user->isAdmin) {
             return response()->json(['message' => 'Forbidden. You did not create this event or are not an administrator.'], 403);
         }
 
@@ -181,7 +181,7 @@ class EventController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        $events = Event::where('createdById', $user->id)
+        $events = Event::where('created_by_id', $user->id)
                        ->orderBy('date', 'asc')
                        ->paginate($request->input('limit', 10));
 
