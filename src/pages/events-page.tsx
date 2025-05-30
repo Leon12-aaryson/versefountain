@@ -39,7 +39,7 @@ interface Event {
   isVirtual?: boolean | null;
   ticketPrice?: number | null;
   organizer?: string;
-  createdById?: number | null;
+  created_by_id?: number | null;
   description?: string;
   streamUrl?: string;
 }
@@ -233,7 +233,7 @@ export default function EventsPage() {
                             </Button>
                           )}
                           {/* Edit button if user created this event */}
-                          {user && user.user_id && event.createdById && user.user_id === event.createdById && (
+                          {user && user.user_id && event.created_by_id && user.user_id === event.created_by_id && (
                             <Dialog>
                               <DialogTrigger asChild>
                                 <Button 
@@ -316,7 +316,7 @@ export default function EventsPage() {
                         isVirtual={event.isVirtual === null || event.isVirtual === undefined ? false : event.isVirtual}
                         price={event.ticketPrice || 0}
                         organizer={event.organizer || ""}
-                        createdById={event.createdById || undefined}
+                        created_by_id={event.created_by_id || undefined}
                         description={event.description || ""}
                         streamUrl={event.streamUrl || ""}
                       />

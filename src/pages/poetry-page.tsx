@@ -106,7 +106,7 @@ export default function PoetryPage() {
   // Fetch featured poets
   useEffect(() => {
     setIsLoadingFeaturedPoets(true);
-    axios.get(`${API_BASE_URL}/api/poets/featured`, { params: { limit: 5 } })
+    axios.get(`${API_BASE_URL}/api/poets/featured`, { withCredentials: false, params: { limit: 5 } })
       .then(res => setFeaturedPoets(res.data))
       .catch(() => setFeaturedPoets([]))
       .finally(() => setIsLoadingFeaturedPoets(false));
@@ -151,7 +151,7 @@ export default function PoetryPage() {
     if (user) {
       const fetchFollowedPoets = async () => {
         try {
-          const res = await axios.get(`${API_BASE_URL}/api/user/followed-poets`);
+          const res = await axios.get(`${API_BASE_URL}/api/user/followed-poets`, { withCredentials: true });
           const poetIds = res.data.map((poet: any) => poet.id);
           setFollowedPoetIds(poetIds);
         } catch (error) {}
@@ -180,8 +180,8 @@ export default function PoetryPage() {
         isVideo: isVideoPoetry,
       });
       toast({
-        title: 'Poetry Submitted',
-        description: 'Your poetry has been submitted successfully and is pending approval.',
+        title: 'Poetry Created',
+        description: 'Your poem has been created successfully.',
       });
       poemForm.reset();
       setDialogOpen(false);
@@ -191,7 +191,7 @@ export default function PoetryPage() {
     } catch (error: any) {
       toast({
         title: 'Submission Failed',
-        description: error?.response?.data?.message || 'Failed to submit poetry',
+        description: error?.response?.data?.message || 'Failed to submit poem',
         variant: 'destructive',
       });
     } finally {

@@ -91,7 +91,7 @@ export default function EventCreationForm({ onEventCreated }: { onEventCreated?:
         ...data,
         ticketPrice: isFree ? 0 : (data.ticketPrice || 0) * 100,
         streamUrl: isVirtual ? data.streamUrl || "" : undefined,
-        createdById: user.user_id,
+        created_by_id: user.user_id,
       };
 
       await axios.post(`${API_BASE_URL}/api/events`, eventData);

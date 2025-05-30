@@ -28,7 +28,7 @@ interface EventCardProps {
   isVirtual: boolean;
   price?: number;
   organizer?: string;
-  createdById?: number;
+  created_by_id?: number;
   description?: string;
   streamUrl?: string;
   onRegister?: () => void;
@@ -49,7 +49,7 @@ const EventCard = ({
   isVirtual,
   price = 0,
   organizer,
-  createdById,
+  created_by_id,
   description,
   streamUrl,
   onRegister,
@@ -127,7 +127,7 @@ const EventCard = ({
           ticketPrice: price,
           organizer: organizer || undefined,
           streamUrl: streamUrl || undefined,
-          createdById: createdById ?? undefined,
+          created_by_id: created_by_id ?? undefined,
         };
         await startCheckout(event);
         // Optionally, refetch tickets after checkout
@@ -254,7 +254,7 @@ const EventCard = ({
             <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
             View Details
           </Button>
-          {user && createdById && user.user_id === createdById && fullEvent && (
+          {user && created_by_id && user.user_id === created_by_id && fullEvent && (
             <Dialog>
               <DialogTrigger asChild>
                 <Button
