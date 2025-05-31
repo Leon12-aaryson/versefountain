@@ -26,11 +26,11 @@ class AdminController extends Controller
     public function getUsers()
     {
         $user = Auth::user();
-        if (!$user || !$user->isAdmin) {
+        if (!$user || $user->role !== 'admin') {
             return response()->json(['message' => 'Forbidden. Admin access required.'], 403);
         }
         // Exclude sensitive data like password hash
-        $users = User::all(['id', 'username', 'email', 'isAdmin', 'created_at']);
+        $users = \App\Models\User::all(['id', 'username', 'email', 'role', 'created_at']);
         return response()->json($users);
     }
 
@@ -40,7 +40,7 @@ class AdminController extends Controller
     public function updateUser(Request $request, User $user)
     {
         $currentUser = Auth::user();
-        if (!$currentUser || !$currentUser->isAdmin) {
+        if (!$currentUser || $currentUser->role !== 'admin') {
             return response()->json(['message' => 'Forbidden. Admin access required.'], 403);
         }
 
@@ -66,7 +66,7 @@ class AdminController extends Controller
     public function deleteUser(User $user)
     {
         $currentUser = Auth::user();
-        if (!$currentUser || !$currentUser->isAdmin) {
+        if (!$currentUser || $currentUser->role !== 'admin') {
             return response()->json(['message' => 'Forbidden. Admin access required.'], 403);
         }
 
@@ -84,7 +84,7 @@ class AdminController extends Controller
     public function getPendingBooks()
     {
         $user = Auth::user();
-        if (!$user || !$user->isAdmin) {
+        if (!$user || $user->role !== 'admin') {
             return response()->json(['message' => 'Forbidden. Admin access required.'], 403);
         }
         $books = Book::where('approved', false)->get();
@@ -97,7 +97,7 @@ class AdminController extends Controller
     public function getPendingPoems()
     {
         $user = Auth::user();
-        if (!$user || !$user->isAdmin) {
+        if (!$user || $user->role !== 'admin') {
             return response()->json(['message' => 'Forbidden. Admin access required.'], 403);
         }
         $poems = Poem::where('approved', false)->get();
@@ -110,7 +110,7 @@ class AdminController extends Controller
     public function approveBook(Book $book)
     {
         $user = Auth::user();
-        if (!$user || !$user->isAdmin) {
+        if (!$user || $user->role !== 'admin') {
             return response()->json(['message' => 'Forbidden. Admin access required.'], 403);
         }
         $book->approved = true;
@@ -124,7 +124,7 @@ class AdminController extends Controller
     public function deleteBook(Book $book)
     {
         $user = Auth::user();
-        if (!$user || !$user->isAdmin) {
+        if (!$user || $user->role !== 'admin') {
             return response()->json(['message' => 'Forbidden. Admin access required.'], 403);
         }
         $book->delete();
@@ -138,7 +138,7 @@ class AdminController extends Controller
     public function deletePoem(Poem $poem)
     {
         $user = Auth::user();
-        if (!$user || !$user->isAdmin) {
+        if (!$user || $user->role !== 'admin') {
             return response()->json(['message' => 'Forbidden. Admin access required.'], 403);
         }
         $poem->delete();
@@ -151,7 +151,7 @@ class AdminController extends Controller
     public function updatePaymentStatus(Request $request, Payment $payment)
     {
         $user = Auth::user();
-        if (!$user || !$user->isAdmin) {
+        if (!$user || $user->role !== 'admin') {
             return response()->json(['message' => 'Forbidden. Admin access required.'], 403);
         }
 
@@ -172,7 +172,7 @@ class AdminController extends Controller
     public function refundPayment(Request $request, Payment $payment)
     {
         $user = Auth::user();
-        if (!$user || !$user->isAdmin) {
+        if (!$user || $user->role !== 'admin') {
             return response()->json(['message' => 'Forbidden. Admin access required.'], 403);
         }
 
@@ -209,7 +209,7 @@ class AdminController extends Controller
     public function updateTicketStatus(Request $request, Ticket $ticket)
     {
         $user = Auth::user();
-        if (!$user || !$user->isAdmin) {
+        if (!$user || $user->role !== 'admin') {
             return response()->json(['message' => 'Forbidden. Admin access required.'], 403);
         }
 
@@ -227,7 +227,7 @@ class AdminController extends Controller
     public function getTicketsForEvent(Event $event)
     {
         $user = Auth::user();
-        if (!$user || !$user->isAdmin) {
+        if (!$user || $user->role !== 'admin') {
             return response()->json(['message' => 'Forbidden. Admin access required.'], 403);
         }
         $tickets = $event->tickets()->with('user:id,username')->get();

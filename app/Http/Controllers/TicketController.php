@@ -13,6 +13,27 @@ use Illuminate\Validation\Rule;
 class TicketController extends Controller
 {
     /**
+     * Display a listing of the tickets for a specific event.
+     */
+    public function index(Request $request, Event $event = null)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        if ($user->isAdmin) {
+            // Admin: return all tickets with event and user info
+            $tickets = Ticket::with('event', 'user')->get();
+        } else {
+            // Regular user: only their tickets
+            $tickets = $user->tickets()->with('event')->get();
+        }
+
+        return response()->json($tickets);
+    }
+
+    /**
      * Register a user for a free event, or potentially create a ticket linked to an existing payment.
      */
     public function store(Request $request)

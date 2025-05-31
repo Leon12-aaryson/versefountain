@@ -38,7 +38,7 @@ class Poem extends Model
      */
     public function userInteractions()
     {
-        return $this->hasMany(UserPoem::class, 'poem_id'); // Updated to snake_case
+        return $this->hasMany(UserPoem::class, 'poem_id');
     }
 
     /**

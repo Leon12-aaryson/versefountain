@@ -44,7 +44,7 @@
     * [POST /api/poems/:id/rate](#post-apipoemsidrate)
     * [POST /api/poems/:id/like](#post-apipoemsidlike)
     * [POST /api/poems/:id/unlike](#post-apipoemsidunlike)
-    * [GET /api/poems/:id/like-count](#get-apipoemsidlike-count)
+    * [GET /api/poems/:id/likes](#get-apipoemsidlike-count)
     * [GET /api/poems/:id/user-status](#get-apipoemsiduser-status)
   * [3.3. Resource: Poem Comments](#33-resource-poem-comments)
     * [GET /api/poems/:id/comments](#get-apipoemsidcomments)
@@ -154,7 +154,7 @@
     *   `email`: `text` - Not Null. The user's email address.
     *   `isAdmin`: `boolean` - Default: `false`. Flag indicating if the user has administrative privileges.
 *   **Relationships:**
-    *   Referenced by `poetFollowers.follower_id`, `poetFollowers.poet_id`, `poems.author_id`, `books.uploadedById`, `events.createdById`, `chatRooms.createdById`, `chatMessages.user_id`, `payments.user_id`, `tickets.user_id`, `userPoems.user_id`, `userChatRooms.user_id`, `poemComments.user_id`, `commentReactions.user_id`.
+    *   Referenced by `poetFollowers.follower_id`, `poetFollowers.poet_id`, `poems.author_id`, `books.uploadedById`, `events.created_by_id`, `chatRooms.created_by_id`, `chatMessages.user_id`, `payments.user_id`, `tickets.user_id`, `userPoems.user_id`, `userChatRooms.user_id`, `poemComments.user_id`, `commentReactions.user_id`.
 
 ### 1.2. `poetFollowers` Table
 
@@ -215,10 +215,10 @@
     *   `isVirtual`: `boolean` - Default: `false`. Flag indicating if the event is virtual.
     *   `streamUrl`: `text` - Nullable. The URL for the event stream if `isVirtual` is true.
     *   `isFree`: `boolean` - Default: `false`. Flag indicating if the event is free. (Note: `schema.ts` has `default(false)`, migration `0000_fine_wither.sql` does not specify a default, so `false` as per `schema.ts` is likely correct. `insertEventSchema` also defaults `isFree` to `true` at application level if not provided, which might override DB default in practice for new inserts).
-    *   `createdById`: `integer` - Nullable. Foreign Key referencing `users.id`. The ID of the user who created the event. (Added in `0001_fast_lockheed.sql` migration and `schema.ts`)
+    *   `created_by_id`: `integer` - Nullable. Foreign Key referencing `users.id`. The ID of the user who created the event. (Added in `0001_fast_lockheed.sql` migration and `schema.ts`)
     *   `category`: `text` - Default: `general`. The category of the event (e.g., "poetry", "book_launch", "workshop", "lecture", "general"). (Added in `0001_fast_lockheed.sql` migration and `schema.ts`)
 *   **Relationships:**
-    *   `createdById` references `users.id`.
+    *   `created_by_id` references `users.id`.
     *   Referenced by `payments.event_id`, `tickets.event_id`.
 
 ### 1.6. `chatRooms` Table
@@ -228,10 +228,10 @@
     *   `id`: `serial` - Primary Key, Auto-incrementing ID for the chat room.
     *   `name`: `text` - Not Null. The name of the chat room.
     *   `description`: `text` - Nullable. A description of the chat room.
-    *   `createdById`: `integer` - Nullable. Foreign Key referencing `users.id`. The ID of the user who created the chat room.
+    *   `created_by_id`: `integer` - Nullable. Foreign Key referencing `users.id`. The ID of the user who created the chat room.
     *   `isPrivate`: `boolean` - Default: `false`. Flag indicating if the chat room is private.
 *   **Relationships:**
-    *   `createdById` references `users.id`.
+    *   `created_by_id` references `users.id`.
     *   Referenced by `chatMessages.room_id`, `userChatRooms.room_id`.
 
 ### 1.7. `chatMessages` Table
@@ -466,7 +466,7 @@
     *   `isVirtual`: `boolean` (from `boolean`)
     *   `streamUrl`: `string | null` (from `text`)
     *   `isFree`: `boolean` (from `boolean`)
-    *   `createdById`: `number | null` (from `integer`)
+    *   `created_by_id`: `number | null` (from `integer`)
     *   `category`: `string` (from `text`) - Can be 'poetry', 'book_launch', 'workshop', 'lecture', or 'general'.
 *   **Validation Schemas:**
     *   **`insertEventSchema`**: Used for validating data when a new event is created. Derived from `events` table schema using `createInsertSchema`.
@@ -478,7 +478,7 @@
         *   `ticketPrice`: `number` - Optional, defaults to 0.
         *   `organizer`: `string` - Optional.
         *   `streamUrl`: `string` - Optional.
-        *   `createdById`: `number` - Optional. (Handled by application logic based on logged-in user).
+        *   `created_by_id`: `number` - Optional. (Handled by application logic based on logged-in user).
         *   Extended with:
             *   `isVirtual`: `boolean` - Optional, defaults to `false`.
             *   `isFree`: `boolean` - Optional, defaults to `true`.
@@ -495,11 +495,11 @@
     *   `id`: `number` (from `serial`)
     *   `name`: `string` (from `text`)
     *   `description`: `string | null` (from `text`)
-    *   `createdById`: `number | null` (from `integer`)
+    *   `created_by_id`: `number | null` (from `integer`)
     *   `isPrivate`: `boolean` (from `boolean`)
 *   **Validation Schemas:**
     *   **`insertChatRoomSchema`**: Used for validating data when a new chat room is created. Derived from `chatRooms` table schema using `createInsertSchema`.
-        *   Omits: `id`, `createdById`. (These are auto-generated or context-dependent).
+        *   Omits: `id`, `created_by_id`. (These are auto-generated or context-dependent).
         *   `name`: `string` - Required.
         *   `description`: `string` - Optional.
         *   `isPrivate`: `boolean` - Optional, defaults to `false`.
@@ -903,9 +903,9 @@ Endpoints related to user authentication (login, logout, signup, status). These 
     *   **Error (401 Unauthorized):** If the user is not authenticated.
     *   **Error (500 Internal Server Error):** If there's an issue unliking the poem.
 
-#### GET /api/poems/:id/like-count
+#### GET /api/poems/:id/likes
 *   **Method:** `GET`
-*   **Path:** `/api/poems/:id/like-count`
+*   **Path:** `/api/poems/:id/likes`
 *   **Description:** Gets the like count for a specific poem.
 *   **Authentication:** None
 *   **Request Parameters:**
@@ -1303,7 +1303,7 @@ Endpoints related to user authentication (login, logout, signup, status). These 
             "isVirtual": false,
             "streamUrl": null,
             "isFree": false,
-            "createdById": 1,
+            "created_by_id": 1,
             "category": "poetry"
           }
           // ... more events
@@ -1396,7 +1396,7 @@ Endpoints related to user authentication (login, logout, signup, status). These 
             "id": 1,
             "name": "General Chat",
             "description": "A place for general discussion.",
-            "createdById": null, // or user ID if created by a user
+            "created_by_id": null, // or user ID if created by a user
             "isPrivate": false
           }
           // ... more rooms

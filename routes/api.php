@@ -28,27 +28,24 @@ Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->
 Route::post('/reset-password', [NewPasswordController::class, 'store'])->middleware('guest')->name('password.store');
 Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)->middleware(['auth', 'signed', 'throttle:6,1'])->name('verification.verify');
 Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])->middleware(['auth', 'throttle:6,1'])->name('verification.send');
-Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('auth')->name('logout');
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
+    ->middleware('auth:sanctum');
 
-// Public Routes
-Route::get('poems', [PoemController::class, 'index']);
-Route::get('poems/{poem}', [PoemController::class, 'show']);
-Route::get('poems/{poem}/like-count', [PoemController::class, 'getLikeCount']);
-Route::get('poems/{poem}/comments', [PoemCommentController::class, 'index']);
-Route::get('comments/{comment}/reactions', [CommentReactionController::class, 'index']);
-Route::get('comments/{comment}/reaction-counts', [CommentReactionController::class, 'getReactionCounts']);
-Route::get('books', [BookController::class, 'index']);
-Route::get('books/{book}', [BookController::class, 'show']);
-Route::post('upload/bookcover', [BookController::class, 'uploadCover']);
-Route::get('events', [EventController::class, 'index']);
+use Illuminate\Support\Facades\Auth;
+
+Route::get('/user', function () {
+    return response()->json(Auth::user());
+})->middleware('auth:sanctum')->name('user');
+
+// PUBLIC ROUTES (no auth required)
+Route::get('/poems', [PoemController::class, 'index']);
+Route::get('/books', [BookController::class, 'index']);
+Route::get('/events', [EventController::class, 'index']);
+Route::get('/academic-resources', [AcademicResourceController::class, 'index']);
+Route::get('/chat/rooms', [ChatRoomController::class, 'index']);
 Route::get('events/poetry', [EventController::class, 'poetryEvents']);
 Route::get('events/{event}', [EventController::class, 'show']);
-Route::get('chat/rooms', [ChatRoomController::class, 'index']);
-Route::get('chat/rooms/{room}', [ChatRoomController::class, 'show']);
-Route::get('academic-resources', [AcademicResourceController::class, 'index']);
-Route::get('academic-resources/{academicResource}', [AcademicResourceController::class, 'show']);
 Route::get('poets/featured', [UserController::class, 'featuredPoets']);
-Route::get('poets/{user}/followers', [UserController::class, 'getFollowers']);
 
 // Authenticated Routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -56,14 +53,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('poems/user', [PoemController::class, 'userPoems']);
     Route::post('poems', [PoemController::class, 'store']);
     Route::patch('poems/{poem}', [PoemController::class, 'update']);
+    Route::get('poems/{poem}', [PoemController::class, 'show']);
     Route::delete('poems/{poem}', [PoemController::class, 'destroy']);
     Route::post('poems/{poem}/rate', [PoemController::class, 'rate']);
     Route::post('poems/{poem}/like', [PoemController::class, 'like']);
     Route::post('poems/{poem}/unlike', [PoemController::class, 'unlike']);
     Route::get('poems/{poem}/user-status', [PoemController::class, 'getUserStatus']);
+    Route::get('poems/{poem}/likes', [PoemController::class, 'getLikeCount']);
+    Route::get('poems/{poem}/status', [PoemController::class, 'getUserStatus']);
 
     // Poem Comments
     Route::post('poems/{poem}/comments', [PoemCommentController::class, 'store']);
+    Route::get('poems/{poem}/comments', [PoemCommentController::class, 'index']);
     Route::delete('poems/comments/{comment}', [PoemCommentController::class, 'destroy']);
 
     // Comment Reactions
@@ -74,10 +75,21 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Books
     Route::post('books', [BookController::class, 'store']);
+    Route::get('books/{book}', [BookController::class, 'show']);
+    Route::patch('books/{book}', [BookController::class, 'update']);
+    Route::delete('books/{book}', [BookController::class, 'destroy']);
+    Route::post('books/{book}/upload-cover', [BookController::class, 'uploadCover']);
 
     // Events
     Route::post('events', [EventController::class, 'store']);
     Route::put('events/{event}', [EventController::class, 'update']);
+    Route::post('events', [EventController::class, 'store']);
+    Route::post('events/{event}/register', [EventController::class, 'registerForEvent']);
+    Route::post('events/{event}/unregister', [EventController::class, 'unregisterFromEvent']);
+    Route::get('events/user-registrations', [EventController::class, 'userRegistrations']);
+    Route::get('events/{event}/registration-status', [EventController::class, 'getRegistrationStatus']);
+    Route::get('events/{event}/participants', [EventController::class, 'getParticipants']);
+    Route::get('events/{event}/user-registration', [EventController::class, 'getUserRegistration']);
 
     // Chat
     Route::get('user/chat/rooms', [ChatRoomController::class, 'userChatRooms']);
@@ -90,6 +102,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Academic Resources
     Route::post('academic-resources', [AcademicResourceController::class, 'store']);
+    Route::get('academic-resources/{academicResource}', [AcademicResourceController::class, 'show']);
+    Route::patch('academic-resources/{academicResource}', [AcademicResourceController::class, 'update']);
+    Route::delete('academic-resources/{academicResource}', [AcademicResourceController::class, 'destroy']);
+    Route::post('academic-resources/{academicResource}/upload-file', [AcademicResourceController::class, 'uploadFile']);
 
     // Poets & Following
     Route::post('poets/{user}/follow', [UserController::class, 'followPoet']);
@@ -99,6 +115,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Tickets & Payments
     Route::post('tickets', [TicketController::class, 'store']);
+    Route::get('tickets', [TicketController::class, 'index']);
     Route::get('tickets/user', [TicketController::class, 'userTickets']);
     Route::get('tickets/{ticket}', [TicketController::class, 'show']);
     Route::post('payments', [PaymentController::class, 'store']);
@@ -106,7 +123,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Admin Routes
-Route::middleware(['auth:sanctum', 'can:accessAdminPanel'])->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::get('users', [AdminController::class, 'getUsers']);
     Route::patch('users/{user}', [AdminController::class, 'updateUser']);
     Route::delete('users/{user}', [AdminController::class, 'deleteUser']);

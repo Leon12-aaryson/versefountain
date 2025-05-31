@@ -15,7 +15,7 @@ return [
     */
 
     // Only apply CORS to API routes
-    'paths' => ['*'],
+    'paths' => ['*', 'broadcasting/auth', 'sanctum/csrf-cookie'],
 
     'allowed_methods' => ['*'],
 

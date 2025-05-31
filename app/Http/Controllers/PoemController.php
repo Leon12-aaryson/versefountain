@@ -53,7 +53,11 @@ class PoemController extends Controller
      */
     public function show(Poem $poem)
     {
-        return response()->json($poem->load('author'));
+        $poem->load('author');
+        // Ensure author_id is present in the response
+        $data = $poem->toArray();
+        $data['authorId'] = $poem->author_id;
+        return response()->json($data);
     }
 
     /**
@@ -73,8 +77,16 @@ class PoemController extends Controller
             'videoUrl' => ['nullable', 'url', 'required_if:isVideo,true'],
         ]);
 
-        // Default to false for admin approval if not explicitly set in request
-        $poem = $user->poems()->create($validatedData + ['approved' => false]);
+        // Set approved to true by default
+        $poem = $user->poems()->create($validatedData + ['approved' => true]);
+
+        // Create a UserPoem record with rating null and liked false
+        UserPoem::create([
+            'user_id' => $user->id,
+            'poem_id' => $poem->id,
+            'rating' => null,
+            'liked' => false,
+        ]);
 
         return response()->json($poem, 201);
     }
@@ -219,7 +231,7 @@ class PoemController extends Controller
      */
     public function getLikeCount(Poem $poem)
     {
-        $likeCount = UserPoem::where('poem_id', $poem->id)->where('liked', true)->count();
+        $likeCount = $poem->userInteractions()->where('liked', true)->count();
         return response()->json(['likeCount' => $likeCount]);
     }
 

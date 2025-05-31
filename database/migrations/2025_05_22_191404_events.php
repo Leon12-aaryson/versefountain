@@ -22,7 +22,7 @@ return new class extends Migration
             $table->boolean('isVirtual')->default(false);
             $table->string('streamUrl')->nullable();
             $table->boolean('isFree')->default(false);
-            $table->foreignId('createdById')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('created_by_id')->nullable()->constrained('users')->onDelete('set null');
             $table->string('category')->default('general'); // e.g., 'poetry', 'book_launch'
             $table->timestamps();
         });

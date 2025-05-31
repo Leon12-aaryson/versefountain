@@ -47,8 +47,12 @@ class EventController extends Controller
      */
     public function poetryEvents(Request $request)
     {
-        $request->merge(['category' => 'poetry']); // Force category to 'poetry'
-        return $this->index($request); // Reuse the index method
+        $limit = $request->input('limit', 3);
+        $events = Event::where('category', 'poetry')
+            ->orderBy('date', 'asc')
+            ->limit($limit)
+            ->get();
+        return response()->json($events);
     }
 
     /**
@@ -86,8 +90,8 @@ class EventController extends Controller
             'category' => ['nullable', 'string', Rule::in(['poetry', 'book_launch', 'workshop', 'lecture', 'general'])],
         ]);
 
-        // Set createdById from authenticated user
-        $validatedData['createdById'] = $user->id;
+        // Set created_by_id from authenticated user
+        $validatedData['created_by_id'] = $user->id;
 
         // Ensure isFree aligns with ticketPrice if not explicitly set
         if (!isset($validatedData['isFree'])) {
@@ -110,7 +114,7 @@ class EventController extends Controller
         }
 
         // Authorization check
-        if ($user->id !== $event->createdById && !$user->isAdmin) {
+        if ($user->id !== $event->created_by_id && !$user->isAdmin) {
             return response()->json(['message' => 'Forbidden. You did not create this event or are not an administrator.'], 403);
         }
 
@@ -150,5 +154,41 @@ class EventController extends Controller
         $event->update($validatedData);
 
         return response()->json($event);
+    }
+
+    /**
+     * Delete an event.
+     */
+    public function destroy(Event $event)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        // Authorization check
+        if ($user->id !== $event->created_by_id && !$user->isAdmin) {
+            return response()->json(['message' => 'Forbidden. You did not create this event or are not an administrator.'], 403);
+        }
+
+        $event->delete();
+
+        return response()->json(['message' => 'Event deleted successfully.']);
+    }
+    /**
+     * Retrieve events created by the authenticated user.
+     */
+    public function userEvents(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $events = Event::where('created_by_id', $user->id)
+                       ->orderBy('date', 'asc')
+                       ->paginate($request->input('limit', 10));
+
+        return response()->json($events);
     }
 }
