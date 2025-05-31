@@ -27,7 +27,15 @@ type AuthContextType = {
   isLoading: boolean;
   error: Error | null;
   login: (credentials: { email: string; password: string }) => Promise<void>;
-  register: (userData: { username: string; email: string; password: string }) => Promise<void>;
+  register: (userData: {
+    username: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+    role: string;
+    first_name?: string;
+    last_name?: string;
+  }) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -60,10 +68,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const res = await axios.get(`${API_BASE_URL}/api/user`, { withCredentials: true });
         setUser(res.data);
       } catch (err: any) {
-        setUser(null);
-        setError(err);
-        localStorage.removeItem("auth_token");
-        delete axios.defaults.headers.common["Authorization"];
+        if (err.response?.status === 401) {
+          setUser(null);
+          localStorage.removeItem("auth_token");
+          delete axios.defaults.headers.common["Authorization"];
+          setError(err);
+        } else {
+          setError(err);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -90,7 +102,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Register
-  const register = async (userData: { username: string; email: string; password: string }) => {
+  const register = async (userData: {
+    username: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+    role: string;
+    first_name?: string;
+    last_name?: string;
+  }) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -109,19 +129,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Logout
   const logout = async () => {
+    console.log("AuthContext: logout() called");
     setIsLoading(true);
     setError(null);
+    let serverLogoutFailed = false;
+    let apiError: any = null; // To store error from catch block for finally
+    let tokenUsedInApiCall = false;
+
     try {
-      await axios.post(`${API_BASE_URL}/api/logout`, {}, { withCredentials: true });
+      const token = localStorage.getItem("auth_token");
+      if (token) {
+        tokenUsedInApiCall = true;
+        console.log("AuthContext: Token found. Attempting API call to /api/logout...");
+        await axios.post(`${API_BASE_URL}/api/logout`, {}, {
+          headers: { 'Authorization': `Bearer ${token}` },
+          withCredentials: true
+        });
+        console.log("AuthContext: API call to /api/logout successful.");
+        toast({ title: "Logout Successful", description: "Successfully logged out from server." });
+      } else {
+        console.log("AuthContext: No token found. Skipping API logout call.");
+        // No API call made, so no server error, but client will be logged out.
+        // A toast for "logged out locally" will be handled in finally.
+      }
+    } catch (err: any) {
+      if (err?.response?.status === 401) {
+        serverLogoutFailed = false;
+        toast({ title: "Logged Out", description: "You were already logged out." });
+      } else {
+        console.error("AuthContext: API call to /api/logout failed:", err);
+        serverLogoutFailed = true;
+        apiError = err;
+        setError(err);
+      }
+    } finally {
+      console.log("AuthContext: Performing client-side cleanup...");
       localStorage.removeItem("auth_token");
       delete axios.defaults.headers.common["Authorization"];
       setUser(null);
-      toast({ title: "Logout successful", description: "You have been logged out" });
-    } catch (err: any) {
-      setError(err);
-      toast({ title: "Logout failed", description: err.response?.data?.message || "Logout failed", variant: "destructive" });
-      throw err;
-    } finally {
+      console.log("AuthContext: Client-side state cleared.");
+
+      if (serverLogoutFailed) {
+        toast({
+          title: "Server Logout Failed",
+          description: "You are logged out locally. " + (apiError?.response?.data?.message || "Could not notify server."),
+          variant: "destructive"
+        });
+      } else if (!tokenUsedInApiCall) {
+        // If no token was found initially, and thus no API call was made
+        toast({ title: "Logged Out", description: "You have been logged out locally." });
+      }
+      // If tokenUsedInApiCall was true and serverLogoutFailed is false, success toast was already shown in try.
+
+      console.log("AuthContext: logout() finished.");
       setIsLoading(false);
     }
   };

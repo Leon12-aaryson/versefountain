@@ -110,7 +110,7 @@ const PoetryCard = ({
 
   // Fetch the like count for this poem
   useEffect(() => {
-    axios.get(`${API_BASE_URL}/api/poems/${id}/like-count`)
+    axios.get(`${API_BASE_URL}/api/poems/${id}/likes`)
       .then(res => setCurrentLikes(res.data.likeCount ?? 0))
       .catch(() => {});
   }, [id]);

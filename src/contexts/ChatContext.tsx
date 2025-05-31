@@ -18,7 +18,7 @@ interface ChatRoom {
   name: string;
   description: string;
   isPrivate: boolean | null;
-  createdById: number | null;
+  created_by_id: number | null;
 }
 
 interface ChatContextType {

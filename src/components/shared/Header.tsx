@@ -23,14 +23,13 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface HeaderProps {
-  user: any;
   toggleMobileMenu: () => void;
   isMobileMenuOpen: boolean;
 }
 
-const Header = ({ user, toggleMobileMenu, isMobileMenuOpen }: HeaderProps) => {
+const Header = ({ toggleMobileMenu, isMobileMenuOpen }: HeaderProps) => {
   const [, navigate] = useLocation();
-  const { logout } = useAuth(); // Use logout from your context
+  const { user, isLoading, logout } = useAuth(); // Use user, isLoading, and logout from your context
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
@@ -74,7 +73,9 @@ const Header = ({ user, toggleMobileMenu, isMobileMenuOpen }: HeaderProps) => {
 
         {/* Nav Actions */}
         <div className="flex items-center space-x-4">
-          {!user ? (
+          {isLoading ? (
+            <div className="h-8 w-24 bg-gray-200 rounded-md animate-pulse"></div>
+          ) : !user ? (
             <>
               <Button
                 variant="ghost"
