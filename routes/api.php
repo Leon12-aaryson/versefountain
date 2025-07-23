@@ -36,7 +36,17 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
 use Illuminate\Support\Facades\Auth;
 
 Route::get('/user', function () {
-    return response()->json(Auth::user());
+    $user = Auth::user();
+    if (!$user) {
+        return response()->json(['message' => 'Unauthenticated.'], 401);
+    }
+    
+    return response()->json([
+        'user_id' => $user->id,
+        'username' => $user->username,
+        'email' => $user->email,
+        'role' => $user->role,
+    ]);
 })->middleware('auth:sanctum')->name('user');
 
 // PUBLIC ROUTES (no auth required)

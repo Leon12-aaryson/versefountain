@@ -74,7 +74,7 @@ class CommentReactionController extends Controller
         }
 
         $request->validate([
-            'reaction' => ['required', 'string', Rule::in(['like', 'love', 'laugh', 'angry'])],
+            'reaction' => ['required', 'string', Rule::in(['like', 'dislike', 'smile', 'frown'])],
         ]);
 
         $reaction = CommentReaction::updateOrCreate(
