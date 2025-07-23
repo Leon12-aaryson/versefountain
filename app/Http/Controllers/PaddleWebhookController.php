@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Payment;
 use App\Models\Ticket;
+use App\Models\Subscription;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str; // For generating ticket codes
 use Symfony\Component\HttpFoundation\Response; // For HTTP status codes
@@ -70,7 +71,34 @@ class PaddleWebhookController extends Controller
                     // A payment was refunded
                     $this->handleTransactionRefunded($data);
                     break;
-                // Add other event types as needed (e.g., 'subscription.updated', 'customer.created')
+                case 'subscription.created':
+                    // A subscription was created
+                    $this->handleSubscriptionCreated($data);
+                    break;
+                case 'subscription.updated':
+                    // A subscription was updated
+                    $this->handleSubscriptionUpdated($data);
+                    break;
+                case 'subscription.cancelled':
+                    // A subscription was cancelled
+                    $this->handleSubscriptionCancelled($data);
+                    break;
+                case 'subscription.paused':
+                    // A subscription was paused
+                    $this->handleSubscriptionPaused($data);
+                    break;
+                case 'subscription.resumed':
+                    // A subscription was resumed
+                    $this->handleSubscriptionResumed($data);
+                    break;
+                case 'subscription.payment_succeeded':
+                    // A subscription payment succeeded
+                    $this->handleSubscriptionPaymentSucceeded($data);
+                    break;
+                case 'subscription.payment_failed':
+                    // A subscription payment failed
+                    $this->handleSubscriptionPaymentFailed($data);
+                    break;
                 default:
                     Log::info("Unhandled Paddle webhook event type: {$eventType}");
                     break;
@@ -181,5 +209,153 @@ class PaddleWebhookController extends Controller
         // Example: https://developer.paddle.com/webhooks/overview#verifying-webhooks
         // return hash_hmac('sha256', $payload, $secret) === $signature;
         return true; // Placeholder: ALWAYS implement proper verification in production
+    }
+
+    /**
+     * Handle subscription created webhook.
+     */
+    protected function handleSubscriptionCreated(array $data)
+    {
+        $paddleSubscriptionId = $data['id'];
+        $paddleCustomerId = $data['customer_id'] ?? null;
+        $status = 'active';
+        $amount = (int)($data['items'][0]['price']['unit_amount'] ?? 0);
+        $currency = $data['items'][0]['price']['currency_code'] ?? 'USD';
+        $planName = $data['items'][0]['price']['product_id'] ?? 'basic';
+        $planType = $data['billing_details']['billing_cycle']['interval'] ?? 'monthly';
+
+        // Find the subscription in your database
+        $subscription = Subscription::where('paddle_subscription_id', $paddleSubscriptionId)->first();
+
+        if (!$subscription) {
+            Log::warning("Paddle webhook: subscription.created for unknown subscription ID: {$paddleSubscriptionId}");
+            return;
+        }
+
+        $subscription->update([
+            'status' => $status,
+            'paddle_customer_id' => $paddleCustomerId,
+            'amount' => $amount,
+            'currency' => $currency,
+            'plan_name' => $planName,
+            'plan_type' => $planType,
+            'current_period_start' => $data['billing_details']['billing_cycle']['from'] ?? null,
+            'current_period_end' => $data['billing_details']['billing_cycle']['to'] ?? null,
+        ]);
+
+        Log::info("Subscription ID {$subscription->id} status updated to 'active'.");
+    }
+
+    /**
+     * Handle subscription updated webhook.
+     */
+    protected function handleSubscriptionUpdated(array $data)
+    {
+        $paddleSubscriptionId = $data['id'];
+        
+        $subscription = Subscription::where('paddle_subscription_id', $paddleSubscriptionId)->first();
+
+        if (!$subscription) {
+            Log::warning("Paddle webhook: subscription.updated for unknown subscription ID: {$paddleSubscriptionId}");
+            return;
+        }
+
+        $subscription->updateFromPaddle($data);
+        Log::info("Subscription ID {$subscription->id} updated from webhook.");
+    }
+
+    /**
+     * Handle subscription cancelled webhook.
+     */
+    protected function handleSubscriptionCancelled(array $data)
+    {
+        $paddleSubscriptionId = $data['id'];
+        
+        $subscription = Subscription::where('paddle_subscription_id', $paddleSubscriptionId)->first();
+
+        if (!$subscription) {
+            Log::warning("Paddle webhook: subscription.cancelled for unknown subscription ID: {$paddleSubscriptionId}");
+            return;
+        }
+
+        $subscription->cancel('Cancelled via Paddle webhook');
+        Log::info("Subscription ID {$subscription->id} cancelled via webhook.");
+    }
+
+    /**
+     * Handle subscription paused webhook.
+     */
+    protected function handleSubscriptionPaused(array $data)
+    {
+        $paddleSubscriptionId = $data['id'];
+        
+        $subscription = Subscription::where('paddle_subscription_id', $paddleSubscriptionId)->first();
+
+        if (!$subscription) {
+            Log::warning("Paddle webhook: subscription.paused for unknown subscription ID: {$paddleSubscriptionId}");
+            return;
+        }
+
+        $subscription->update(['status' => 'paused']);
+        Log::info("Subscription ID {$subscription->id} paused via webhook.");
+    }
+
+    /**
+     * Handle subscription resumed webhook.
+     */
+    protected function handleSubscriptionResumed(array $data)
+    {
+        $paddleSubscriptionId = $data['id'];
+        
+        $subscription = Subscription::where('paddle_subscription_id', $paddleSubscriptionId)->first();
+
+        if (!$subscription) {
+            Log::warning("Paddle webhook: subscription.resumed for unknown subscription ID: {$paddleSubscriptionId}");
+            return;
+        }
+
+        $subscription->update(['status' => 'active']);
+        Log::info("Subscription ID {$subscription->id} resumed via webhook.");
+    }
+
+    /**
+     * Handle subscription payment succeeded webhook.
+     */
+    protected function handleSubscriptionPaymentSucceeded(array $data)
+    {
+        $paddleSubscriptionId = $data['subscription_id'];
+        
+        $subscription = Subscription::where('paddle_subscription_id', $paddleSubscriptionId)->first();
+
+        if (!$subscription) {
+            Log::warning("Paddle webhook: subscription.payment_succeeded for unknown subscription ID: {$paddleSubscriptionId}");
+            return;
+        }
+
+        $subscription->update([
+            'status' => 'active',
+            'current_period_start' => $data['billing_details']['billing_cycle']['from'] ?? null,
+            'current_period_end' => $data['billing_details']['billing_cycle']['to'] ?? null,
+        ]);
+
+        Log::info("Subscription ID {$subscription->id} payment succeeded.");
+    }
+
+    /**
+     * Handle subscription payment failed webhook.
+     */
+    protected function handleSubscriptionPaymentFailed(array $data)
+    {
+        $paddleSubscriptionId = $data['subscription_id'];
+        
+        $subscription = Subscription::where('paddle_subscription_id', $paddleSubscriptionId)->first();
+
+        if (!$subscription) {
+            Log::warning("Paddle webhook: subscription.payment_failed for unknown subscription ID: {$paddleSubscriptionId}");
+            return;
+        }
+
+        $subscription->update(['status' => 'past_due']);
+        Log::info("Subscription ID {$subscription->id} payment failed.");
     }
 }

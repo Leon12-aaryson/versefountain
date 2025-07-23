@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\ChatRoom;
+use App\Events\UserJoinedChatRoom;
+use App\Events\UserLeftChatRoom;
 use Illuminate\Support\Facades\Auth;
 
 class ChatRoomController extends Controller
@@ -97,6 +99,9 @@ class ChatRoomController extends Controller
 
         $room->members()->attach($user->id, ['joinedAt' => now()]);
 
+        // Broadcast the join event via WebSockets
+        event(new UserJoinedChatRoom($user, $room));
+
         return response()->json(['message' => 'Successfully joined chat room.'], 200);
     }
 
@@ -110,6 +115,8 @@ class ChatRoomController extends Controller
         $detached = $room->members()->detach($user->id);
 
         if ($detached) {
+            // Broadcast the leave event via WebSockets
+            event(new UserLeftChatRoom($user, $room));
             return response()->json(null, 204);
         }
 

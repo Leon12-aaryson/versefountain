@@ -5,32 +5,40 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Poem;
-use App\Models\UserPoem;
 use App\Models\User;
+use App\Models\UserPoem;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Cache;
 
 class PoemController extends Controller
 {
     /**
      * Display a listing of approved poems.
      */
-    public function index(Request $request)
+    public function index()
     {
-        $query = Poem::with('author')->where('approved', true);
-
-        if ($request->has('author_id')) {
-            $request->validate(['author_id' => 'integer|exists:users,id']);
-            $query->where('author_id', $request->author_id);
-        }
-
-        $limit = $request->input('limit', 10);
-        $offset = $request->input('offset', 0);
-
-        $poems = $query->orderBy('created_at', 'desc')
-                       ->offset($offset)
-                       ->limit($limit)
-                       ->get();
+        // Cache poems for 5 minutes to improve performance
+        $poems = Cache::remember('poems.all', 300, function () {
+            return Poem::with(['author:id,username'])
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($poem) {
+                    return [
+                        'id' => $poem->id,
+                        'title' => $poem->title,
+                        'content' => $poem->content,
+                        'authorId' => $poem->author_id,
+                        'author' => [
+                            'id' => $poem->author->id,
+                            'username' => $poem->author->username
+                        ],
+                        'isVideo' => $poem->is_video,
+                        'videoUrl' => $poem->video_url,
+                        'createdAt' => $poem->created_at,
+                        'updatedAt' => $poem->updated_at,
+                    ];
+                });
+        });
 
         return response()->json($poems);
     }
@@ -44,7 +52,10 @@ class PoemController extends Controller
         if (!$user) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
-        $poems = $user->poems()->orderBy('created_at', 'desc')->get();
+        // $poems = $user->poems()->orderBy('created_at', 'desc')->get();
+        $poems = Poem::where('author_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
         return response()->json($poems);
     }
 
@@ -78,7 +89,7 @@ class PoemController extends Controller
         ]);
 
         // Set approved to true by default
-        $poem = $user->poems()->create($validatedData + ['approved' => true]);
+        $poem = Poem::create($validatedData + ['author_id' => $user->id, 'approved' => true]);
 
         // Create a UserPoem record with rating null and liked false
         UserPoem::create([
@@ -87,6 +98,9 @@ class PoemController extends Controller
             'rating' => null,
             'liked' => false,
         ]);
+
+        // Clear cache to ensure fresh data
+        Cache::forget('poems.all');
 
         return response()->json($poem, 201);
     }
@@ -116,6 +130,9 @@ class PoemController extends Controller
 
         $poem->update($validatedData);
 
+        // Clear cache to ensure fresh data
+        Cache::forget('poems.all');
+
         return response()->json($poem);
     }
 
@@ -135,6 +152,9 @@ class PoemController extends Controller
         }
 
         $poem->delete();
+
+        // Clear cache to ensure fresh data
+        Cache::forget('poems.all');
 
         return response()->json(null, 204);
     }
@@ -213,8 +233,8 @@ class PoemController extends Controller
         }
 
         $userPoem = UserPoem::where('user_id', $user->id)
-                            ->where('poem_id', $poem->id)
-                            ->first();
+            ->where('poem_id', $poem->id)
+            ->first();
 
         if (!$userPoem || !$userPoem->liked) {
             return response()->json(['message' => 'Poem not liked yet.'], 409);
@@ -246,8 +266,8 @@ class PoemController extends Controller
         }
 
         $userPoem = UserPoem::where('user_id', $user->id)
-                            ->where('poem_id', $poem->id)
-                            ->first();
+            ->where('poem_id', $poem->id)
+            ->first();
 
         return response()->json([
             'liked' => (bool)($userPoem ? $userPoem->liked : false),
