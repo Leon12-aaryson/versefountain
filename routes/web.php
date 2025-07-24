@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,16 +30,29 @@ Route::get('/academics', function () {
     return view('academics');
 });
 
-Route::get('/chatrooms', function () {
-    return view('chatrooms');
-});
-
 Route::get('/events', function () {
     return view('events');
 });
 
-Route::get('/tickets', function () {
-    return view('tickets');
+// Protected Routes (require authentication)
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    // Password update route
+    Route::put('/password', function () {
+        return redirect()->route('profile.edit')->with('status', 'password-updated');
+    })->name('password.update');
+    
+    Route::get('/chatrooms', function () {
+        return view('chatrooms');
+    });
+    
+    Route::get('/tickets', function () {
+        return view('tickets');
+    });
 });
 
 // Auth Routes
