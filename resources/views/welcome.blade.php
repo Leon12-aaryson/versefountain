@@ -3,23 +3,25 @@
 @section('title', 'Home - VerseFountain')
 
 @section('content')
-    <!-- Hero Section -->
-    <div class="relative bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl overflow-hidden mb-12">
-        <div class="absolute inset-0 bg-black opacity-20"></div>
-        <div class="relative px-8 py-16 md:py-24 text-center">
-            <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
-                Welcome to <span class="gradient-text">VerseFountain</span>
-            </h1>
-            <p class="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-                Discover, create, and share poetry with a community of passionate writers and readers
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="/poetry" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-                    Explore Poetry
-                </a>
-                <a href="/register" class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors">
-                    Join Community
-                </a>
+    <!-- Hero Section - Improved for mobile -->
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden mb-8">
+        <div class="relative flex flex-col md:block">
+            <img 
+                src="https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" 
+                alt="Library books on shelves" 
+                class="w-full h-48 md:h-64 lg:h-96 object-cover" 
+            />
+            <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent md:bg-gradient-to-r md:from-black/70 md:to-transparent flex flex-col justify-end p-4 sm:p-6 md:p-8">
+                <h1 class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 sm:mb-2">Welcome to VerseFountain</h1>
+                <p class="text-xs sm:text-sm md:text-base text-gray-200 max-w-full md:max-w-lg">Discover a world of poetry, books, and academic resources. Connect with a community of readers and writers.</p>
+                <div class="mt-3 sm:mt-4 flex flex-wrap gap-2 sm:gap-3">
+                    <a href="/poetry" class="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm md:text-base py-1 px-3 h-auto sm:py-2 sm:px-4 md:h-10 rounded-lg font-medium transition-colors inline-flex items-center">
+                        Explore Poetry
+                    </a>
+                    <a href="/books" class="bg-white hover:bg-gray-100 text-gray-800 text-xs sm:text-sm md:text-base py-1 px-3 h-auto sm:py-2 sm:px-4 md:h-10 rounded-lg font-medium transition-colors inline-flex items-center">
+                        Browse Books
+                    </a>
+                </div>
             </div>
         </div>
     </div>
