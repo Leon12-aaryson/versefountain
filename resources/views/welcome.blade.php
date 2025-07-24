@@ -9,15 +9,28 @@
     <script src="https://unpkg.com/@heroicons/react@2.0.18/24/outline/esm/index.js"></script>
 </head>
 <body class="antialiased bg-gray-50">
-    <div class="min-h-screen flex">
-        <!-- Left Sidebar -->
-        <div class="w-64 bg-white shadow-lg fixed h-full sidebar-scroll overflow-y-auto">
-            <div class="p-6">
-                <!-- Logo -->
-                <div class="mb-8">
-                    <h1 class="text-2xl font-bold text-blue-600">VerseFountain</h1>
-                </div>
+    <!-- Top Navigation Bar (Full Width) -->
+    <header class="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
+        <div class="flex items-center justify-between px-4 md:px-6 py-4">
+            <!-- Logo -->
+            <div class="flex items-center">
+                <h1 class="text-lg md:text-2xl font-bold text-blue-600 truncate">VerseFountain</h1>
+            </div>
 
+            <!-- User Avatar -->
+            <div class="flex items-center">
+                <div class="w-8 h-8 md:w-10 md:h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm md:text-base">
+                    A
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area (Below Top Navigation) -->
+    <div class="flex pt-16 min-h-screen">
+        <!-- Left Sidebar (Desktop Only) -->
+        <div class="hidden md:block w-64 bg-white shadow-lg fixed h-full sidebar-scroll overflow-y-auto" style="top: 64px;">
+            <div class="p-6">
                 <!-- Navigation -->
                 <nav class="space-y-2">
                     <a href="#" class="flex items-center space-x-3 px-4 py-3 text-blue-600 bg-blue-50 rounded-lg font-medium">
@@ -79,29 +92,87 @@
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="ml-64 flex-1">
-            <!-- Header -->
-            <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex-1 max-w-lg">
-                        <div class="relative">
-                            <input type="text" placeholder="Search books, poetry, events..." 
-                                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
+        <!-- Main Content Area -->
+        <div class="flex-1 md:ml-64">
+            <!-- Hero Section (Upper Part) -->
+            <section class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 md:py-20 px-6">
+                <div class="max-w-7xl mx-auto">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        <!-- Left Side - Text Content -->
+                        <div class="text-left">
+                            <h1 class="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+                                Verse
+                                <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                                    Fountain
+                                </span>
+                            </h1>
+                            <p class="text-xl md:text-2xl text-gray-600 mb-8 leading-relaxed">
+                                Discover, share, and connect through the power of poetry
+                            </p>
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <button class="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg">
+                                    Get Started
+                                </button>
+                                <button class="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-50 transition-colors shadow-lg border border-blue-200">
+                                    Learn More
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Right Side - Illustration -->
+                        <div class="flex justify-center lg:justify-end">
+                            <div class="relative w-full max-w-md">
+                                <!-- Main illustration container -->
+                                <div class="bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl p-8 shadow-xl">
+                                    <!-- Poetry book illustration -->
+                                    <div class="bg-white rounded-lg p-6 shadow-md mb-4">
+                                        <div class="flex items-center mb-3">
+                                            <div class="w-3 h-3 bg-red-400 rounded-full mr-2"></div>
+                                            <div class="w-3 h-3 bg-yellow-400 rounded-full mr-2"></div>
+                                            <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                                        </div>
+                                        <div class="space-y-2">
+                                            <div class="h-2 bg-gray-200 rounded w-3/4"></div>
+                                            <div class="h-2 bg-gray-200 rounded w-1/2"></div>
+                                            <div class="h-2 bg-gray-200 rounded w-2/3"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Floating elements -->
+                                    <div class="absolute -top-4 -right-4 w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center shadow-lg">
+                                        <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                        </svg>
+                                    </div>
+                                    
+                                    <div class="absolute -bottom-4 -left-4 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center shadow-lg">
+                                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="ml-4">
-                        <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-                            A
+
+                    <!-- Stats Section -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+                        <div class="text-center">
+                            <div class="text-3xl md:text-4xl font-bold text-blue-600 mb-2">10,000+</div>
+                            <div class="text-gray-600">Poems Published</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl md:text-4xl font-bold text-purple-600 mb-2">5,000+</div>
+                            <div class="text-gray-600">Active Poets</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl md:text-4xl font-bold text-indigo-600 mb-2">50,000+</div>
+                            <div class="text-gray-600">Readers Worldwide</div>
                         </div>
                     </div>
                 </div>
-            </header>
+            </section>
 
-            <!-- Main Content Area -->
             <main class="p-6">
                 <!-- Feature Cards Section -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -258,5 +329,44 @@
             </main>
         </div>
     </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+        <div class="flex justify-around py-2">
+            <a href="#" class="flex flex-col items-center py-2 px-3 text-blue-600">
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+                <span class="text-xs">Home</span>
+            </a>
+            <a href="#" class="flex flex-col items-center py-2 px-3 text-gray-600">
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span class="text-xs">Poetry</span>
+            </a>
+            <a href="#" class="flex flex-col items-center py-2 px-3 text-gray-600">
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                <span class="text-xs">Chat</span>
+            </a>
+            <a href="#" class="flex flex-col items-center py-2 px-3 text-gray-600">
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <span class="text-xs">Events</span>
+            </a>
+            <a href="#" class="flex flex-col items-center py-2 px-3 text-gray-600">
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <span class="text-xs">Profile</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Mobile Bottom Padding -->
+    <div class="md:hidden h-16"></div>
 </body>
 </html> 
