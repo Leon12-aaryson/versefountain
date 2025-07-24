@@ -30,7 +30,10 @@ class ChatRoomController extends Controller
             });
         }
 
-        $chatRooms = $query->get();
+        $chatRooms = $query->get()->map(function ($room) {
+            $room->members_count = $room->members()->count();
+            return $room;
+        });
 
         return response()->json($chatRooms);
     }
@@ -59,7 +62,10 @@ class ChatRoomController extends Controller
             'isPrivate' => 'boolean',
         ]);
 
-        $chatRoom = $user->createdChatRooms()->create($validatedData);
+        $chatRoom = ChatRoom::create([
+            ...$validatedData,
+            'created_by_id' => $user->id
+        ]);
 
         $chatRoom->members()->attach($user->id, ['joinedAt' => now()]);
 
@@ -73,8 +79,9 @@ class ChatRoomController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        $chatRooms = $user->userChatRooms()->with('chatRoom')->get()->map(function ($userChatRoom) {
-            return $userChatRoom->chatRoom;
+        $chatRooms = $user->chatRooms()->get()->map(function ($room) {
+            $room->members_count = $room->members()->count();
+            return $room;
         });
 
         return response()->json($chatRooms);

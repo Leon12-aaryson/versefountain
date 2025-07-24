@@ -10,33 +10,30 @@ class UserPoem extends Model
 {
     use HasFactory;
 
-    protected $table = 'user_poems'; // Explicitly define table name
-
     protected $fillable = [
-        'user_id', // Updated to snake_case
-        'poem_id', // Updated to snake_case
-        'rating',
-        'liked',
+        'user_id',
+        'poem_id',
+        'type', // 'like', 'rating'
+        'rating', // 1-5 for rating type
     ];
 
     protected $casts = [
-        'liked' => 'boolean',
         'rating' => 'integer',
     ];
 
     /**
-     * Get the user associated with this interaction.
+     * Get the user that owns the interaction.
      */
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id'); // Updated to snake_case
+        return $this->belongsTo(User::class);
     }
 
     /**
-     * Get the poem associated with this interaction.
+     * Get the poem that owns the interaction.
      */
     public function poem()
     {
-        return $this->belongsTo(Poem::class, 'poem_id'); // Updated to snake_case
+        return $this->belongsTo(Poem::class);
     }
 }
