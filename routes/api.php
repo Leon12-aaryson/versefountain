@@ -14,6 +14,8 @@ use App\Http\Controllers\TicketController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PaddleWebhookController;
+use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\NewPasswordController;
@@ -34,10 +36,22 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
 use Illuminate\Support\Facades\Auth;
 
 Route::get('/user', function () {
-    return response()->json(Auth::user());
+    $user = Auth::user();
+    if (!$user) {
+        return response()->json(['message' => 'Unauthenticated.'], 401);
+    }
+    
+    return response()->json([
+        'user_id' => $user->id,
+        'username' => $user->username,
+        'email' => $user->email,
+        'role' => $user->role,
+    ]);
 })->middleware('auth:sanctum')->name('user');
 
 // PUBLIC ROUTES (no auth required)
+Route::get('/config/frontend', [ConfigController::class, 'getFrontendConfig']);
+Route::get('/config/environment', [ConfigController::class, 'getEnvironmentConfig']);
 Route::get('/poems', [PoemController::class, 'index']);
 Route::get('/books', [BookController::class, 'index']);
 Route::get('/events', [EventController::class, 'index']);
@@ -120,6 +134,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('tickets/{ticket}', [TicketController::class, 'show']);
     Route::post('payments', [PaymentController::class, 'store']);
     Route::post('tickets/{ticket}/cancel', [TicketController::class, 'cancel']);
+
+    // Subscriptions
+    Route::get('subscriptions/plans', [SubscriptionController::class, 'getPlans']);
+    Route::get('subscriptions/current', [SubscriptionController::class, 'getCurrentSubscription']);
+    Route::get('subscriptions/history', [SubscriptionController::class, 'getSubscriptionHistory']);
+    Route::post('subscriptions/checkout', [SubscriptionController::class, 'createCheckout']);
+    Route::post('subscriptions/cancel', [SubscriptionController::class, 'cancelSubscription']);
+    Route::post('subscriptions/reactivate', [SubscriptionController::class, 'reactivateSubscription']);
+    Route::post('subscriptions/update-payment-method', [SubscriptionController::class, 'updatePaymentMethod']);
+    Route::get('subscriptions/usage', [SubscriptionController::class, 'getUsageStats']);
 });
 
 // Admin Routes
@@ -141,3 +165,5 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
 
 // Paddle Webhook
 Route::post('paddle/webhook', [PaddleWebhookController::class, 'handleWebhook']);
+
+

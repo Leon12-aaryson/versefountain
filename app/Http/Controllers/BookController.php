@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Book;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class BookController extends Controller
@@ -15,19 +16,33 @@ class BookController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Book::where('approved', true);
-
+        // Cache books for 5 minutes to improve performance
+        $cacheKey = 'books.all';
         if ($request->has('genre')) {
-            $request->validate(['genre' => 'string|max:255']);
-            $query->where('genre', $request->genre);
+            $cacheKey .= '.genre.' . $request->genre;
+        }
+        if ($request->has('limit')) {
+            $cacheKey .= '.limit.' . $request->limit;
+        }
+        if ($request->has('offset')) {
+            $cacheKey .= '.offset.' . $request->offset;
         }
 
-        $limit = $request->input('limit', 10);
-        $offset = $request->input('offset', 0);
+        $books = Cache::remember($cacheKey, 300, function () use ($request) {
+            $query = Book::where('approved', true);
 
-        $books = $query->offset($offset)
-                       ->limit($limit)
-                       ->get();
+            if ($request->has('genre')) {
+                $request->validate(['genre' => 'string|max:255']);
+                $query->where('genre', $request->genre);
+            }
+
+            $limit = $request->input('limit', 10);
+            $offset = $request->input('offset', 0);
+
+            return $query->offset($offset)
+                         ->limit($limit)
+                         ->get();
+        });
 
         return response()->json($books);
     }
@@ -81,7 +96,10 @@ class BookController extends Controller
             'genre' => 'nullable|string|max:255',
         ]);
 
-        $book = $user->uploadedBooks()->create($validatedData + ['approved' => false]); // Default to false for admin approval
+        $book = Book::create($validatedData + ['uploaded_by_id' => $user->id, 'approved' => false]); // Default to false for admin approval
+
+        // Clear cache to ensure fresh data
+        Cache::flush(); // Clear all book caches
 
         return response()->json($book, 201);
     }

@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\ChatRoom;
 use App\Models\ChatMessage;
+use App\Events\ChatMessageSent;
 use Illuminate\Support\Facades\Auth;
 
 class ChatMessageController extends Controller
@@ -27,10 +28,21 @@ class ChatMessageController extends Controller
         $offset = $request->input('offset', 0);
 
         $messages = $room->messages()->with('user:id,username')
-                         ->orderBy('createdAt', 'asc')
+                         ->orderBy('created_at', 'asc')
                          ->offset($offset)
                          ->limit($limit)
-                         ->get();
+                         ->get()
+                         ->map(function ($message) {
+                             return [
+                                 'id' => $message->id,
+                                 'room_id' => $message->room_id,
+                                 'user_id' => $message->user_id,
+                                 'username' => $message->user->username ?? 'Unknown User',
+                                 'message' => $message->message,
+                                 'timestamp' => $message->created_at,
+                                 'createdAt' => $message->created_at,
+                             ];
+                         });
 
         return response()->json($messages);
     }
@@ -62,9 +74,20 @@ class ChatMessageController extends Controller
         // Eager load user to return with the message
         $message->load('user:id,username');
 
-        // In a real-time system, you would broadcast this message via WebSockets here.
-        // event(new NewChatMessage($message)); // Example using Laravel Echo/WebSockets
+        // Format message for frontend
+        $formattedMessage = [
+            'id' => $message->id,
+            'room_id' => $message->room_id,
+            'user_id' => $message->user_id,
+            'username' => $message->user->username ?? 'Unknown User',
+            'message' => $message->message,
+            'timestamp' => $message->created_at,
+            'createdAt' => $message->created_at,
+        ];
 
-        return response()->json($message, 201);
+        // Broadcast the message via WebSockets
+        event(new ChatMessageSent($message));
+
+        return response()->json($formattedMessage, 201);
     }
 }

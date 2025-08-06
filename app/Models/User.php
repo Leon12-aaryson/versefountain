@@ -77,6 +77,21 @@ class User extends Authenticatable
         return $this->hasMany(UserChatRoom::class, 'user_id');
     }
 
+    public function chatRooms()
+    {
+        return $this->belongsToMany(ChatRoom::class, 'user_chat_rooms', 'user_id', 'room_id');
+    }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    public function activeSubscription()
+    {
+        return $this->hasOne(Subscription::class)->where('status', 'active');
+    }
+
     public function poemComments()
     {
         return $this->hasMany(PoemComment::class, 'user_id');

@@ -1,257 +1,242 @@
 <?php
-// app/Http/Controllers/PoemController.php
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Poem;
-use App\Models\UserPoem;
 use App\Models\User;
+use App\Models\UserPoem;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class PoemController extends Controller
 {
     /**
-     * Display a listing of approved poems.
+     * Display a listing of poems (Blade view)
      */
-    public function index(Request $request)
+    public function index()
     {
-        $query = Poem::with('author')->where('approved', true);
+        $poems = Poem::with(['author', 'comments', 'userInteractions'])
+            ->where('approved', true)
+            ->latest()
+            ->paginate(12);
 
-        if ($request->has('author_id')) {
-            $request->validate(['author_id' => 'integer|exists:users,id']);
-            $query->where('author_id', $request->author_id);
-        }
-
-        $limit = $request->input('limit', 10);
-        $offset = $request->input('offset', 0);
-
-        $poems = $query->orderBy('created_at', 'desc')
-                       ->offset($offset)
-                       ->limit($limit)
-                       ->get();
-
-        return response()->json($poems);
+        return view('poetry.index', compact('poems'));
     }
 
     /**
-     * Display poems created by the authenticated user.
+     * Show the form for creating a new poem (Blade view)
      */
-    public function userPoems(Request $request)
+    public function create()
     {
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
-        }
-        $poems = $user->poems()->orderBy('created_at', 'desc')->get();
-        return response()->json($poems);
+        return view('poetry.create');
     }
 
     /**
-     * Display the specified poem.
-     */
-    public function show(Poem $poem)
-    {
-        $poem->load('author');
-        // Ensure author_id is present in the response
-        $data = $poem->toArray();
-        $data['authorId'] = $poem->author_id;
-        return response()->json($data);
-    }
-
-    /**
-     * Store a newly created poem in storage.
+     * Store a newly created poem
      */
     public function store(Request $request)
     {
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
-        }
-
-        $validatedData = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'content' => ['required', 'string'],
-            'isVideo' => ['boolean'],
-            'videoUrl' => ['nullable', 'url', 'required_if:isVideo,true'],
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string|max:10000',
+            'is_video' => 'boolean',
+            'video_url' => 'nullable|url|required_if:is_video,1',
         ]);
 
-        // Set approved to true by default
-        $poem = $user->poems()->create($validatedData + ['approved' => true]);
-
-        // Create a UserPoem record with rating null and liked false
-        UserPoem::create([
-            'user_id' => $user->id,
-            'poem_id' => $poem->id,
-            'rating' => null,
-            'liked' => false,
+        $poem = Poem::create([
+            'title' => $validated['title'],
+            'content' => $validated['content'],
+            'author_id' => Auth::id(),
+            'is_video' => $validated['is_video'] ?? false,
+            'video_url' => $validated['video_url'] ?? null,
+            'approved' => true, // Auto-approve for now
         ]);
 
-        return response()->json($poem, 201);
+        return redirect()->route('poetry.show', $poem)
+            ->with('success', 'Poem created successfully!');
     }
 
     /**
-     * Update the specified poem in storage.
+     * Display the specified poem (Blade view)
+     */
+    public function show(Poem $poem)
+    {
+        $poem->load(['author', 'comments.user', 'userInteractions']);
+        
+        // Check if current user has liked this poem
+        $isLiked = false;
+        if (Auth::check()) {
+            $isLiked = $poem->userInteractions()
+                ->where('user_id', Auth::id())
+                ->where('type', 'like')
+                ->exists();
+        }
+
+        return view('poetry.show', compact('poem', 'isLiked'));
+    }
+
+    /**
+     * Show the form for editing the specified poem (Blade view)
+     */
+    public function edit(Poem $poem)
+    {
+        // Check if user can edit this poem
+        if (Auth::id() !== $poem->author_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return view('poetry.edit', compact('poem'));
+    }
+
+    /**
+     * Update the specified poem
      */
     public function update(Request $request, Poem $poem)
     {
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+        // Check if user can edit this poem
+        if (Auth::id() !== $poem->author_id) {
+            abort(403, 'Unauthorized action.');
         }
 
-        // Authorization check
-        if ($user->id !== $poem->author_id && !$user->isAdmin) {
-            return response()->json(['message' => 'Forbidden. You do not own this poem or are not an administrator.'], 403);
-        }
-
-        $validatedData = $request->validate([
-            'title' => ['sometimes', 'string', 'max:255'],
-            'content' => ['sometimes', 'string'],
-            'isVideo' => ['sometimes', 'boolean'],
-            'videoUrl' => ['nullable', 'url', 'required_if:isVideo,true'],
-            'approved' => ['sometimes', 'boolean'], // Only for admin updates
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string|max:10000',
+            'is_video' => 'boolean',
+            'video_url' => 'nullable|url|required_if:is_video,1',
         ]);
 
-        $poem->update($validatedData);
+        $poem->update([
+            'title' => $validated['title'],
+            'content' => $validated['content'],
+            'is_video' => $validated['is_video'] ?? false,
+            'video_url' => $validated['video_url'] ?? null,
+        ]);
 
-        return response()->json($poem);
+        return redirect()->route('poetry.show', $poem)
+            ->with('success', 'Poem updated successfully!');
     }
 
     /**
-     * Remove the specified poem from storage.
+     * Remove the specified poem
      */
     public function destroy(Poem $poem)
     {
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
-        }
-
-        // Authorization check
-        if ($user->id !== $poem->author_id && !$user->isAdmin) {
-            return response()->json(['message' => 'Forbidden. You do not own this poem or are not an administrator.'], 403);
+        // Check if user can delete this poem
+        if (Auth::id() !== $poem->author_id) {
+            abort(403, 'Unauthorized action.');
         }
 
         $poem->delete();
 
-        return response()->json(null, 204);
+        return redirect()->route('poetry.index')
+            ->with('success', 'Poem deleted successfully!');
     }
 
-    /**
-     * Approve a poem (Admin only).
-     */
-    public function approve(Poem $poem)
-    {
-        $user = Auth::user();
-        if (!$user || !$user->isAdmin) {
-            return response()->json(['message' => 'Forbidden. Admin access required.'], 403);
-        }
-
-        $poem->approved = true;
-        $poem->save();
-
-        return response()->json($poem);
-    }
+    // API Methods (for Alpine.js interactions)
 
     /**
-     * Rate a poem.
-     */
-    public function rate(Request $request, Poem $poem)
-    {
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
-        }
-
-        $request->validate([
-            'rating' => ['required', 'integer', 'min:1', 'max:5'],
-        ]);
-
-        // Create or update the user's rating for this poem
-        $userPoem = UserPoem::updateOrCreate(
-            ['user_id' => $user->id, 'poem_id' => $poem->id],
-            ['rating' => $request->rating]
-        );
-
-        return response()->json(['message' => 'Poem rated successfully', 'user_poem' => $userPoem]);
-    }
-
-    /**
-     * Like a poem.
+     * Like or unlike a poem (API)
      */
     public function like(Poem $poem)
     {
         $user = Auth::user();
-        if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+        $existingLike = UserPoem::where('user_id', $user->id)
+            ->where('poem_id', $poem->id)
+            ->where('type', 'like')
+            ->first();
+
+        if ($existingLike) {
+            $existingLike->delete();
+            $liked = false;
+        } else {
+            UserPoem::create([
+                'user_id' => $user->id,
+                'poem_id' => $poem->id,
+                'type' => 'like',
+            ]);
+            $liked = true;
         }
 
-        $userPoem = UserPoem::firstOrNew(
-            ['user_id' => $user->id, 'poem_id' => $poem->id]
+        $likesCount = UserPoem::where('poem_id', $poem->id)
+            ->where('type', 'like')
+            ->count();
+
+        return response()->json([
+            'liked' => $liked,
+            'likes_count' => $likesCount,
+        ]);
+    }
+
+    /**
+     * Rate a poem (API)
+     */
+    public function rate(Request $request, Poem $poem)
+    {
+        $validated = $request->validate([
+            'rating' => 'required|integer|between:1,5',
+        ]);
+
+        $user = Auth::user();
+        
+        // Update or create rating
+        UserPoem::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'poem_id' => $poem->id,
+                'type' => 'rating',
+            ],
+            [
+                'rating' => $validated['rating'],
+            ]
         );
 
-        if ($userPoem->liked) {
-            return response()->json(['message' => 'Poem already liked.'], 409);
-        }
+        $avgRating = UserPoem::where('poem_id', $poem->id)
+            ->where('type', 'rating')
+            ->avg('rating');
 
-        $userPoem->liked = true;
-        $userPoem->save();
-
-        return response()->json(['message' => 'Poem liked successfully', 'user_poem' => $userPoem]);
+        return response()->json([
+            'rating' => $validated['rating'],
+            'average_rating' => round($avgRating, 1),
+        ]);
     }
 
     /**
-     * Unlike a poem.
+     * Approve a poem (Admin only)
      */
-    public function unlike(Poem $poem)
+    public function approve(Poem $poem)
     {
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
-        }
+        $poem->update(['approved' => true]);
 
-        $userPoem = UserPoem::where('user_id', $user->id)
-                            ->where('poem_id', $poem->id)
-                            ->first();
-
-        if (!$userPoem || !$userPoem->liked) {
-            return response()->json(['message' => 'Poem not liked yet.'], 409);
-        }
-
-        $userPoem->liked = false;
-        $userPoem->save();
-
-        return response()->json(['message' => 'Poem unliked successfully', 'user_poem' => $userPoem]);
+        return response()->json(['message' => 'Poem approved successfully']);
     }
 
     /**
-     * Get the total number of likes for a poem.
+     * Get user's poems (API)
      */
-    public function getLikeCount(Poem $poem)
+    public function userPoems()
     {
-        $likeCount = $poem->userInteractions()->where('liked', true)->count();
-        return response()->json(['likeCount' => $likeCount]);
+        $poems = Poem::where('author_id', Auth::id())
+            ->with(['comments', 'userInteractions'])
+            ->latest()
+            ->get();
+
+        return response()->json($poems);
     }
 
     /**
-     * Get the authenticated user's like/rating status for a specific poem.
+     * Get user status for a poem (API)
      */
     public function getUserStatus(Poem $poem)
     {
         $user = Auth::user();
-        if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
-        }
-
-        $userPoem = UserPoem::where('user_id', $user->id)
-                            ->where('poem_id', $poem->id)
-                            ->first();
+        $userInteraction = UserPoem::where('user_id', $user->id)
+            ->where('poem_id', $poem->id)
+            ->first();
 
         return response()->json([
-            'liked' => (bool)($userPoem ? $userPoem->liked : false),
-            'rating' => $userPoem ? $userPoem->rating : null,
+            'liked' => $userInteraction && $userInteraction->type === 'like',
+            'rating' => $userInteraction && $userInteraction->type === 'rating' ? $userInteraction->rating : null,
         ]);
     }
 }

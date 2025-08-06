@@ -15,8 +15,41 @@ class PoemCommentController extends Controller
      */
     public function index(Poem $poem)
     {
+        $user = Auth::user();
         $comments = $poem->comments()->with('user')->orderBy('created_at', 'asc')->get();
-        return response()->json($comments);
+        
+        // Add reaction data to each comment
+        $commentsWithReactions = $comments->map(function ($comment) use ($user) {
+            // Get reaction counts
+            $reactionCounts = $comment->reactions()
+                ->selectRaw('reaction, count(*) as count')
+                ->groupBy('reaction')
+                ->pluck('count', 'reaction')
+                ->toArray();
+            
+            // Get user's reaction if authenticated
+            $userReaction = null;
+            if ($user) {
+                $userReaction = $comment->reactions()
+                    ->where('user_id', $user->id)
+                    ->value('reaction');
+            }
+            
+            return [
+                'id' => $comment->id,
+                'userId' => $comment->user_id,
+                'poemId' => $comment->poem_id,
+                'content' => $comment->content,
+                'createdAt' => $comment->created_at,
+                'user' => $comment->user ? [
+                    'username' => $comment->user->username
+                ] : null,
+                'reactionCounts' => $reactionCounts,
+                'userReaction' => $userReaction,
+            ];
+        });
+        
+        return response()->json($commentsWithReactions);
     }
 
     /**

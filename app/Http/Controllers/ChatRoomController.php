@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\ChatRoom;
+use App\Events\UserJoinedChatRoom;
+use App\Events\UserLeftChatRoom;
 use Illuminate\Support\Facades\Auth;
 
 class ChatRoomController extends Controller
@@ -28,7 +30,10 @@ class ChatRoomController extends Controller
             });
         }
 
-        $chatRooms = $query->get();
+        $chatRooms = $query->get()->map(function ($room) {
+            $room->members_count = $room->members()->count();
+            return $room;
+        });
 
         return response()->json($chatRooms);
     }
@@ -57,7 +62,10 @@ class ChatRoomController extends Controller
             'isPrivate' => 'boolean',
         ]);
 
-        $chatRoom = $user->createdChatRooms()->create($validatedData);
+        $chatRoom = ChatRoom::create([
+            ...$validatedData,
+            'created_by_id' => $user->id
+        ]);
 
         $chatRoom->members()->attach($user->id, ['joinedAt' => now()]);
 
@@ -71,8 +79,9 @@ class ChatRoomController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        $chatRooms = $user->userChatRooms()->with('chatRoom')->get()->map(function ($userChatRoom) {
-            return $userChatRoom->chatRoom;
+        $chatRooms = $user->chatRooms()->get()->map(function ($room) {
+            $room->members_count = $room->members()->count();
+            return $room;
         });
 
         return response()->json($chatRooms);
@@ -97,6 +106,9 @@ class ChatRoomController extends Controller
 
         $room->members()->attach($user->id, ['joinedAt' => now()]);
 
+        // Broadcast the join event via WebSockets
+        event(new UserJoinedChatRoom($user, $room));
+
         return response()->json(['message' => 'Successfully joined chat room.'], 200);
     }
 
@@ -110,6 +122,8 @@ class ChatRoomController extends Controller
         $detached = $room->members()->detach($user->id);
 
         if ($detached) {
+            // Broadcast the leave event via WebSockets
+            event(new UserLeftChatRoom($user, $room));
             return response()->json(null, 204);
         }
 
