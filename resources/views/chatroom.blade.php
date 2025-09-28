@@ -50,20 +50,20 @@
                 <div class="flex space-x-3">
                     <div class="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
                         <span class="text-sm font-medium text-gray-700">
-                            {{ $message->user->first_name[0] ?? 'U' }}
+                            {{ ($message->user->first_name ?? $message->user->username ?? 'U')[0] }}
                         </span>
                     </div>
                     <div class="flex-1">
                         <div class="flex items-center space-x-2 mb-1">
                             <span class="text-sm font-medium text-gray-900">
-                                {{ $message->user->first_name ?? 'Anonymous' }}
+                                {{ $message->user->first_name ?? $message->user->username ?? 'Anonymous' }}
                             </span>
                             <span class="text-xs text-gray-500">
                                 {{ $message->created_at->diffForHumans() }}
                             </span>
                         </div>
                         <div class="bg-gray-50 rounded-lg px-3 py-2">
-                            <p class="text-sm text-gray-800">{{ $message->content }}</p>
+                            <p class="text-sm text-gray-800">{{ $message->message }}</p>
                         </div>
                     </div>
                 </div>
