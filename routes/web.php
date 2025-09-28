@@ -20,7 +20,19 @@ Route::get('/', function () {
 
 Route::get('/poetry', function () {
     return view('poetry');
-});
+})->name('poetry.index');
+
+Route::get('/poetry/create', function () {
+    return view('poetry.create');
+})->middleware('auth');
+
+Route::get('/poetry/{poem}', function ($poem) {
+    return view('poetry.show', compact('poem'));
+})->name('poetry.show');
+
+Route::get('/poetry/{poem}/edit', function ($poem) {
+    return view('poetry.edit', compact('poem'));
+})->middleware('auth')->name('poetry.edit');
 
 Route::get('/books', function () {
     return view('books');
@@ -46,9 +58,15 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('profile.edit')->with('status', 'password-updated');
     })->name('password.update');
     
-    Route::get('/chatrooms', function () {
+    // Chat functionality
+    Route::get('/chat/rooms', function () {
         return view('chatrooms');
-    });
+    })->name('chatrooms.index');
+    Route::get('/chat/rooms/{chatroom}', [App\Http\Controllers\ChatRoomController::class, 'show'])->name('chatroom.show');
+    Route::post('/chat/rooms/{chatroom}/join', [App\Http\Controllers\ChatRoomController::class, 'joinRoom']);
+    Route::post('/chat/rooms/{chatroom}/leave', [App\Http\Controllers\ChatRoomController::class, 'leaveRoom']);
+    Route::post('/chat/rooms/{chatroom}/messages', [App\Http\Controllers\ChatMessageController::class, 'store']);
+    Route::get('/chat/rooms/{chatroom}/messages', [App\Http\Controllers\ChatMessageController::class, 'index']);
     
     Route::get('/tickets', function () {
         return view('tickets');

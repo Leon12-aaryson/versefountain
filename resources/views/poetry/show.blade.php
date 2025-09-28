@@ -148,7 +148,7 @@
                                 <div class="flex space-x-3">
                                     <div class="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center flex-shrink-0">
                                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            {{ Auth::user()->name[0] }}
+                                            {{ Auth::user()->first_name[0] ?? 'U' }}
                                         </span>
                                     </div>
                                     <div class="flex-1">
@@ -178,13 +178,13 @@
                                 <div class="flex space-x-3">
                                     <div class="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center flex-shrink-0">
                                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            {{ $comment->user->name[0] }}
+                                            {{ $comment->user->first_name[0] ?? 'U' }}
                                         </span>
                                     </div>
                                     <div class="flex-1">
                                         <div class="bg-gray-50 dark:bg-gray-700 rounded-lg px-4 py-3">
                                             <div class="flex items-center justify-between mb-1">
-                                                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $comment->user->name }}</span>
+                                                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $comment->user->first_name ?? 'Anonymous' }}</span>
                                                 <span class="text-xs text-gray-500 dark:text-gray-400">{{ $comment->created_at->diffForHumans() }}</span>
                                             </div>
                                             <p class="text-sm text-gray-700 dark:text-gray-300">{{ $comment->content }}</p>
@@ -202,6 +202,11 @@
     </div>
 
     <script>
+    const apiBaseUrl = "{{ url('/api/poems') }}";
+    const poemTitle = "{{ addslashes($poem->title) }}";
+    const poemContent = "{{ addslashes(Str::limit($poem->content, 200)) }}";
+    const poetryIndexUrl = "{{ route('poetry.index') }}";
+    
     function poemDetail(poemId, initialLiked) {
         return {
             poemId: poemId,
@@ -213,7 +218,7 @@
             
             async toggleLike() {
                 try {
-                    const response = await fetch(`/api/poems/${this.poemId}/like`, {
+                    const response = await fetch(apiBaseUrl + '/' + this.poemId + '/like', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -235,7 +240,7 @@
             
             async ratePoem(rating) {
                 try {
-                    const response = await fetch(`/api/poems/${this.poemId}/rate`, {
+                    const response = await fetch(apiBaseUrl + '/' + this.poemId + '/rate', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -249,7 +254,6 @@
                     
                     if (response.ok) {
                         this.currentRating = data.rating;
-                        // Reload page to update rating display
                         window.location.reload();
                     }
                 } catch (error) {
@@ -261,7 +265,7 @@
                 if (!this.newComment.trim()) return;
                 
                 try {
-                    const response = await fetch(`/api/poems/${this.poemId}/comments`, {
+                    const response = await fetch(apiBaseUrl + '/' + this.poemId + '/comments', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -273,7 +277,6 @@
                     
                     if (response.ok) {
                         this.newComment = '';
-                        // Reload page to show new comment
                         window.location.reload();
                     }
                 } catch (error) {
@@ -287,7 +290,7 @@
                 }
                 
                 try {
-                    const response = await fetch(`/api/poems/${this.poemId}`, {
+                    const response = await fetch(apiBaseUrl + '/' + this.poemId, {
                         method: 'DELETE',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -296,7 +299,7 @@
                     });
                     
                     if (response.ok) {
-                        window.location.href = '{{ route("poetry.index") }}';
+                        window.location.href = poetryIndexUrl;
                     } else {
                         alert('Failed to delete poem');
                     }
@@ -308,8 +311,8 @@
             
             async sharePoem() {
                 const poemData = {
-                    title: '{{ $poem->title }}',
-                    text: '{{ Str::limit($poem->content, 200) }}',
+                    title: poemTitle,
+                    text: poemContent,
                     url: window.location.href
                 };
                 
@@ -317,14 +320,12 @@
                     try {
                         await navigator.share(poemData);
                     } catch (error) {
-                        // User cancelled sharing
                         console.log('Share cancelled');
                     }
                 } else {
-                    // Fallback: copy to clipboard
                     try {
                         await navigator.clipboard.writeText(
-                            `${poemData.title}\n\n${poemData.text}\n\n${poemData.url}\n\nShared from VerseFountain`
+                            poemData.title + '\n\n' + poemData.text + '\n\n' + poemData.url + '\n\nShared from VerseFountain'
                         );
                         alert('Poem content copied to clipboard!');
                     } catch (error) {
@@ -335,4 +336,4 @@
         }
     }
     </script>
-</x-app-layout> 
+</x-app-layout>

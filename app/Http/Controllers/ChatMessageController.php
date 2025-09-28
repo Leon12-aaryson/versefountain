@@ -14,12 +14,12 @@ class ChatMessageController extends Controller
     /**
      * Retrieve messages from a specific chat room.
      */
-    public function index(Request $request, ChatRoom $room)
+    public function index(Request $request, ChatRoom $chatroom)
     {
         // Check if user is authorized to view messages in this room (especially if private)
-        if ($room->isPrivate) {
+        if ($chatroom->isPrivate) {
             $user = Auth::user();
-            if (!$user || !$room->members()->where('user_id', $user->id)->exists()) {
+            if (!$user || !$chatroom->members()->where('user_id', $user->id)->exists()) {
                 return response()->json(['message' => 'Forbidden. You are not a member of this private chat room.'], 403);
             }
         }
@@ -27,7 +27,7 @@ class ChatMessageController extends Controller
         $limit = $request->input('limit', 50); // Default to 50 messages
         $offset = $request->input('offset', 0);
 
-        $messages = $room->messages()->with('user:id,username')
+        $messages = $chatroom->messages()->with('user:id,username')
                          ->orderBy('created_at', 'asc')
                          ->offset($offset)
                          ->limit($limit)
@@ -50,7 +50,7 @@ class ChatMessageController extends Controller
     /**
      * Send a new message to a chat room.
      */
-    public function store(Request $request, ChatRoom $room)
+    public function store(Request $request, ChatRoom $chatroom)
     {
         $user = Auth::user();
         if (!$user) {
@@ -58,7 +58,7 @@ class ChatMessageController extends Controller
         }
 
         // Ensure user is a member of the room before sending message
-        if (!$room->members()->where('user_id', $user->id)->exists()) {
+        if (!$chatroom->members()->where('user_id', $user->id)->exists()) {
             return response()->json(['message' => 'Forbidden. You are not a member of this chat room.'], 403);
         }
 
@@ -66,7 +66,7 @@ class ChatMessageController extends Controller
             'message' => 'required|string|max:1000',
         ]);
 
-        $message = $room->messages()->create([
+        $message = $chatroom->messages()->create([
             'user_id' => $user->id,
             'message' => $request->message,
         ]);

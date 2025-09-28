@@ -50,7 +50,7 @@
                                 </div>
                             </a>
 
-                            <a href="/chatrooms">
+                            <a href="{{ route('chatrooms.index') }}">
                                 <div class="flex items-center bg-purple-50 rounded-lg p-4 hover:bg-purple-100 transition-colors">
                                     <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mr-4">
                                         <svg class="h-5 w-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

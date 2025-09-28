@@ -22,6 +22,14 @@ class ChatRoom extends Model
     ];
 
     /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName()
+    {
+        return 'id';
+    }
+
+    /**
      * Get the user who created the chat room.
      */
     public function createdBy()

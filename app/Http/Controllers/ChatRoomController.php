@@ -38,7 +38,22 @@ class ChatRoomController extends Controller
         return response()->json($chatRooms);
     }
 
-    public function show(ChatRoom $room)
+    public function show(ChatRoom $chatroom)
+    {
+        // Load relationships
+        $chatroom->load('members', 'messages.user');
+        
+        if ($chatroom->isPrivate) {
+            $user = Auth::user();
+            if (!$user || !$chatroom->members()->where('user_id', $user->id)->exists()) {
+                abort(403, 'Forbidden. You are not a member of this private chat room.');
+            }
+        }
+        
+        return view('chatroom', ['chatroom' => $chatroom]);
+    }
+
+    public function apiShow(ChatRoom $room)
     {
         if ($room->isPrivate) {
             $user = Auth::user();
@@ -95,7 +110,7 @@ class ChatRoomController extends Controller
         }
 
         if ($room->isPrivate) {
-            if ($room->created_by_id !== $user->id && !$user->isAdmin) {
+            if ($room->created_by_id !== $user->id && $user->role !== 'admin') {
                 return response()->json(['message' => 'Forbidden. You cannot join this private chat room without an invitation or admin privileges.'], 403);
             }
         }

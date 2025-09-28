@@ -1,40 +1,40 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Create Poem') }}
-        </h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="mb-8">
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Create New Poem</h1>
-                <p class="text-gray-600 dark:text-gray-400">Share your poetry with the world</p>
-            </div>
+@section('title', 'Create Poem - VerseFountain')
 
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 dark:border-gray-700 p-6"
-                 x-data="poemForm()">
+@section('content')
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="mb-6 sm:mb-8">
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Create New Poem</h1>
+            <p class="text-sm sm:text-base text-gray-600">Share your poetry with the world</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6"
+             x-data="poemForm()">
                 
-                <form method="POST" action="{{ route('poetry.store') }}" @submit="handleSubmit">
+                <form method="POST" action="/api/poems" @submit="handleSubmit">
                     @csrf
                     
                     <div class="space-y-6">
                         <!-- Title -->
                         <div>
-                            <x-input-label for="title" :value="__('Title')" />
-                            <x-text-input id="title" 
-                                           name="title" 
-                                           type="text" 
-                                           class="mt-1 block w-full" 
-                                           :value="old('title')"
-                                           required 
-                                           autofocus />
-                            <x-input-error :messages="$errors->get('title')" class="mt-2" />
+                            <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                            <input id="title" 
+                                   name="title" 
+                                   type="text" 
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                                   value="{{ old('title') }}"
+                                   required 
+                                   autofocus />
+                            @error('title')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <!-- Poem Type Toggle -->
                         <div>
-                            <x-input-label :value="__('Poem Type')" />
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Poem Type</label>
                             <div class="mt-2 flex space-x-4">
                                 <label class="flex items-center">
                                     <input type="radio" 
@@ -159,4 +159,6 @@
         }
     }
     </script>
-</x-app-layout> 
+    </div>
+</div>
+@endsection 

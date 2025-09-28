@@ -171,7 +171,7 @@
             
             async toggleLike() {
                 try {
-                    const response = await fetch(`/api/poems/${this.poemId}/like`, {
+                    const response = await fetch(`{{ url('/api/poems') }}/${this.poemId}/like`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -197,7 +197,7 @@
                 }
                 
                 try {
-                    const response = await fetch(`/api/poems/${this.poemId}`, {
+                    const response = await fetch(`{{ url('/api/poems') }}/${this.poemId}`, {
                         method: 'DELETE',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),

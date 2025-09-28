@@ -6,8 +6,22 @@
 <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
     <!-- Page Header -->
     <div class="mb-6 sm:mb-8">
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Poetry</h1>
-        <p class="text-sm sm:text-base text-gray-600">Discover beautiful poems from classic and contemporary poets</p>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Poetry</h1>
+                <p class="text-sm sm:text-base text-gray-600">Discover beautiful poems from classic and contemporary poets</p>
+            </div>
+            @auth
+            <div class="mt-4 sm:mt-0">
+                <a href="/poetry/create" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Create Poem
+                </a>
+            </div>
+            @endauth
+        </div>
     </div>
 
     <!-- Search and Filter Section -->
