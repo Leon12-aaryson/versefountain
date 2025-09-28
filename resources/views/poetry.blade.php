@@ -11,7 +11,7 @@
     </div>
 
     <!-- Search and Filter Section -->
-    <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-6 sm:mb-8">
+    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6 sm:mb-8">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Search -->
             <div class="sm:col-span-2 lg:col-span-1">
@@ -54,175 +54,105 @@
         </div>
     </div>
 
+    @php
+        $poems = [
+            [
+                'title' => 'The Road Not Taken',
+                'author' => 'Robert Frost',
+                'year' => '1916',
+                'excerpt' => 'Two roads diverged in a yellow wood, And sorry I could not travel both And be one traveler, long I stood And looked down one as far as I could...',
+                'likes' => '1.2k',
+                'comments' => '45',
+                'slug' => 'road-not-taken'
+            ],
+            [
+                'title' => 'Sonnet 18',
+                'author' => 'William Shakespeare',
+                'year' => '1609',
+                'excerpt' => 'Shall I compare thee to a summer\'s day? Thou art more lovely and more temperate: Rough winds do shake the darling buds of May...',
+                'likes' => '2.1k',
+                'comments' => '78',
+                'slug' => 'sonnet-18'
+            ],
+            [
+                'title' => 'Still I Rise',
+                'author' => 'Maya Angelou',
+                'year' => '1978',
+                'excerpt' => 'You may write me down in history With your bitter, twisted lies, You may trod me in the very dirt But still, like dust, I\'ll rise...',
+                'likes' => '3.4k',
+                'comments' => '156',
+                'slug' => 'still-i-rise'
+            ],
+            [
+                'title' => 'Do Not Go Gentle',
+                'author' => 'Dylan Thomas',
+                'year' => '1951',
+                'excerpt' => 'Do not go gentle into that good night, Old age should burn and rave at close of day; Rage, rage against the dying of the light...',
+                'likes' => '892',
+                'comments' => '23',
+                'slug' => 'do-not-go-gentle'
+            ],
+            [
+                'title' => 'The Waste Land',
+                'author' => 'T.S. Eliot',
+                'year' => '1922',
+                'excerpt' => 'April is the cruellest month, breeding Lilacs out of the dead land, mixing Memory and desire, stirring Dull roots with spring rain...',
+                'likes' => '567',
+                'comments' => '34',
+                'slug' => 'waste-land'
+            ],
+            [
+                'title' => 'Howl',
+                'author' => 'Allen Ginsberg',
+                'year' => '1956',
+                'excerpt' => 'I saw the best minds of my generation destroyed by madness, starving hysterical naked, dragging themselves through the negro streets...',
+                'likes' => '1.8k',
+                'comments' => '67',
+                'slug' => 'howl'
+            ]
+        ];
+    @endphp
+
     <!-- Poems Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-        <!-- Poem Card 1 -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-            <div class="p-4 sm:p-6">
+        @foreach($poems as $poem)
+        <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="p-4">
                 <div class="flex items-start justify-between mb-3">
-                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900">The Road Not Taken</h3>
-                    <button class="text-gray-400 hover:text-red-500 transition-colors">
+                    <h3 class="text-lg font-semibold text-gray-900 truncate pr-2">{{ $poem['title'] }}</h3>
+                    <button class="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                         </svg>
                     </button>
                 </div>
-                <p class="text-sm sm:text-base text-gray-600 mb-4 line-clamp-3">
-                    Two roads diverged in a yellow wood, And sorry I could not travel both And be one traveler, long I stood And looked down one as far as I could To where it bent in the undergrowth...
+                <p class="text-sm text-gray-600 mb-3 line-clamp-3">
+                    {{ $poem['excerpt'] }}
                 </p>
-                <div class="flex items-center justify-between text-xs sm:text-sm text-gray-500 mb-4">
-                    <span>Robert Frost</span>
-                    <span>1916</span>
+                <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                    <span>{{ $poem['author'] }}</span>
+                    <span>{{ $poem['year'] }}</span>
                 </div>
                 <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4 text-xs sm:text-sm text-gray-500">
-                        <span>❤️ 1.2k</span>
-                        <span>💬 45</span>
+                    <div class="flex items-center space-x-3 text-xs text-gray-500">
+                        <div class="flex items-center space-x-1">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            </svg>
+                            <span>{{ $poem['likes'] }}</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                            </svg>
+                            <span>{{ $poem['comments'] }}</span>
+                        </div>
                     </div>
-                    <a href="/poetry/road-not-taken" class="text-blue-600 hover:text-blue-700 text-sm font-medium">Read More</a>
+                    <a href="/poetry/{{ $poem['slug'] }}" class="text-blue-600 hover:text-blue-700 text-sm font-medium">Read More</a>
                 </div>
             </div>
         </div>
-
-        <!-- Poem Card 2 -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-            <div class="p-4 sm:p-6">
-                <div class="flex items-start justify-between mb-3">
-                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900">Sonnet 18</h3>
-                    <button class="text-gray-400 hover:text-red-500 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                        </svg>
-                    </button>
-                </div>
-                <p class="text-sm sm:text-base text-gray-600 mb-4 line-clamp-3">
-                    Shall I compare thee to a summer's day? Thou art more lovely and more temperate: Rough winds do shake the darling buds of May, And summer's lease hath all too short a date...
-                </p>
-                <div class="flex items-center justify-between text-xs sm:text-sm text-gray-500 mb-4">
-                    <span>William Shakespeare</span>
-                    <span>1609</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4 text-xs sm:text-sm text-gray-500">
-                        <span>❤️ 2.1k</span>
-                        <span>💬 78</span>
-                    </div>
-                    <a href="/poetry/sonnet-18" class="text-blue-600 hover:text-blue-700 text-sm font-medium">Read More</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Poem Card 3 -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-            <div class="p-4 sm:p-6">
-                <div class="flex items-start justify-between mb-3">
-                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900">Still I Rise</h3>
-                    <button class="text-gray-400 hover:text-red-500 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                        </svg>
-                    </button>
-                </div>
-                <p class="text-sm sm:text-base text-gray-600 mb-4 line-clamp-3">
-                    You may write me down in history With your bitter, twisted lies, You may trod me in the very dirt But still, like dust, I'll rise...
-                </p>
-                <div class="flex items-center justify-between text-xs sm:text-sm text-gray-500 mb-4">
-                    <span>Maya Angelou</span>
-                    <span>1978</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4 text-xs sm:text-sm text-gray-500">
-                        <span>❤️ 3.4k</span>
-                        <span>💬 156</span>
-                    </div>
-                    <a href="/poetry/still-i-rise" class="text-blue-600 hover:text-blue-700 text-sm font-medium">Read More</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Poem Card 4 -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-            <div class="p-4 sm:p-6">
-                <div class="flex items-start justify-between mb-3">
-                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900">Do Not Go Gentle</h3>
-                    <button class="text-gray-400 hover:text-red-500 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                        </svg>
-                    </button>
-                </div>
-                <p class="text-sm sm:text-base text-gray-600 mb-4 line-clamp-3">
-                    Do not go gentle into that good night, Old age should burn and rave at close of day; Rage, rage against the dying of the light...
-                </p>
-                <div class="flex items-center justify-between text-xs sm:text-sm text-gray-500 mb-4">
-                    <span>Dylan Thomas</span>
-                    <span>1951</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4 text-xs sm:text-sm text-gray-500">
-                        <span>❤️ 892</span>
-                        <span>💬 23</span>
-                    </div>
-                    <a href="/poetry/do-not-go-gentle" class="text-blue-600 hover:text-blue-700 text-sm font-medium">Read More</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Poem Card 5 -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-            <div class="p-4 sm:p-6">
-                <div class="flex items-start justify-between mb-3">
-                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900">The Waste Land</h3>
-                    <button class="text-gray-400 hover:text-red-500 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                        </svg>
-                    </button>
-                </div>
-                <p class="text-sm sm:text-base text-gray-600 mb-4 line-clamp-3">
-                    April is the cruellest month, breeding Lilacs out of the dead land, mixing Memory and desire, stirring Dull roots with spring rain...
-                </p>
-                <div class="flex items-center justify-between text-xs sm:text-sm text-gray-500 mb-4">
-                    <span>T.S. Eliot</span>
-                    <span>1922</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4 text-xs sm:text-sm text-gray-500">
-                        <span>❤️ 567</span>
-                        <span>💬 34</span>
-                    </div>
-                    <a href="/poetry/waste-land" class="text-blue-600 hover:text-blue-700 text-sm font-medium">Read More</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Poem Card 6 -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-            <div class="p-4 sm:p-6">
-                <div class="flex items-start justify-between mb-3">
-                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900">Howl</h3>
-                    <button class="text-gray-400 hover:text-red-500 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                        </svg>
-                    </button>
-                </div>
-                <p class="text-sm sm:text-base text-gray-600 mb-4 line-clamp-3">
-                    I saw the best minds of my generation destroyed by madness, starving hysterical naked, dragging themselves through the negro streets at dawn looking for an angry fix...
-                </p>
-                <div class="flex items-center justify-between text-xs sm:text-sm text-gray-500 mb-4">
-                    <span>Allen Ginsberg</span>
-                    <span>1956</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4 text-xs sm:text-sm text-gray-500">
-                        <span>❤️ 1.8k</span>
-                        <span>💬 67</span>
-                    </div>
-                    <a href="/poetry/howl" class="text-blue-600 hover:text-blue-700 text-sm font-medium">Read More</a>
-                </div>
-            </div>
-        </div>
+        @endforeach
     </div>
 
     <!-- Load More Button -->

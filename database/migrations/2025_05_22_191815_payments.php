@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('paddlepayment_id')->unique()->nullable();
             $table->string('paddleTransactionId')->nullable();
             $table->text('refundReason')->nullable();
+            $table->timestamps();
         });
     }
 

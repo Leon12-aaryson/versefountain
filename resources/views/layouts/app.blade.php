@@ -16,7 +16,7 @@
         <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 flex justify-between items-center h-14 sm:h-16">
             <!-- Logo -->
             <div class="flex items-center space-x-2">
-                <a href="/" class="text-primary text-lg sm:text-xl md:text-2xl font-bold">VerseFountain</a>
+                <a href="/" class="text-blue-600 text-lg sm:text-xl md:text-2xl font-bold hover:text-blue-700 transition-colors">VerseFountain</a>
             </div>
 
             <!-- User Avatar / Auth Buttons -->

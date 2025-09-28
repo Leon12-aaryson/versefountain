@@ -21,6 +21,28 @@ class AdminController extends Controller
     // or a policy that checks for admin role.
 
     /**
+     * Show the admin dashboard.
+     */
+    public function dashboard()
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'admin') {
+            abort(403, 'Admin access required.');
+        }
+
+        // Get dashboard statistics
+        $stats = [
+            'total_users' => User::count(),
+            'pending_books' => Book::where('approved', false)->count(),
+            'pending_poems' => Poem::where('approved', false)->count(),
+            'total_tickets' => Ticket::count(),
+            'recent_payments' => Payment::latest()->take(5)->get(),
+        ];
+
+        return view('admin.dashboard', compact('stats'));
+    }
+
+    /**
      * Retrieve a list of all registered users.
      */
     public function getUsers()
