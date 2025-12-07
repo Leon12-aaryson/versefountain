@@ -26,9 +26,7 @@ Route::get('/poetry/create', function () {
     return view('poetry.create');
 })->middleware('auth');
 
-Route::get('/poetry/{poem}', function ($poem) {
-    return view('poetry.show', compact('poem'));
-})->name('poetry.show');
+Route::get('/poetry/{poem}', [App\Http\Controllers\PoemController::class, 'show'])->name('poetry.show');
 
 Route::get('/poetry/{poem}/edit', function ($poem) {
     return view('poetry.edit', compact('poem'));

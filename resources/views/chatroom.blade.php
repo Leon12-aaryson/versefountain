@@ -8,67 +8,68 @@
     $messages = $chatroom->messages()->with('user')->latest()->take(50)->get()->reverse();
 @endphp
 
-<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-    <!-- Chatroom Header -->
-    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <a href="{{ route('chatrooms.index') }}" 
-                   class="text-gray-500 hover:text-gray-700 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                    </svg>
-                </a>
-                <div>
-                    <h1 class="text-xl sm:text-2xl font-bold text-gray-900">{{ $chatroom->name }}</h1>
-                    <p class="text-sm text-gray-600">{{ $chatroom->description }}</p>
+<div class="min-h-screen bg-stone-50">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <!-- Chatroom Header -->
+        <div class="bg-white border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="{{ route('chatrooms.index') }}" 
+                       class="text-gray-600 hover:text-gray-900 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                    </a>
+                    <div>
+                        <h1 class="text-xl sm:text-2xl font-light text-gray-800 tracking-wide">{{ $chatroom->name }}</h1>
+                        <p class="text-sm text-gray-600 font-light">{{ $chatroom->description }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-500">{{ $chatroom->members->count() }} members</span>
+                    @if($isMember)
+                        <button onclick="leaveChatroom()" 
+                                class="text-gray-600 hover:text-gray-900 text-sm font-normal">
+                            Leave Room
+                        </button>
+                    @endif
                 </div>
             </div>
-            <div class="flex items-center space-x-4">
-                <span class="text-sm text-gray-500">{{ $chatroom->members->count() }} members</span>
-                @if($isMember)
-                    <button onclick="leaveChatroom()" 
-                            class="text-red-600 hover:text-red-700 text-sm font-medium">
-                        Leave Room
-                    </button>
-                @endif
-            </div>
         </div>
-    </div>
 
     @if($isMember)
         <!-- Chat Interface -->
-        <div class="bg-white rounded-lg shadow-sm overflow-hidden" 
+        <div class="bg-white border border-gray-200" 
              x-data="chatInterface({{ $chatroom->id }})">
             
             <!-- Messages Area -->
-            <div class="h-96 sm:h-[500px] overflow-y-auto p-4 space-y-4" 
+            <div class="h-96 sm:h-[500px] overflow-y-auto p-4 sm:p-6 space-y-4" 
                  x-ref="messagesContainer"
                  @scroll="handleScroll()">
                 
                 @forelse($messages as $message)
                 <div class="flex space-x-3">
-                    <div class="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
-                        <span class="text-sm font-medium text-gray-700">
-                            {{ ($message->user->first_name ?? $message->user->username ?? 'U')[0] }}
+                    <div class="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                        <span class="text-xs font-normal text-gray-700">
+                            {{ strtoupper(($message->user->first_name ?? $message->user->username ?? 'U')[0]) }}
                         </span>
                     </div>
                     <div class="flex-1">
                         <div class="flex items-center space-x-2 mb-1">
-                            <span class="text-sm font-medium text-gray-900">
+                            <span class="text-sm font-normal text-gray-900">
                                 {{ $message->user->first_name ?? $message->user->username ?? 'Anonymous' }}
                             </span>
                             <span class="text-xs text-gray-500">
                                 {{ $message->created_at->diffForHumans() }}
                             </span>
                         </div>
-                        <div class="bg-gray-50 rounded-lg px-3 py-2">
-                            <p class="text-sm text-gray-800">{{ $message->message }}</p>
+                        <div class="bg-gray-50 px-3 py-2">
+                            <p class="text-sm text-gray-800 font-light">{{ $message->message }}</p>
                         </div>
                     </div>
                 </div>
                 @empty
-                <div class="text-center text-gray-500 py-8">
+                <div class="text-center text-gray-500 py-8 font-light">
                     <p>No messages yet. Start the conversation!</p>
                 </div>
                 @endforelse
@@ -77,16 +78,16 @@
                 <div x-show="newMessages.length > 0" x-transition>
                     <template x-for="message in newMessages" :key="message.id">
                         <div class="flex space-x-3">
-                            <div class="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
-                                <span class="text-sm font-medium text-gray-700" x-text="message.user_initial"></span>
+                            <div class="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                <span class="text-xs font-normal text-gray-700" x-text="message.user_initial"></span>
                             </div>
                             <div class="flex-1">
                                 <div class="flex items-center space-x-2 mb-1">
-                                    <span class="text-sm font-medium text-gray-900" x-text="message.user_name"></span>
+                                    <span class="text-sm font-normal text-gray-900" x-text="message.user_name"></span>
                                     <span class="text-xs text-gray-500" x-text="message.time_ago"></span>
                                 </div>
-                                <div class="bg-gray-50 rounded-lg px-3 py-2">
-                                    <p class="text-sm text-gray-800" x-text="message.content"></p>
+                                <div class="bg-gray-50 px-3 py-2">
+                                    <p class="text-sm text-gray-800 font-light" x-text="message.content"></p>
                                 </div>
                             </div>
                         </div>
@@ -95,18 +96,18 @@
             </div>
 
             <!-- Message Input -->
-            <div class="border-t border-gray-200 p-4">
+            <div class="border-t border-gray-200 p-4 sm:p-6">
                 <form @submit.prevent="sendMessage()" class="flex space-x-3">
                     <div class="flex-1">
                         <input x-model="newMessage" 
                                type="text" 
                                placeholder="Type your message..." 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                               class="w-full px-3 py-2 border border-gray-300 focus:border-gray-500 bg-white focus:outline-none text-sm"
                                :disabled="isSending">
                     </div>
                     <button type="submit" 
                             :disabled="!newMessage.trim() || isSending"
-                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                            class="px-4 py-2 bg-gray-800 text-white text-sm font-normal hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         <span x-show="!isSending">Send</span>
                         <span x-show="isSending">Sending...</span>
                     </button>
@@ -115,20 +116,21 @@
         </div>
     @else
         <!-- Join Prompt -->
-        <div class="bg-white rounded-lg shadow-sm p-8 text-center">
+        <div class="bg-white border border-gray-200 p-8 sm:p-12 text-center">
             <div class="max-w-md mx-auto">
                 <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                 </svg>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Join this chatroom</h3>
-                <p class="text-gray-600 mb-4">You need to join this chatroom to participate in the conversation.</p>
+                <h3 class="text-lg font-light text-gray-800 mb-2 tracking-wide">Join this chatroom</h3>
+                <p class="text-gray-600 mb-4 font-light">You need to join this chatroom to participate in the conversation.</p>
                 <button onclick="joinChatroom({{ $chatroom->id }})" 
-                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        class="px-6 py-2.5 bg-gray-800 text-white text-sm font-normal hover:bg-gray-700 transition-colors">
                     Join Chatroom
                 </button>
             </div>
         </div>
     @endif
+    </div>
 </div>
 
 <script>
