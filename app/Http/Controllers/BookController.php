@@ -13,38 +13,73 @@ class BookController extends Controller
 {
     /**
      * Retrieve a list of all approved books.
+     * Returns JSON for API requests, Blade view for web requests.
      */
     public function index(Request $request)
     {
-        // Cache books for 5 minutes to improve performance
-        $cacheKey = 'books.all';
-        if ($request->has('genre')) {
-            $cacheKey .= '.genre.' . $request->genre;
+        $query = Book::where('approved', true);
+
+        // Apply filters
+        if ($request->has('genre') && $request->genre) {
+            $request->validate(['genre' => 'string|max:255']);
+            $query->where('genre', $request->genre);
         }
-        if ($request->has('limit')) {
-            $cacheKey .= '.limit.' . $request->limit;
-        }
-        if ($request->has('offset')) {
-            $cacheKey .= '.offset.' . $request->offset;
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                  ->orWhere('author', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%')
+                  ->orWhere('genre', 'like', '%' . $search . '%');
+            });
         }
 
-        $books = Cache::remember($cacheKey, 300, function () use ($request) {
-            $query = Book::where('approved', true);
-
+        // If API request (wants JSON), return JSON
+        if ($request->wantsJson() || $request->expectsJson()) {
+            // Cache books for 5 minutes to improve performance
+            $cacheKey = 'books.all';
             if ($request->has('genre')) {
-                $request->validate(['genre' => 'string|max:255']);
-                $query->where('genre', $request->genre);
+                $cacheKey .= '.genre.' . $request->genre;
+            }
+            if ($request->has('limit')) {
+                $cacheKey .= '.limit.' . $request->limit;
+            }
+            if ($request->has('offset')) {
+                $cacheKey .= '.offset.' . $request->offset;
             }
 
-            $limit = $request->input('limit', 10);
-            $offset = $request->input('offset', 0);
+            $books = Cache::remember($cacheKey, 300, function () use ($query, $request) {
+                $limit = $request->input('limit', 10);
+                $offset = $request->input('offset', 0);
 
-            return $query->offset($offset)
-                         ->limit($limit)
-                         ->get();
-        });
+                return $query->offset($offset)
+                             ->limit($limit)
+                             ->get();
+            });
 
-        return response()->json($books);
+            return response()->json($books);
+        }
+
+        // Otherwise, return Blade view for web requests
+        // Get featured books (4 most recent)
+        $featuredBooks = Book::where('approved', true)
+            ->latest()
+            ->take(4)
+            ->get();
+
+        // Get recent books (paginated)
+        $recentBooks = $query->latest()
+            ->paginate(12);
+
+        // Get unique genres for category counts
+        $genres = Book::where('approved', true)
+            ->select('genre')
+            ->whereNotNull('genre')
+            ->distinct()
+            ->get()
+            ->pluck('genre');
+
+        return view('books', compact('featuredBooks', 'recentBooks', 'genres'));
     }
 
     /**

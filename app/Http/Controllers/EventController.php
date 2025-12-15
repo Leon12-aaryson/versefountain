@@ -12,12 +12,14 @@ class EventController extends Controller
 {
     /**
      * Retrieve a list of all events, optionally filtered and paginated.
+     * Returns JSON for API requests, Blade view for web requests.
      */
     public function index(Request $request)
     {
         $query = Event::query();
 
-        if ($request->has('category')) {
+        // Apply filters
+        if ($request->has('category') && $request->category) {
             $request->validate(['category' => 'string|in:poetry,book_launch,workshop,lecture,general']);
             $query->where('category', $request->category);
         }
@@ -30,16 +32,49 @@ class EventController extends Controller
         if ($request->boolean('isFree')) {
             $query->where('isFree', true);
         }
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%')
+                  ->orWhere('location', 'like', '%' . $search . '%')
+                  ->orWhere('organizer', 'like', '%' . $search . '%');
+            });
+        }
 
-        $limit = $request->input('limit', 10);
-        $offset = $request->input('offset', 0);
+        // If API request (wants JSON), return JSON
+        if ($request->wantsJson() || $request->expectsJson()) {
+            $limit = $request->input('limit', 10);
+            $offset = $request->input('offset', 0);
 
-        $events = $query->orderBy('date', 'asc')
-                        ->offset($offset)
-                        ->limit($limit)
-                        ->get();
+            $events = $query->orderBy('date', 'asc')
+                            ->offset($offset)
+                            ->limit($limit)
+                            ->get();
 
-        return response()->json($events);
+            return response()->json($events);
+        }
+
+        // Otherwise, return Blade view for web requests
+        // Get featured events (3 most recent upcoming)
+        $featuredEvents = Event::where('date', '>', now())
+            ->orderBy('date', 'asc')
+            ->take(3)
+            ->get();
+
+        // Get upcoming events (paginated)
+        $upcomingEvents = $query->where('date', '>', now())
+            ->orderBy('date', 'asc')
+            ->paginate(12);
+
+        // Get unique categories for category counts
+        $categories = Event::select('category')
+            ->whereNotNull('category')
+            ->distinct()
+            ->get()
+            ->pluck('category');
+
+        return view('events', compact('featuredEvents', 'upcomingEvents', 'categories'));
     }
 
     /**

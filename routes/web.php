@@ -52,20 +52,16 @@ Route::get('/poetry/{poem}/edit', function ($poem) {
     return view('poetry.edit', compact('poem'));
 })->middleware('auth')->name('poetry.edit');
 
-Route::get('/books', function () {
-    return view('books');
-})->name('books.index');
+Route::get('/books', [BookController::class, 'index'])->name('books.index');
 
 Route::get('/books/{book}', [App\Http\Controllers\BookController::class, 'showWeb'])->name('books.show');
 
-Route::get('/academics', [AcademicResourceController::class, 'indexWeb'])->name('academics.index');
+Route::get('/academics', [AcademicResourceController::class, 'index'])->name('academics.index');
 
-Route::get('/academics/{resource}', [App\Http\Controllers\AcademicResourceController::class, 'showWeb'])->name('academics.show');
+Route::get('/academics/{resource}', [App\Http\Controllers\AcademicResourceController::class, 'show'])->name('academics.show');
 Route::get('/academics/{resource}/download', [App\Http\Controllers\AcademicResourceController::class, 'download'])->name('academics.download');
 
-Route::get('/events', function () {
-    return view('events');
-})->name('events.index');
+Route::get('/events', [EventController::class, 'index'])->name('events.index');
 
 // API-style routes (returning JSON) - Public routes
 Route::get('/api/user', function () {
