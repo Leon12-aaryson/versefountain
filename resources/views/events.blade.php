@@ -59,139 +59,155 @@
                 </div>
             </div>
 
-    <!-- Featured Events -->
-    @if($featuredEvents->count() > 0)
-    <div class="mb-10 sm:mb-12">
-        <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">Featured Events</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-            @foreach($featuredEvents as $event)
-            <div class="bg-white border border-gray-200 hover:border-gray-300 transition-colors">
-                <div class="h-40 sm:h-48 bg-gray-100 flex items-center justify-center">
-                    <i class="bx bx-calendar text-6xl text-gray-400"></i>
+            <!-- Featured Events -->
+            @if($featuredEvents->count() > 0)
+                <div class="mb-10 sm:mb-12">
+                    <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">Featured Events</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+                        @foreach($featuredEvents as $event)
+                            <div class="bg-white border border-gray-200 hover:border-gray-300 transition-colors">
+                                <div class="h-40 sm:h-48 bg-gray-100 flex items-center justify-center">
+                                    <i class="bx bx-calendar text-6xl text-gray-400"></i>
+                                </div>
+                                <div class="p-4 sm:p-6">
+                                    <div class="flex items-center justify-between mb-3 pb-3 border-b border-gray-200">
+                                        <span
+                                            class="text-xs text-gray-600 uppercase tracking-wide">{{ ucfirst(str_replace('_', ' ', $event->category ?? 'General')) }}</span>
+                                        <span
+                                            class="text-xs text-gray-500">{{ $event->isFree ? 'Free' : '$' . ($event->ticketPrice ?? 0) }}</span>
+                                    </div>
+                                    <h3 class="font-normal text-gray-900 mb-1 text-sm sm:text-base">
+                                        <a href="{{ route('api.events.show', $event) }}" class="hover:text-gray-700">
+                                            {{ $event->title }}
+                                        </a>
+                                    </h3>
+                                    <p class="text-gray-600 text-xs sm:text-sm mb-3 font-light">
+                                        {{ Str::limit($event->description ?? 'No description', 80) }}</p>
+                                    <div class="flex items-center text-xs text-gray-500 mb-3">
+                                        <i class="bx bx-map mr-1 text-sm"></i>
+                                        <span>{{ $event->location ?? 'Location TBA' }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span
+                                            class="text-xs text-gray-500">{{ $event->date ? $event->date->format('M d, Y • g:i A') : 'Date TBA' }}</span>
+                                        @auth
+                                            <a href="{{ route('tickets.index') }}?event={{ $event->id }}"
+                                                class="px-3 py-1 bg-gray-800 text-white text-xs font-normal hover:bg-gray-700 transition-colors inline-block">
+                                                Register
+                                            </a>
+                                        @else
+                                            <a href="{{ route('login') }}"
+                                                class="px-3 py-1 bg-gray-800 text-white text-xs font-normal hover:bg-gray-700 transition-colors inline-block">
+                                                Register
+                                            </a>
+                                        @endauth
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
-                <div class="p-4 sm:p-6">
-                    <div class="flex items-center justify-between mb-3 pb-3 border-b border-gray-200">
-                        <span class="text-xs text-gray-600 uppercase tracking-wide">{{ ucfirst(str_replace('_', ' ', $event->category ?? 'General')) }}</span>
-                        <span class="text-xs text-gray-500">{{ $event->isFree ? 'Free' : '$' . ($event->ticketPrice ?? 0) }}</span>
-                    </div>
-                    <h3 class="font-normal text-gray-900 mb-1 text-sm sm:text-base">
-                        <a href="{{ route('api.events.show', $event) }}" class="hover:text-gray-700">
-                            {{ $event->title }}
-                        </a>
-                    </h3>
-                    <p class="text-gray-600 text-xs sm:text-sm mb-3 font-light">{{ Str::limit($event->description ?? 'No description', 80) }}</p>
-                    <div class="flex items-center text-xs text-gray-500 mb-3">
-                        <i class="bx bx-map mr-1 text-sm"></i>
-                        <span>{{ $event->location ?? 'Location TBA' }}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-gray-500">{{ $event->date ? $event->date->format('M d, Y • g:i A') : 'Date TBA' }}</span>
-                        @auth
-                            <a href="{{ route('tickets.index') }}?event={{ $event->id }}" class="px-3 py-1 bg-gray-800 text-white text-xs font-normal hover:bg-gray-700 transition-colors inline-block">
-                                Register
-                            </a>
-                        @else
-                            <a href="{{ route('login') }}" class="px-3 py-1 bg-gray-800 text-white text-xs font-normal hover:bg-gray-700 transition-colors inline-block">
-                                Register
-                            </a>
-                        @endauth
-                    </div>
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-    @endif
+            @endif
 
-    <!-- Upcoming Events -->
-    <div class="mb-10 sm:mb-12">
-        <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">Upcoming Events</h2>
-        @if($upcomingEvents->count() > 0)
-        <div class="space-y-5 sm:space-y-6">
-            @foreach($upcomingEvents as $event)
-            <div class="bg-white border border-gray-200 p-4 sm:p-6 hover:border-gray-300 transition-colors">
-                <div class="flex items-start space-x-4">
-                    <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 flex items-center justify-center flex-shrink-0">
-                        <i class="bx bx-calendar text-4xl sm:text-5xl text-gray-400"></i>
+            <!-- Upcoming Events -->
+            <div class="mb-10 sm:mb-12">
+                <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">Upcoming Events</h2>
+                @if($upcomingEvents->count() > 0)
+                    <div class="space-y-5 sm:space-y-6">
+                        @foreach($upcomingEvents as $event)
+                            <div class="bg-white border border-gray-200 p-4 sm:p-6 hover:border-gray-300 transition-colors">
+                                <div class="flex items-start space-x-4">
+                                    <div
+                                        class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                        <i class="bx bx-calendar text-4xl sm:text-5xl text-gray-400"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span
+                                                class="text-xs text-gray-600 uppercase tracking-wide">{{ ucfirst(str_replace('_', ' ', $event->category ?? 'General')) }}</span>
+                                            <span
+                                                class="text-xs text-gray-500">{{ $event->isFree ? 'Free' : '$' . ($event->ticketPrice ?? 0) }}</span>
+                                        </div>
+                                        <h3 class="font-normal text-gray-900 text-sm sm:text-base mb-1">
+                                            <a href="{{ route('api.events.show', $event) }}" class="hover:text-gray-700">
+                                                {{ $event->title }}
+                                            </a>
+                                        </h3>
+                                        <p class="text-gray-600 text-xs sm:text-sm mb-3 font-light">
+                                            {{ Str::limit($event->description ?? 'No description', 100) }}</p>
+                                        <div class="flex items-center text-xs text-gray-500 mb-3">
+                                            <i class="bx bx-map mr-1 text-sm"></i>
+                                            <span>{{ $event->location ?? 'Location TBA' }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span
+                                                class="text-xs text-gray-500">{{ $event->date ? $event->date->format('M d, Y • g:i A') : 'Date TBA' }}</span>
+                                            @auth
+                                                <a href="{{ route('tickets.index') }}?event={{ $event->id }}"
+                                                    class="px-3 py-1 bg-gray-800 text-white text-xs font-normal hover:bg-gray-700 transition-colors inline-block">
+                                                    Register
+                                                </a>
+                                            @else
+                                                <a href="{{ route('login') }}"
+                                                    class="px-3 py-1 bg-gray-800 text-white text-xs font-normal hover:bg-gray-700 transition-colors inline-block">
+                                                    Register
+                                                </a>
+                                            @endauth
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs text-gray-600 uppercase tracking-wide">{{ ucfirst(str_replace('_', ' ', $event->category ?? 'General')) }}</span>
-                            <span class="text-xs text-gray-500">{{ $event->isFree ? 'Free' : '$' . ($event->ticketPrice ?? 0) }}</span>
+
+                    <!-- Pagination -->
+                    @if($upcomingEvents->hasPages())
+                        <div class="text-center mt-10 sm:mt-12">
+                            {{ $upcomingEvents->links() }}
                         </div>
-                        <h3 class="font-normal text-gray-900 text-sm sm:text-base mb-1">
-                            <a href="{{ route('api.events.show', $event) }}" class="hover:text-gray-700">
-                                {{ $event->title }}
+                    @endif
+                @else
+                    <div class="text-center py-16 sm:py-20">
+                        <div class="max-w-md mx-auto">
+                            <i class="bx bx-calendar text-6xl text-gray-300 mb-4"></i>
+                            <h3 class="text-lg font-normal text-gray-700 mb-2">No upcoming events</h3>
+                            <p class="text-sm text-gray-500 mb-6">Check back soon for new events and workshops.</p>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Event Categories -->
+            @if($categories->count() > 0)
+                <div class="mb-10 sm:mb-12">
+                    <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">Browse by Category</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                        @foreach($categories->take(4) as $category)
+                            @php
+                                $categoryCount = \App\Models\Event::where('category', $category)->where('date', '>', now())->count();
+                                $icons = [
+                                    'poetry' => 'bx-book',
+                                    'workshop' => 'bx-bulb',
+                                    'book_launch' => 'bx-book-reader',
+                                    'lecture' => 'bx-chalkboard',
+                                    'general' => 'bx-calendar',
+                                ];
+                                $icon = $icons[$category] ?? 'bx-calendar';
+                            @endphp
+                            <a href="/events?category={{ urlencode($category) }}"
+                                class="bg-white border border-gray-200 p-4 sm:p-6 text-center hover:border-gray-300 transition-colors cursor-pointer block">
+                                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                                    <i class="bx {{ $icon }} text-xl sm:text-2xl text-gray-600"></i>
+                                </div>
+                                <h3 class="font-normal text-gray-900 text-sm sm:text-base">
+                                    {{ ucfirst(str_replace('_', ' ', $category)) }}</h3>
+                                <p class="text-xs sm:text-sm text-gray-500 mt-1">{{ $categoryCount }}
+                                    {{ $categoryCount === 1 ? 'event' : 'events' }}</p>
                             </a>
-                        </h3>
-                        <p class="text-gray-600 text-xs sm:text-sm mb-3 font-light">{{ Str::limit($event->description ?? 'No description', 100) }}</p>
-                        <div class="flex items-center text-xs text-gray-500 mb-3">
-                            <i class="bx bx-map mr-1 text-sm"></i>
-                            <span>{{ $event->location ?? 'Location TBA' }}</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs text-gray-500">{{ $event->date ? $event->date->format('M d, Y • g:i A') : 'Date TBA' }}</span>
-                            @auth
-                                <a href="{{ route('tickets.index') }}?event={{ $event->id }}" class="px-3 py-1 bg-gray-800 text-white text-xs font-normal hover:bg-gray-700 transition-colors inline-block">
-                                    Register
-                                </a>
-                            @else
-                                <a href="{{ route('login') }}" class="px-3 py-1 bg-gray-800 text-white text-xs font-normal hover:bg-gray-700 transition-colors inline-block">
-                                    Register
-                                </a>
-                            @endauth
-                        </div>
+                        @endforeach
                     </div>
                 </div>
-            </div>
-            @endforeach
-        </div>
-
-        <!-- Pagination -->
-        @if($upcomingEvents->hasPages())
-        <div class="text-center mt-10 sm:mt-12">
-            {{ $upcomingEvents->links() }}
-        </div>
-        @endif
-        @else
-        <div class="text-center py-16 sm:py-20">
-            <div class="max-w-md mx-auto">
-                <i class="bx bx-calendar text-6xl text-gray-300 mb-4"></i>
-                <h3 class="text-lg font-normal text-gray-700 mb-2">No upcoming events</h3>
-                <p class="text-sm text-gray-500 mb-6">Check back soon for new events and workshops.</p>
-            </div>
-        </div>
-        @endif
-    </div>
-
-    <!-- Event Categories -->
-    @if($categories->count() > 0)
-    <div class="mb-10 sm:mb-12">
-        <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">Browse by Category</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-            @foreach($categories->take(4) as $category)
-            @php
-                $categoryCount = \App\Models\Event::where('category', $category)->where('date', '>', now())->count();
-                $icons = [
-                    'poetry' => 'bx-book',
-                    'workshop' => 'bx-bulb',
-                    'book_launch' => 'bx-book-reader',
-                    'lecture' => 'bx-chalkboard',
-                    'general' => 'bx-calendar',
-                ];
-                $icon = $icons[$category] ?? 'bx-calendar';
-            @endphp
-            <a href="/events?category={{ urlencode($category) }}" class="bg-white border border-gray-200 p-4 sm:p-6 text-center hover:border-gray-300 transition-colors cursor-pointer block">
-                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                    <i class="bx {{ $icon }} text-xl sm:text-2xl text-gray-600"></i>
-                </div>
-                <h3 class="font-normal text-gray-900 text-sm sm:text-base">{{ ucfirst(str_replace('_', ' ', $category)) }}</h3>
-                <p class="text-xs sm:text-sm text-gray-500 mt-1">{{ $categoryCount }} {{ $categoryCount === 1 ? 'event' : 'events' }}</p>
-            </a>
-            @endforeach
+            @endif
         </div>
     </div>
-    @endif
-    </div>
-</div>
 @endsection
