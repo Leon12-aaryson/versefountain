@@ -8,7 +8,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Box Icons -->
-    <script src="https://unpkg.com/boxicons@2.1.4/dist/boxicons.js"></script>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <!-- Alpine.js for dropdown functionality -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @yield('head')
@@ -78,68 +78,50 @@
             <nav class="flex-1 px-4 py-6 space-y-2">
                 <div class="space-y-1">
                     <a href="/" class="flex items-center px-3 py-2 text-sm font-normal {{ request()->is('/') ? 'text-gray-900 border-l-2 border-gray-800' : 'text-gray-600 hover:text-gray-900' }}">
-                        <svg class="mr-3 h-5 w-5 {{ request()->is('/') ? 'text-gray-800' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                        </svg>
+                        <i class="bx bx-home mr-3 text-lg {{ request()->is('/') ? 'text-gray-800' : 'text-gray-400' }}"></i>
                         Home
                     </a>
                     
                     <a href="/poetry" class="flex items-center px-3 py-2 text-sm font-normal {{ request()->is('poetry*') ? 'text-gray-900 border-l-2 border-gray-800' : 'text-gray-600 hover:text-gray-900' }}">
-                        <svg class="mr-3 h-5 w-5 {{ request()->is('poetry*') ? 'text-gray-800' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
+                        <i class="bx bx-file mr-3 text-lg {{ request()->is('poetry*') ? 'text-gray-800' : 'text-gray-400' }}"></i>
                         Poetry
                     </a>
                     
                     <a href="/books" class="flex items-center px-3 py-2 text-sm font-normal {{ request()->is('books*') ? 'text-gray-900 border-l-2 border-gray-800' : 'text-gray-600 hover:text-gray-900' }}">
-                        <svg class="mr-3 h-5 w-5 {{ request()->is('books*') ? 'text-gray-800' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                        </svg>
+                        <i class="bx bx-book mr-3 text-lg {{ request()->is('books*') ? 'text-gray-800' : 'text-gray-400' }}"></i>
                         Books
                     </a>
                     
                     <a href="/academics" class="flex items-center px-3 py-2 text-sm font-normal {{ request()->is('academics*') ? 'text-gray-900 border-l-2 border-gray-800' : 'text-gray-600 hover:text-gray-900' }}">
-                        <svg class="mr-3 h-5 w-5 {{ request()->is('academics*') ? 'text-gray-800' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                        </svg>
+                        <i class="bx bx-book-reader mr-3 text-lg {{ request()->is('academics*') ? 'text-gray-800' : 'text-gray-400' }}"></i>
                         Academics
                     </a>
                     
                     @auth
                         <a href="{{ route('chatrooms.index') }}" class="flex items-center px-3 py-2 text-sm font-normal {{ request()->is('chat*') ? 'text-gray-900 border-l-2 border-gray-800' : 'text-gray-600 hover:text-gray-900' }}">
-                            <svg class="mr-3 h-5 w-5 {{ request()->is('chat*') ? 'text-gray-800' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                            </svg>
+                            <i class="bx bx-chat mr-3 text-lg {{ request()->is('chat*') ? 'text-gray-800' : 'text-gray-400' }}"></i>
                             Chatrooms
                         </a>
                     @endauth
                     
                     <a href="/events" class="flex items-center px-3 py-2 text-sm font-normal {{ request()->is('events*') ? 'text-gray-900 border-l-2 border-gray-800' : 'text-gray-600 hover:text-gray-900' }}">
-                        <svg class="mr-3 h-5 w-5 {{ request()->is('events*') ? 'text-gray-800' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
+                        <i class="bx bx-calendar mr-3 text-lg {{ request()->is('events*') ? 'text-gray-800' : 'text-gray-400' }}"></i>
                         Events
                     </a>
                     
                     @auth
                         <a href="/tickets" class="flex items-center px-3 py-2 text-sm font-normal {{ request()->is('tickets*') ? 'text-gray-900 border-l-2 border-gray-800' : 'text-gray-600 hover:text-gray-900' }}">
-                            <svg class="mr-3 h-5 w-5 {{ request()->is('tickets*') ? 'text-gray-800' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
-                            </svg>
+                            <i class="bx bx-ticket mr-3 text-lg {{ request()->is('tickets*') ? 'text-gray-800' : 'text-gray-400' }}"></i>
                             Tickets
                         </a>
                         
                         <a href="/profile" class="flex items-center px-3 py-2 text-sm font-normal {{ request()->is('profile*') ? 'text-gray-900 border-l-2 border-gray-800' : 'text-gray-600 hover:text-gray-900' }}">
-                            <svg class="mr-3 h-5 w-5 {{ request()->is('profile*') ? 'text-gray-800' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
+                            <i class="bx bx-user mr-3 text-lg {{ request()->is('profile*') ? 'text-gray-800' : 'text-gray-400' }}"></i>
                             Profile
                         </a>
                     @else
                         <a href="/login" class="flex items-center px-3 py-2 text-sm font-normal text-gray-600 hover:text-gray-900">
-                            <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
-                            </svg>
+                            <i class="bx bx-log-in mr-3 text-lg text-gray-400"></i>
                             Login
                         </a>
                     @endauth
@@ -157,55 +139,39 @@
     <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
         <div class="flex justify-around py-1 px-1">
             <a href="/" class="flex flex-col items-center py-1 px-1 {{ request()->is('/') ? 'text-gray-900' : 'text-gray-600' }}">
-                <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                </svg>
+                <i class="bx bx-home text-lg mb-0.5"></i>
                 <span class="text-xs leading-tight">Home</span>
             </a>
             <a href="/poetry" class="flex flex-col items-center py-1 px-1 {{ request()->is('poetry*') ? 'text-gray-900' : 'text-gray-600' }}">
-                <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
+                <i class="bx bx-file text-lg mb-0.5"></i>
                 <span class="text-xs leading-tight">Poetry</span>
             </a>
             <a href="/books" class="flex flex-col items-center py-1 px-1 {{ request()->is('books*') ? 'text-gray-900' : 'text-gray-600' }}">
-                <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                </svg>
+                <i class="bx bx-book text-lg mb-0.5"></i>
                 <span class="text-xs leading-tight">Books</span>
             </a>
             <a href="/academics" class="flex flex-col items-center py-1 px-1 {{ request()->is('academics*') ? 'text-gray-900' : 'text-gray-600' }}">
-                <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                </svg>
+                <i class="bx bx-book-reader text-lg mb-0.5"></i>
                 <span class="text-xs leading-tight">Academics</span>
             </a>
             @auth
                 <a href="{{ route('chatrooms.index') }}" class="flex flex-col items-center py-1 px-1 {{ request()->is('chat*') ? 'text-gray-900' : 'text-gray-600' }}">
-                    <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                    </svg>
+                    <i class="bx bx-chat text-lg mb-0.5"></i>
                     <span class="text-xs leading-tight">Chat</span>
                 </a>
             @endauth
             <a href="/events" class="flex flex-col items-center py-1 px-1 {{ request()->is('events*') ? 'text-gray-900' : 'text-gray-600' }}">
-                <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                </svg>
+                <i class="bx bx-calendar text-lg mb-0.5"></i>
                 <span class="text-xs leading-tight">Events</span>
             </a>
             @auth
                 <a href="/profile" class="flex flex-col items-center py-1 px-1 {{ request()->is('profile*') ? 'text-gray-900' : 'text-gray-600' }}">
-                    <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                    </svg>
+                    <i class="bx bx-user text-lg mb-0.5"></i>
                     <span class="text-xs leading-tight">Profile</span>
                 </a>
             @else
                 <a href="/login" class="flex flex-col items-center py-1 px-1 text-gray-600">
-                    <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
-                    </svg>
+                    <i class="bx bx-log-in text-lg mb-0.5"></i>
                     <span class="text-xs leading-tight">Login</span>
                 </a>
             @endauth

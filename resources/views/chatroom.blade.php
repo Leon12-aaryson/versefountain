@@ -16,9 +16,7 @@
                 <div class="flex items-center space-x-4">
                     <a href="{{ route('chatrooms.index') }}" 
                        class="text-gray-600 hover:text-gray-900 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                        </svg>
+                        <i class="bx bx-arrow-back text-xl"></i>
                     </a>
                     <div>
                         <h1 class="text-xl sm:text-2xl font-light text-gray-800 tracking-wide">{{ $chatroom->name }}</h1>

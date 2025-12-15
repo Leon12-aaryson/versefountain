@@ -20,10 +20,7 @@
                         <div class="mt-4 sm:mt-0">
                             <a href="/poetry/create"
                                 class="inline-flex items-center px-5 py-2.5 bg-gray-800 text-white text-sm font-normal rounded-sm hover:bg-gray-700 transition-colors">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
-                                    </path>
-                                </svg>
+                                <i class="bx bx-plus text-base mr-2"></i>
                                 Create Poem
                             </a>
                         </div>
@@ -41,10 +38,7 @@
                             <input type="text" id="search" placeholder="Search by title, author, or content..."
                                 class="w-full pl-9 pr-3 py-2 border border-gray-300 focus:border-gray-500 text-sm bg-white focus:outline-none">
                             <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
+                                <i class="bx bx-search text-base text-gray-400"></i>
                             </div>
                         </div>
                     </div>
@@ -163,17 +157,13 @@
                                 <div class="flex items-center space-x-4 text-xs text-gray-500">
                                     <!-- Likes -->
                                     <div class="flex items-center space-x-1">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                                        </svg>
+                                        <i class="bx bx-heart text-sm"></i>
                                         <span>{{ $poem['likes'] }}</span>
                                     </div>
                                     
                                     <!-- Comments -->
                                     <div class="flex items-center space-x-1">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                                        </svg>
+                                        <i class="bx bx-comment text-sm"></i>
                                         <span>{{ $poem['comments'] }}</span>
                                     </div>
                                 </div>

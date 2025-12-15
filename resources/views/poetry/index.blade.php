@@ -16,9 +16,7 @@
                 <div class="mb-6">
                     <a href="{{ route('poetry.create') }}" 
                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
+                        <i class="bx bx-plus text-base mr-2"></i>
                         Create New Poem
                     </a>
                 </div>
@@ -51,9 +49,7 @@
                                     @if(Auth::id() === $poem->author_id)
                                         <div class="relative" x-data="{ open: false }">
                                             <button @click="open = !open" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
-                                                </svg>
+                                                <i class="bx bx-dots-vertical-rounded text-base"></i>
                                             </button>
                                             
                                             <div x-show="open" 
@@ -89,17 +85,13 @@
                                     <button @click="toggleLike()" 
                                             :class="isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'"
                                             class="flex items-center space-x-1 text-sm transition-colors">
-                                        <svg class="w-4 h-4" :class="isLiked ? 'fill-current' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                                        </svg>
+                                        <i :class="isLiked ? 'bx bxs-heart' : 'bx bx-heart'" class="text-base"></i>
                                         <span x-text="likesCount">{{ $poem->userInteractions->where('type', 'like')->count() }}</span>
                                     </button>
 
                                     <!-- Comment Count -->
                                     <div class="flex items-center space-x-1 text-gray-500 dark:text-gray-400 text-sm">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                                        </svg>
+                                        <i class="bx bx-comment text-base"></i>
                                         <span>{{ $poem->comments->count() }}</span>
                                     </div>
 
@@ -109,9 +101,7 @@
                                             $avgRating = $poem->userInteractions->where('type', 'rating')->avg('rating') ?? 0;
                                         @endphp
                                         @for($i = 1; $i <= 5; $i++)
-                                            <svg class="w-3 h-3 text-yellow-400" :class="$i <= {{ $avgRating }} ? 'fill-current' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
-                                            </svg>
+                                            <i class="bx {{ $i <= $avgRating ? 'bxs-star text-yellow-400' : 'bx-star text-gray-300' }} text-xs"></i>
                                         @endfor
                                     </div>
                                 </div>

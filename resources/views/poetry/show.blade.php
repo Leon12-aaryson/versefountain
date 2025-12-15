@@ -3,20 +3,65 @@
 @section('title', ($poem->title ?? 'Poem') . ' - VerseFountain')
 
 @section('content')
-<div class="min-h-screen bg-stone-50">
+<div class="min-h-screen bg-stone-50" x-data="{ flashMessage: { show: false, message: '', type: 'success' } }" id="poetry-show-container">
+    <!-- Flash Messages -->
+    <div x-show="flashMessage.show" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform translate-y-2"
+         x-transition:enter-end="opacity-100 transform translate-y-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 transform translate-y-0"
+         x-transition:leave-end="opacity-0 transform translate-y-2"
+         class="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full px-4"
+         style="display: none;">
+        <div x-bind:class="flashMessage.type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-red-50 border border-red-200 text-red-800'"
+             class="p-4 rounded-lg shadow-lg flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <i x-bind:class="flashMessage.type === 'success' ? 'bx bx-check-circle text-lg' : 'bx bx-error-circle text-lg'"></i>
+                <span x-text="flashMessage.message" class="text-sm font-normal"></span>
+            </div>
+            <button @click="flashMessage.show = false" class="ml-4 text-gray-400 hover:text-gray-600">
+                <i class="bx bx-x text-lg"></i>
+            </button>
+        </div>
+    </div>
+
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <!-- Back Button -->
         <div class="mb-6">
             <a href="{{ route('poetry.index') }}" 
                class="inline-flex items-center text-gray-600 hover:text-gray-900 text-sm font-normal">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                </svg>
+                <i class="bx bx-arrow-back text-base mr-1"></i>
                 Back to poems
             </a>
         </div>
 
         <div class="max-w-4xl mx-auto">
+            <!-- Server-side Flash Messages -->
+            @if(session('success'))
+                <div class="mb-4 p-4 bg-green-50 border border-green-200 text-green-800 rounded-lg flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="bx bx-check-circle text-lg"></i>
+                        <span class="text-sm font-normal">{{ session('success') }}</span>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="ml-4 text-green-600 hover:text-green-800">
+                        <i class="bx bx-x text-lg"></i>
+                    </button>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="mb-4 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="bx bx-error-circle text-lg"></i>
+                        <span class="text-sm font-normal">{{ session('error') }}</span>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="ml-4 text-red-600 hover:text-red-800">
+                        <i class="bx bx-x text-lg"></i>
+                    </button>
+                </div>
+            @endif
+
             <div class="bg-white border border-gray-200"
                  x-data="poemDetail({{ $poem->id }}, {{ $isLiked ? 'true' : 'false' }})">
                 
@@ -201,6 +246,46 @@
     const poetryIndexUrl = "{{ route('poetry.index') }}";
     const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
     
+    // Flash message function
+    function showFlashMessage(message, type = 'success') {
+        // Find the Alpine.js component
+        const container = document.getElementById('poetry-show-container');
+        if (container && container.__x) {
+            const alpineData = container.__x.$data;
+            alpineData.flashMessage.show = true;
+            alpineData.flashMessage.message = message;
+            alpineData.flashMessage.type = type;
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                alpineData.flashMessage.show = false;
+            }, 5000);
+        } else {
+            // Fallback: create flash message element
+            const flashDiv = document.createElement('div');
+            flashDiv.className = `fixed top-16 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full px-4`;
+            flashDiv.innerHTML = `
+                <div class="p-4 rounded-lg shadow-lg flex items-center justify-between ${type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-red-50 border border-red-200 text-red-800'}">
+                    <div class="flex items-center space-x-2">
+                        <i class="bx ${type === 'success' ? 'bx-check-circle' : 'bx-error-circle'} text-lg"></i>
+                        <span class="text-sm font-normal">${message}</span>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 ${type === 'success' ? 'text-green-600 hover:text-green-800' : 'text-red-600 hover:text-red-800'}">
+                        <i class="bx bx-x text-lg"></i>
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(flashDiv);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (flashDiv.parentElement) {
+                    flashDiv.remove();
+                }
+            }, 5000);
+        }
+    }
+    
     function poemDetail(poemId, initialLiked) {
         return {
             poemId: poemId,
@@ -239,9 +324,10 @@
                     const data = await response.json();
                     this.isLiked = data.liked;
                     this.likesCount = data.likes_count;
+                    showFlashMessage(data.liked ? 'Poem liked!' : 'Like removed.', 'success');
                 } catch (error) {
                     console.error('Error toggling like:', error);
-                    alert('Failed to toggle like. Please try again.');
+                    showFlashMessage('Failed to toggle like. Please try again.', 'error');
                 }
             },
             
@@ -274,11 +360,12 @@
                     
                     const data = await response.json();
                     this.currentRating = data.rating;
+                    showFlashMessage(`Rated ${rating} star${rating > 1 ? 's' : ''}!`, 'success');
                     // Update the rating display without reload
-                    location.reload();
+                    setTimeout(() => location.reload(), 1000);
                 } catch (error) {
                     console.error('Error rating poem:', error);
-                    alert('Failed to rate poem. Please try again.');
+                    showFlashMessage('Failed to rate poem. Please try again.', 'error');
                 }
             },
             
@@ -307,10 +394,11 @@
                     }
                     
                     this.newComment = '';
-                    window.location.reload();
+                    showFlashMessage('Comment added successfully!', 'success');
+                    setTimeout(() => window.location.reload(), 1000);
                 } catch (error) {
                     console.error('Error submitting comment:', error);
-                    alert('Failed to submit comment. Please try again.');
+                    showFlashMessage('Failed to submit comment. Please try again.', 'error');
                 }
             },
             
@@ -329,13 +417,14 @@
                     });
                     
                     if (response.ok) {
-                        window.location.href = poetryIndexUrl;
+                        showFlashMessage('Poem deleted successfully!', 'success');
+                        setTimeout(() => window.location.href = poetryIndexUrl, 1000);
                     } else {
-                        alert('Failed to delete poem');
+                        showFlashMessage('Failed to delete poem.', 'error');
                     }
                 } catch (error) {
                     console.error('Error deleting poem:', error);
-                    alert('Failed to delete poem');
+                    showFlashMessage('Failed to delete poem.', 'error');
                 }
             },
             
@@ -357,9 +446,9 @@
                         await navigator.clipboard.writeText(
                             poemData.title + '\n\n' + poemData.text + '\n\n' + poemData.url + '\n\nShared from VerseFountain'
                         );
-                        alert('Poem content copied to clipboard!');
+                        showFlashMessage('Poem content copied to clipboard!', 'success');
                     } catch (error) {
-                        alert('Failed to share poem');
+                        showFlashMessage('Failed to share poem.', 'error');
                     }
                 }
             }
