@@ -11,7 +11,52 @@ use Illuminate\Validation\Rule;
 class AcademicResourceController extends Controller
 {
     /**
-     * Retrieve a list of all academic resources.
+     * Display a listing of academic resources (Blade view)
+     */
+    public function indexWeb(Request $request)
+    {
+        $query = AcademicResource::query();
+
+        // Apply filters
+        if ($request->has('type') && $request->type) {
+            $query->where('type', $request->type);
+        }
+        if ($request->has('subject') && $request->subject) {
+            $query->where('subject', $request->subject);
+        }
+        if ($request->has('gradeLevel') && $request->gradeLevel) {
+            $query->where('gradeLevel', $request->gradeLevel);
+        }
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%')
+                  ->orWhere('subject', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Get featured resources (most recent, limit 3)
+        $featuredResources = AcademicResource::latest()
+            ->take(3)
+            ->get();
+
+        // Get recent papers (paginated)
+        $recentPapers = $query->latest()
+            ->paginate(12);
+
+        // Get unique subjects for category counts
+        $subjects = AcademicResource::select('subject')
+            ->whereNotNull('subject')
+            ->distinct()
+            ->get()
+            ->pluck('subject');
+
+        return view('academics', compact('featuredResources', 'recentPapers', 'subjects'));
+    }
+
+    /**
+     * Retrieve a list of all academic resources (API).
      */
     public function index(Request $request)
     {
@@ -27,7 +72,7 @@ class AcademicResourceController extends Controller
         }
         if ($request->has('gradeLevel')) {
             $request->validate(['gradeLevel' => 'string']);
-            $query->where('gradeLevel', $request->gradeLevel);
+            $query->where('grade_level', $request->gradeLevel);
         }
 
         $limit = $request->input('limit', 10);

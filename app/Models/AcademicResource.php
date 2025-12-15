@@ -15,8 +15,8 @@ class AcademicResource extends Model
         'description',
         'type',
         'subject',
-        'grade_level', // Updated to snake_case
+        'gradeLevel',
         'language',
-        'resource_url', // Updated to snake_case
+        'resourceUrl',
     ];
 }

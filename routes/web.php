@@ -58,9 +58,7 @@ Route::get('/books', function () {
 
 Route::get('/books/{book}', [App\Http\Controllers\BookController::class, 'showWeb'])->name('books.show');
 
-Route::get('/academics', function () {
-    return view('academics');
-})->name('academics.index');
+Route::get('/academics', [AcademicResourceController::class, 'indexWeb'])->name('academics.index');
 
 Route::get('/academics/{resource}', [App\Http\Controllers\AcademicResourceController::class, 'showWeb'])->name('academics.show');
 Route::get('/academics/{resource}/download', [App\Http\Controllers\AcademicResourceController::class, 'download'])->name('academics.download');
