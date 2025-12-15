@@ -142,9 +142,15 @@
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-500">{{ $event['date'] }}</span>
-                        <button class="px-3 py-1 bg-gray-800 text-white text-xs font-normal hover:bg-gray-700 transition-colors">
-                            Register
-                        </button>
+                        @auth
+                            <a href="{{ route('tickets.index') }}?event={{ $event['slug'] }}" class="px-3 py-1 bg-gray-800 text-white text-xs font-normal hover:bg-gray-700 transition-colors inline-block">
+                                Register
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="px-3 py-1 bg-gray-800 text-white text-xs font-normal hover:bg-gray-700 transition-colors inline-block">
+                                Register
+                            </a>
+                        @endauth
                     </div>
                 </div>
             </div>
@@ -180,9 +186,15 @@
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-xs text-gray-500">{{ $event['date'] }}</span>
-                            <button class="px-3 py-1 bg-gray-800 text-white text-xs font-normal hover:bg-gray-700 transition-colors">
-                                Register
-                            </button>
+                            @auth
+                                <a href="/tickets" class="px-3 py-1 bg-gray-800 text-white text-xs font-normal hover:bg-gray-700 transition-colors inline-block">
+                                    Register
+                                </a>
+                            @else
+                                <a href="{{ route('login') }}" class="px-3 py-1 bg-gray-800 text-white text-xs font-normal hover:bg-gray-700 transition-colors inline-block">
+                                    Register
+                                </a>
+                            @endauth
                         </div>
                     </div>
                 </div>

@@ -48,11 +48,71 @@ class BookController extends Controller
     }
 
     /**
-     * Retrieve a single book by its ID.
+     * Retrieve a single book by its ID (API).
      */
     public function show(Book $book)
     {
         return response()->json($book);
+    }
+
+    /**
+     * Display the specified book (Blade view).
+     */
+    public function showWeb($identifier)
+    {
+        // Hardcoded books data (matching books.blade.php)
+        $hardcodedBooks = [
+            'great-gatsby' => [
+                'title' => 'The Great Gatsby',
+                'author' => 'F. Scott Fitzgerald',
+                'genre' => 'Fiction',
+                'description' => 'A classic American novel set in the Jazz Age, exploring themes of wealth, love, and the American Dream through the eyes of Nick Carraway and his mysterious neighbor Jay Gatsby.',
+            ],
+            'midnight-library' => [
+                'title' => 'The Midnight Library',
+                'author' => 'Matt Haig',
+                'genre' => 'Fiction',
+                'description' => 'A thought-provoking novel about a library between life and death where every book represents a different life you could have lived.',
+            ],
+        ];
+
+        // Try to find by ID first
+        $book = null;
+        if (is_numeric($identifier)) {
+            $book = Book::find($identifier);
+        }
+
+        // If not found by ID, check hardcoded books
+        if (!$book && isset($hardcodedBooks[$identifier])) {
+            $bookData = $hardcodedBooks[$identifier];
+            $book = (object) [
+                'id' => 0,
+                'title' => $bookData['title'],
+                'author' => $bookData['author'],
+                'genre' => $bookData['genre'],
+                'description' => $bookData['description'],
+                'created_at' => now(),
+            ];
+        } else if (!$book) {
+            // Try to find by title in database
+            $title = str_replace('-', ' ', $identifier);
+            $title = ucwords($title);
+            $book = Book::where('title', 'like', '%' . $title . '%')->first();
+        }
+
+        // If still not found, create a basic mock
+        if (!$book) {
+            $book = (object) [
+                'id' => 0,
+                'title' => ucwords(str_replace('-', ' ', $identifier)),
+                'author' => 'Unknown',
+                'genre' => 'General',
+                'description' => 'This book is not yet available in our database.',
+                'created_at' => now(),
+            ];
+        }
+
+        return view('books.show', compact('book'));
     }
 
     /**

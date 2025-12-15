@@ -34,11 +34,16 @@ Route::get('/poetry/{poem}/edit', function ($poem) {
 
 Route::get('/books', function () {
     return view('books');
-});
+})->name('books.index');
+
+Route::get('/books/{book}', [App\Http\Controllers\BookController::class, 'showWeb'])->name('books.show');
 
 Route::get('/academics', function () {
     return view('academics');
-});
+})->name('academics.index');
+
+Route::get('/academics/{resource}', [App\Http\Controllers\AcademicResourceController::class, 'showWeb'])->name('academics.show');
+Route::get('/academics/{resource}/download', [App\Http\Controllers\AcademicResourceController::class, 'download'])->name('academics.download');
 
 Route::get('/events', function () {
     return view('events');
