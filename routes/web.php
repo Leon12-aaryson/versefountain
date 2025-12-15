@@ -73,7 +73,7 @@ Route::middleware('auth')->group(function () {
     
     Route::get('/tickets', function () {
         return view('tickets');
-    });
+    })->name('tickets.index');
     
     // Admin Dashboard Route
     Route::get('/admin-dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
