@@ -263,6 +263,31 @@ class PoemController extends Controller
     }
 
     /**
+     * Unlike a poem (API)
+     */
+    public function unlike(Poem $poem)
+    {
+        $user = Auth::user();
+        $existingLike = UserPoem::where('user_id', $user->id)
+            ->where('poem_id', $poem->id)
+            ->where('type', 'like')
+            ->first();
+
+        if ($existingLike) {
+            $existingLike->delete();
+        }
+
+        $likesCount = UserPoem::where('poem_id', $poem->id)
+            ->where('type', 'like')
+            ->count();
+
+        return response()->json([
+            'liked' => false,
+            'likes_count' => $likesCount,
+        ]);
+    }
+
+    /**
      * Rate a poem (API)
      */
     public function rate(Request $request, Poem $poem)
@@ -316,6 +341,20 @@ class PoemController extends Controller
             ->get();
 
         return response()->json($poems);
+    }
+
+    /**
+     * Get like count for a poem (API)
+     */
+    public function getLikeCount(Poem $poem)
+    {
+        $likesCount = UserPoem::where('poem_id', $poem->id)
+            ->where('type', 'like')
+            ->count();
+
+        return response()->json([
+            'likes_count' => $likesCount,
+        ]);
     }
 
     /**
