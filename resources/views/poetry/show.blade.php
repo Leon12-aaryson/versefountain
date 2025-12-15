@@ -430,25 +430,71 @@
             
             async sharePoem() {
                 const poemData = {
-                    title: poemTitle,
-                    text: poemContent,
+                    title: poemTitle || 'Poem from VerseFountain',
+                    text: poemContent || 'Check out this poem on VerseFountain',
                     url: window.location.href
                 };
                 
+                // Try Web Share API first (works on mobile and modern browsers)
+                // Note: Web Share API requires HTTPS (or localhost)
                 if (navigator.share) {
                     try {
+                        // Check if canShare exists and validate data
+                        if (navigator.canShare) {
+                            if (!navigator.canShare(poemData)) {
+                                throw new Error('Cannot share this data');
+                            }
+                        }
                         await navigator.share(poemData);
+                        showFlashMessage('Poem shared successfully!', 'success');
+                        return;
                     } catch (error) {
-                        console.log('Share cancelled');
+                        // User cancelled or error occurred
+                        if (error.name === 'AbortError' || error.name === 'NotAllowedError') {
+                            // User cancelled, don't show error
+                            return;
+                        }
+                        console.error('Share error:', error);
+                        // Fall through to clipboard fallback
                     }
-                } else {
-                    try {
-                        await navigator.clipboard.writeText(
-                            poemData.title + '\n\n' + poemData.text + '\n\n' + poemData.url + '\n\nShared from VerseFountain'
-                        );
-                        showFlashMessage('Poem content copied to clipboard!', 'success');
-                    } catch (error) {
-                        showFlashMessage('Failed to share poem.', 'error');
+                }
+                
+                // Fallback to clipboard
+                try {
+                    const shareText = `${poemData.title}\n\n${poemData.text}\n\n${poemData.url}\n\nShared from VerseFountain`;
+                    
+                    // Check if clipboard API is available
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(shareText);
+                        showFlashMessage('Poem link copied to clipboard!', 'success');
+                    } else {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = shareText;
+                        textArea.style.position = 'fixed';
+                        textArea.style.left = '-999999px';
+                        textArea.style.top = '-999999px';
+                        document.body.appendChild(textArea);
+                        textArea.focus();
+                        textArea.select();
+                        
+                        try {
+                            document.execCommand('copy');
+                            showFlashMessage('Poem link copied to clipboard!', 'success');
+                        } catch (err) {
+                            console.error('Copy failed:', err);
+                            showFlashMessage('Unable to copy. Please copy the URL manually.', 'error');
+                        }
+                        
+                        document.body.removeChild(textArea);
+                    }
+                } catch (error) {
+                    console.error('Clipboard error:', error);
+                    // Last resort: show the URL in an alert or prompt
+                    const shareUrl = window.location.href;
+                    if (confirm(`Share this poem:\n\n${poemTitle}\n\nCopy this URL to share:\n${shareUrl}`)) {
+                        // Try one more time with prompt
+                        prompt('Copy this URL:', shareUrl);
                     }
                 }
             }
