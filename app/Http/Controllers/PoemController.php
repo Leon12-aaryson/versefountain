@@ -21,7 +21,7 @@ class PoemController extends Controller
             ->latest()
             ->paginate(12);
 
-        return view('poetry.index', compact('poems'));
+        return view('poetry', compact('poems'));
     }
 
     /**
@@ -313,10 +313,15 @@ class PoemController extends Controller
         $avgRating = UserPoem::where('poem_id', $poem->id)
             ->where('type', 'rating')
             ->avg('rating');
+        
+        $ratingCount = UserPoem::where('poem_id', $poem->id)
+            ->where('type', 'rating')
+            ->count();
 
         return response()->json([
             'rating' => $validated['rating'],
             'average_rating' => round($avgRating, 1),
+            'rating_count' => $ratingCount,
         ]);
     }
 
@@ -366,10 +371,25 @@ class PoemController extends Controller
         $userInteraction = UserPoem::where('user_id', $user->id)
             ->where('poem_id', $poem->id)
             ->first();
+        
+        $userRating = UserPoem::where('user_id', $user->id)
+            ->where('poem_id', $poem->id)
+            ->where('type', 'rating')
+            ->first();
+        
+        $avgRating = UserPoem::where('poem_id', $poem->id)
+            ->where('type', 'rating')
+            ->avg('rating');
+        
+        $ratingCount = UserPoem::where('poem_id', $poem->id)
+            ->where('type', 'rating')
+            ->count();
 
         return response()->json([
             'liked' => $userInteraction && $userInteraction->type === 'like',
-            'rating' => $userInteraction && $userInteraction->type === 'rating' ? $userInteraction->rating : null,
+            'rating' => $userRating ? $userRating->rating : 0,
+            'average_rating' => round($avgRating ?? 0, 1),
+            'rating_count' => $ratingCount,
         ]);
     }
 }

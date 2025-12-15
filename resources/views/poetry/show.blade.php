@@ -63,7 +63,8 @@
             @endif
 
             <div class="bg-white border border-gray-200"
-                 x-data="poemDetail({{ $poem->id }}, {{ $isLiked ? 'true' : 'false' }})">
+                 x-data="poemDetail({{ $poem->id }}, {{ $isLiked ? 'true' : 'false' }})"
+                 @click.outside="showShareMenu = false">
                 
                 <!-- Header -->
                 <div class="p-6 sm:p-8 border-b border-gray-200">
@@ -142,29 +143,68 @@
                             </button>
 
                             <!-- Rating -->
-                            <div class="flex items-center space-x-1">
-                                @php
-                                    $avgRating = $poem->userInteractions->where('type', 'rating')->avg('rating') ?? 0;
-                                    $ratingCount = $poem->userInteractions->where('type', 'rating')->count();
-                                @endphp
+                            <div class="flex items-center space-x-1" x-data="{ hoverRating: 0 }">
                                 @for($i = 1; $i <= 5; $i++)
                                     <button @click="ratePoem({{ $i }})" 
-                                            class="text-gray-400 hover:text-gray-600 transition-colors">
-                                        <i x-bind:class="currentRating >= {{ $i }} ? 'bx bxs-star text-yellow-500' : 'bx bx-star'" class="text-base"></i>
+                                            @mouseenter="hoverRating = {{ $i }}"
+                                            @mouseleave="hoverRating = 0"
+                                            class="transition-colors cursor-pointer"
+                                            :class="(hoverRating >= {{ $i }} || currentRating >= {{ $i }}) ? 'text-yellow-500' : 'text-gray-400 hover:text-yellow-400'">
+                                        <i :class="(hoverRating >= {{ $i }} || currentRating >= {{ $i }}) ? 'bx bxs-star' : 'bx bx-star'" class="text-base"></i>
                                     </button>
                                 @endfor
-                                <span class="text-xs text-gray-500 ml-2">
-                                    {{ number_format($avgRating, 1) }} ({{ $ratingCount }})
+                                <span class="text-xs text-gray-500 ml-2" x-text="`${avgRating} (${ratingCount})`">
+                                    {{ number_format($poem->userInteractions->where('type', 'rating')->avg('rating') ?? 0, 1) }} ({{ $poem->userInteractions->where('type', 'rating')->count() }})
                                 </span>
                             </div>
                         </div>
 
-                        <!-- Share Button -->
-                        <button @click="sharePoem()" 
-                                class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 text-sm font-normal transition-colors">
-                            <i class="bx bx-share-alt text-base"></i>
-                            <span>Share</span>
-                        </button>
+                        <!-- Share Button with Dropdown -->
+                        <div class="relative">
+                            <button @click="showShareMenu = !showShareMenu" 
+                                    class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 text-sm font-normal transition-colors">
+                                <i class="bx bx-share-alt text-base"></i>
+                                <span>Share</span>
+                            </button>
+                            
+                            <!-- Share Menu Dropdown -->
+                            <div x-show="showShareMenu" 
+                                 @click.outside="showShareMenu = false"
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="transform opacity-0 scale-95"
+                                 x-transition:enter-end="transform opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="transform opacity-100 scale-100"
+                                 x-transition:leave-end="transform opacity-0 scale-95"
+                                 class="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50"
+                                 style="display: none;">
+                                <button @click="copyLink()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
+                                    <i class="bx bx-link text-base"></i>
+                                    <span>Copy Link</span>
+                                </button>
+                                <button @click="shareToTwitter()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
+                                    <i class="bx bxl-twitter text-base text-blue-400"></i>
+                                    <span>Share on Twitter</span>
+                                </button>
+                                <button @click="shareToFacebook()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
+                                    <i class="bx bxl-facebook text-base text-blue-600"></i>
+                                    <span>Share on Facebook</span>
+                                </button>
+                                <button @click="shareToWhatsApp()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
+                                    <i class="bx bxl-whatsapp text-base text-green-500"></i>
+                                    <span>Share on WhatsApp</span>
+                                </button>
+                                <button @click="shareViaEmail()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
+                                    <i class="bx bx-envelope text-base"></i>
+                                    <span>Share via Email</span>
+                                </button>
+                                <div class="border-t border-gray-200 my-1"></div>
+                                <button @click="shareViaNative()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
+                                    <i class="bx bx-share text-base"></i>
+                                    <span>More Options...</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -291,9 +331,20 @@
             poemId: poemId,
             isLiked: initialLiked,
             likesCount: {{ $poem->userInteractions->where('type', 'like')->count() ?? 0 }},
-            currentRating: {{ round($poem->userInteractions->where('type', 'rating')->avg('rating') ?? 0) }},
+            currentRating: @php
+                $userRating = 0;
+                if (auth()->check() && isset($poem->id) && $poem->id > 0) {
+                    $userRatingInteraction = $poem->userInteractions->where('user_id', auth()->id())->where('type', 'rating')->first();
+                    $userRating = $userRatingInteraction ? $userRatingInteraction->rating : 0;
+                }
+                echo $userRating;
+            @endphp,
+            avgRating: {{ number_format($poem->userInteractions->where('type', 'rating')->avg('rating') ?? 0, 1) }},
+            ratingCount: {{ $poem->userInteractions->where('type', 'rating')->count() }},
             showComments: false,
             newComment: '',
+            showShareMenu: false,
+            poemUrl: window.location.href,
             
             async toggleLike() {
                 if (!isAuthenticated) {
@@ -359,10 +410,15 @@
                     }
                     
                     const data = await response.json();
-                    this.currentRating = data.rating;
+                    
+                    // Update the user's rating immediately
+                    this.currentRating = parseInt(data.rating);
+                    this.avgRating = parseFloat(data.average_rating).toFixed(1);
+                    if (data.rating_count !== undefined) {
+                        this.ratingCount = parseInt(data.rating_count);
+                    }
+                    
                     showFlashMessage(`Rated ${rating} star${rating > 1 ? 's' : ''}!`, 'success');
-                    // Update the rating display without reload
-                    setTimeout(() => location.reload(), 1000);
                 } catch (error) {
                     console.error('Error rating poem:', error);
                     showFlashMessage('Failed to rate poem. Please try again.', 'error');
@@ -428,75 +484,95 @@
                 }
             },
             
-            async sharePoem() {
+            copyLink() {
+                this.showShareMenu = false;
+                const url = window.location.href;
+                const shareText = `${poemTitle}\n\n${poemContent}\n\n${url}\n\nShared from VerseFountain`;
+                
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(() => {
+                        showFlashMessage('Link copied to clipboard!', 'success');
+                    }).catch(() => {
+                        this.fallbackCopy(url);
+                    });
+                } else {
+                    this.fallbackCopy(url);
+                }
+            },
+            
+            fallbackCopy(text) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                    document.execCommand('copy');
+                    showFlashMessage('Link copied to clipboard!', 'success');
+                } catch (err) {
+                    showFlashMessage('Unable to copy. Please copy manually: ' + text, 'error');
+                }
+                
+                document.body.removeChild(textArea);
+            },
+            
+            shareToTwitter() {
+                this.showShareMenu = false;
+                const url = encodeURIComponent(window.location.href);
+                const text = encodeURIComponent(`${poemTitle} - ${poemContent.substring(0, 100)}...`);
+                window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', 'width=550,height=420');
+            },
+            
+            shareToFacebook() {
+                this.showShareMenu = false;
+                const url = encodeURIComponent(window.location.href);
+                window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=550,height=420');
+            },
+            
+            shareToWhatsApp() {
+                this.showShareMenu = false;
+                const url = encodeURIComponent(window.location.href);
+                const text = encodeURIComponent(`${poemTitle}\n\n${poemContent.substring(0, 100)}...\n\n${window.location.href}`);
+                window.open(`https://wa.me/?text=${text}`, '_blank');
+            },
+            
+            shareViaEmail() {
+                this.showShareMenu = false;
+                const subject = encodeURIComponent(`Check out this poem: ${poemTitle}`);
+                const body = encodeURIComponent(`${poemContent}\n\nRead more: ${window.location.href}\n\nShared from VerseFountain`);
+                window.location.href = `mailto:?subject=${subject}&body=${body}`;
+            },
+            
+            async shareViaNative() {
+                this.showShareMenu = false;
                 const poemData = {
                     title: poemTitle || 'Poem from VerseFountain',
                     text: poemContent || 'Check out this poem on VerseFountain',
                     url: window.location.href
                 };
                 
-                // Try Web Share API first (works on mobile and modern browsers)
-                // Note: Web Share API requires HTTPS (or localhost)
                 if (navigator.share) {
                     try {
-                        // Check if canShare exists and validate data
-                        if (navigator.canShare) {
-                            if (!navigator.canShare(poemData)) {
-                                throw new Error('Cannot share this data');
-                            }
+                        if (navigator.canShare && !navigator.canShare(poemData)) {
+                            throw new Error('Cannot share this data');
                         }
                         await navigator.share(poemData);
                         showFlashMessage('Poem shared successfully!', 'success');
                         return;
                     } catch (error) {
-                        // User cancelled or error occurred
                         if (error.name === 'AbortError' || error.name === 'NotAllowedError') {
-                            // User cancelled, don't show error
                             return;
                         }
                         console.error('Share error:', error);
-                        // Fall through to clipboard fallback
                     }
                 }
                 
-                // Fallback to clipboard
-                try {
-                    const shareText = `${poemData.title}\n\n${poemData.text}\n\n${poemData.url}\n\nShared from VerseFountain`;
-                    
-                    // Check if clipboard API is available
-                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                        await navigator.clipboard.writeText(shareText);
-                        showFlashMessage('Poem link copied to clipboard!', 'success');
-                    } else {
-                        // Fallback for older browsers
-                        const textArea = document.createElement('textarea');
-                        textArea.value = shareText;
-                        textArea.style.position = 'fixed';
-                        textArea.style.left = '-999999px';
-                        textArea.style.top = '-999999px';
-                        document.body.appendChild(textArea);
-                        textArea.focus();
-                        textArea.select();
-                        
-                        try {
-                            document.execCommand('copy');
-                            showFlashMessage('Poem link copied to clipboard!', 'success');
-                        } catch (err) {
-                            console.error('Copy failed:', err);
-                            showFlashMessage('Unable to copy. Please copy the URL manually.', 'error');
-                        }
-                        
-                        document.body.removeChild(textArea);
-                    }
-                } catch (error) {
-                    console.error('Clipboard error:', error);
-                    // Last resort: show the URL in an alert or prompt
-                    const shareUrl = window.location.href;
-                    if (confirm(`Share this poem:\n\n${poemTitle}\n\nCopy this URL to share:\n${shareUrl}`)) {
-                        // Try one more time with prompt
-                        prompt('Copy this URL:', shareUrl);
-                    }
-                }
+                // Fallback to copy link
+                this.copyLink();
             }
         }
     }

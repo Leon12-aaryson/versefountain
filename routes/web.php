@@ -40,9 +40,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/poetry', function () {
-    return view('poetry');
-})->name('poetry.index');
+Route::get('/poetry', [PoemController::class, 'index'])->name('poetry.index');
 
 Route::get('/poetry/create', function () {
     return view('poetry.create');
@@ -77,7 +75,7 @@ Route::get('/api/user', function () {
     if (!$user) {
         return response()->json(['message' => 'Unauthenticated.'], 401);
     }
-    
+
     return response()->json([
         'user_id' => $user->id,
         'username' => $user->username,
@@ -113,12 +111,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
+
     // Password update route
     Route::put('/password', function () {
         return redirect()->route('profile.edit')->with('status', 'password-updated');
     })->name('password.update');
-    
+
     // Chat functionality
     Route::get('/chat/rooms', function () {
         return view('chatrooms');
@@ -128,14 +126,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/chat/rooms/{chatroom}/leave', [App\Http\Controllers\ChatRoomController::class, 'leaveRoom']);
     Route::post('/chat/rooms/{chatroom}/messages', [App\Http\Controllers\ChatMessageController::class, 'store']);
     Route::get('/chat/rooms/{chatroom}/messages', [App\Http\Controllers\ChatMessageController::class, 'index']);
-    
+
     Route::get('/tickets', function () {
         return view('tickets');
     })->name('tickets.index');
-    
+
     // Admin Dashboard Route
     Route::get('/admin-dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-    
+
     // API-style routes (returning JSON) - Authenticated routes
     // Poems
     Route::get('/api/poems/user', [PoemController::class, 'userPoems'])->name('api.poems.user');
@@ -240,4 +238,4 @@ Route::middleware(['auth'])->prefix('api/admin')->group(function () {
 Route::post('/api/paddle/webhook', [PaddleWebhookController::class, 'handleWebhook'])->name('api.paddle.webhook');
 
 // Auth Routes
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

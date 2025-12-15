@@ -72,120 +72,221 @@
                 </div>
             </div>
 
-            @php
-                $poems = [
-                    [
-                        'title' => 'The Road Not Taken',
-                        'author' => 'Robert Frost',
-                        'year' => '1916',
-                        'excerpt' => 'Two roads diverged in a yellow wood, And sorry I could not travel both And be one traveler, long I stood And looked down one as far as I could...',
-                        'likes' => '1.2k',
-                        'comments' => '45',
-                        'slug' => 'road-not-taken'
-                    ],
-                    [
-                        'title' => 'Sonnet 18',
-                        'author' => 'William Shakespeare',
-                        'year' => '1609',
-                        'excerpt' => 'Shall I compare thee to a summer\'s day? Thou art more lovely and more temperate: Rough winds do shake the darling buds of May...',
-                        'likes' => '2.1k',
-                        'comments' => '78',
-                        'slug' => 'sonnet-18'
-                    ],
-                    [
-                        'title' => 'Still I Rise',
-                        'author' => 'Maya Angelou',
-                        'year' => '1978',
-                        'excerpt' => 'You may write me down in history With your bitter, twisted lies, You may trod me in the very dirt But still, like dust, I\'ll rise...',
-                        'likes' => '3.4k',
-                        'comments' => '156',
-                        'slug' => 'still-i-rise'
-                    ],
-                    [
-                        'title' => 'Do Not Go Gentle',
-                        'author' => 'Dylan Thomas',
-                        'year' => '1951',
-                        'excerpt' => 'Do not go gentle into that good night, Old age should burn and rave at close of day; Rage, rage against the dying of the light...',
-                        'likes' => '892',
-                        'comments' => '23',
-                        'slug' => 'do-not-go-gentle'
-                    ],
-                    [
-                        'title' => 'The Waste Land',
-                        'author' => 'T.S. Eliot',
-                        'year' => '1922',
-                        'excerpt' => 'April is the cruellest month, breeding Lilacs out of the dead land, mixing Memory and desire, stirring Dull roots with spring rain...',
-                        'likes' => '567',
-                        'comments' => '34',
-                        'slug' => 'waste-land'
-                    ],
-                    [
-                        'title' => 'Howl',
-                        'author' => 'Allen Ginsberg',
-                        'year' => '1956',
-                        'excerpt' => 'I saw the best minds of my generation destroyed by madness, starving hysterical naked, dragging themselves through the negro streets...',
-                        'likes' => '1.8k',
-                        'comments' => '67',
-                        'slug' => 'howl'
-                    ]
-                ];
-            @endphp
-
             <!-- Poems Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
-                @foreach($poems as $poem)
-                    <div class="bg-white border border-gray-200 hover:border-gray-300 transition-colors">
+                @forelse($poems as $poem)
+                    <div class="bg-white border border-gray-200 hover:border-gray-300 transition-colors"
+                         x-data="poemCard({{ $poem->id }}, {{ auth()->check() && $poem->userInteractions->where('user_id', auth()->id())->where('type', 'like')->count() > 0 ? 'true' : 'false' }}, {{ auth()->check() ? ($poem->userInteractions->where('user_id', auth()->id())->where('type', 'rating')->first()?->rating ?? 0) : 0 }})">
                         <div class="p-6 sm:p-8">
                             <!-- Title -->
                             <h3 class="text-lg font-normal text-gray-900 mb-4 leading-snug">
-                                {{ $poem['title'] }}
+                                <a href="{{ route('poetry.show', $poem) }}" class="hover:text-gray-700">
+                                    {{ $poem->title }}
+                                </a>
                             </h3>
                             
                             <!-- Poem Excerpt -->
                             <p class="text-sm text-gray-700 mb-6 line-clamp-4 leading-relaxed font-light">
-                                {{ $poem['excerpt'] }}
+                                {{ Str::limit($poem->content, 150) }}
                             </p>
                             
                             <!-- Author and Year -->
                             <div class="mb-6 pb-6 border-b border-gray-200">
-                                <p class="text-xs text-gray-600 font-normal">{{ $poem['author'] }}</p>
-                                <p class="text-xs text-gray-500 mt-0.5">{{ $poem['year'] }}</p>
+                                <p class="text-xs text-gray-600 font-normal">{{ $poem->author->first_name ?? 'Anonymous' }} {{ $poem->author->last_name ?? '' }}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ $poem->created_at->format('Y') }}</p>
                             </div>
                             
                             <!-- Engagement Metrics and Read More -->
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-4 text-xs text-gray-500">
                                     <!-- Likes -->
-                                    <div class="flex items-center space-x-1">
-                                        <i class="bx bx-heart text-sm"></i>
-                                        <span>{{ $poem['likes'] }}</span>
-                                    </div>
+                                    <button @click="toggleLike()" 
+                                            :class="isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'"
+                                            class="flex items-center space-x-1 transition-colors">
+                                        <i :class="isLiked ? 'bx bxs-heart' : 'bx bx-heart'" class="text-sm"></i>
+                                        <span x-text="likesCount">{{ $poem->userInteractions->where('type', 'like')->count() }}</span>
+                                    </button>
                                     
                                     <!-- Comments -->
-                                    <div class="flex items-center space-x-1">
+                                    <a href="{{ route('poetry.show', $poem) }}" class="flex items-center space-x-1 hover:text-gray-700 transition-colors">
                                         <i class="bx bx-comment text-sm"></i>
-                                        <span>{{ $poem['comments'] }}</span>
+                                        <span>{{ $poem->comments->count() }}</span>
+                                    </a>
+                                    
+                                    <!-- Rating -->
+                                    <div class="flex items-center space-x-1">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <button @click="ratePoem({{ $i }})" 
+                                                    @mouseenter="hoverRating = {{ $i }}"
+                                                    @mouseleave="hoverRating = 0"
+                                                    class="transition-colors cursor-pointer"
+                                                    :class="(hoverRating >= {{ $i }} || currentRating >= {{ $i }}) ? 'text-yellow-500' : 'text-gray-400 hover:text-yellow-400'">
+                                                <i :class="(hoverRating >= {{ $i }} || currentRating >= {{ $i }}) ? 'bx bxs-star' : 'bx bx-star'" class="text-xs"></i>
+                                            </button>
+                                        @endfor
                                     </div>
                                 </div>
                                 
                                 <!-- Read More Link -->
-                                <a href="/poetry/{{ $poem['slug'] }}" class="text-xs text-gray-700 hover:text-gray-900 font-normal uppercase tracking-wide">
+                                <a href="{{ route('poetry.show', $poem) }}" class="text-xs text-gray-700 hover:text-gray-900 font-normal uppercase tracking-wide">
                                     Read →
                                 </a>
                             </div>
                         </div>
                     </div>
-                @endforeach
+                @empty
+                    <div class="col-span-full text-center py-16 sm:py-20">
+                        <div class="max-w-md mx-auto">
+                            <i class="bx bx-file text-6xl text-gray-300 mb-4"></i>
+                            <h3 class="text-lg font-normal text-gray-700 mb-2">No poems yet</h3>
+                            <p class="text-sm text-gray-500 mb-6">Be the first to share your poetry with the community.</p>
+                            @auth
+                                <a href="{{ route('poetry.create') }}" 
+                                   class="inline-flex items-center px-5 py-2.5 bg-gray-800 text-white text-sm font-normal rounded-sm hover:bg-gray-700 transition-colors">
+                                    <i class="bx bx-plus text-base mr-2"></i>
+                                    Create Your First Poem
+                                </a>
+                            @else
+                                <a href="{{ route('register') }}" 
+                                   class="inline-flex items-center px-5 py-2.5 bg-gray-800 text-white text-sm font-normal rounded-sm hover:bg-gray-700 transition-colors">
+                                    <i class="bx bx-user-plus text-base mr-2"></i>
+                                    Sign Up to Get Started
+                                </a>
+                            @endauth
+                        </div>
+                    </div>
+                @endforelse
             </div>
 
-            <!-- Load More Button -->
-            <div class="text-center mt-10 sm:mt-12">
-                <button class="px-6 py-2.5 bg-gray-800 text-white text-sm font-normal hover:bg-gray-700 transition-colors">
-                    Load More Poems
-                </button>
-            </div>
+            <!-- Pagination -->
+            @if($poems->hasPages())
+                <div class="text-center mt-10 sm:mt-12">
+                    {{ $poems->links() }}
+                </div>
+            @endif
         </div>
     </div>
+
+    <script>
+    function poemCard(poemId, initialLiked, initialRating) {
+        return {
+            poemId: poemId,
+            isLiked: initialLiked,
+            likesCount: 0,
+            currentRating: initialRating || 0,
+            hoverRating: 0,
+            avgRating: 0,
+            ratingCount: 0,
+            
+            init() {
+                // Initialize with current state
+                const likesElement = this.$el.querySelector('[x-text="likesCount"]');
+                if (likesElement) {
+                    this.likesCount = parseInt(likesElement.textContent) || 0;
+                }
+                
+                // Fetch user's current rating and stats
+                @auth
+                this.fetchUserRating();
+                @endauth
+            },
+            
+            async fetchUserRating() {
+                try {
+                    const response = await fetch(`{{ url('/api/poems') }}/${this.poemId}/user-status`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'same-origin'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.currentRating = parseInt(data.rating || 0);
+                        this.avgRating = parseFloat(data.average_rating || 0).toFixed(1);
+                        this.ratingCount = parseInt(data.rating_count || 0);
+                    }
+                } catch (error) {
+                    console.error('Error fetching user rating:', error);
+                }
+            },
+            
+            async toggleLike() {
+                @guest
+                    window.location.href = '/login';
+                    return;
+                @endguest
+                
+                try {
+                    const response = await fetch(`{{ url('/api/poems') }}/${this.poemId}/like`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'same-origin'
+                    });
+                    
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            window.location.href = '/login';
+                            return;
+                        }
+                        throw new Error('Failed to toggle like');
+                    }
+                    
+                    const data = await response.json();
+                    this.isLiked = data.liked;
+                    this.likesCount = data.likes_count;
+                } catch (error) {
+                    console.error('Error toggling like:', error);
+                }
+            },
+            
+            async ratePoem(rating) {
+                @guest
+                    window.location.href = '/login';
+                    return;
+                @endguest
+                
+                try {
+                    const response = await fetch(`{{ url('/api/poems') }}/${this.poemId}/rate`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'same-origin',
+                        body: JSON.stringify({ rating: rating })
+                    });
+                    
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            window.location.href = '/login';
+                            return;
+                        }
+                        throw new Error('Failed to rate poem');
+                    }
+                    
+                    const data = await response.json();
+                    this.currentRating = parseInt(data.rating);
+                    this.avgRating = parseFloat(data.average_rating).toFixed(1);
+                    if (data.rating_count !== undefined) {
+                        this.ratingCount = parseInt(data.rating_count);
+                    }
+                } catch (error) {
+                    console.error('Error rating poem:', error);
+                }
+            }
+        }
+    }
+    </script>
 
     <style>
         .line-clamp-4 {
