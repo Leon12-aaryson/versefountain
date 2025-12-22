@@ -57,7 +57,7 @@ VerseFountain addresses the need for a dedicated digital space where:
 ## 🛠️ Technical Stack
 
 - **Backend**: Laravel 12.x (PHP 8.2+)
-- **Frontend**: Blade templates with Alpine.js
+- **Frontend**: Blade templates with vanilla JavaScript
 - **Styling**: Tailwind CSS
 - **Database**: PostgreSQL/MySQL with comprehensive schema
 - **Authentication**: Laravel's session-based authentication

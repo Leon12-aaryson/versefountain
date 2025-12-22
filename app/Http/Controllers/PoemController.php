@@ -232,7 +232,7 @@ class PoemController extends Controller
             ->with('success', 'Poem deleted successfully!');
     }
 
-    // API Methods (for Alpine.js interactions)
+    // API Methods (for JavaScript interactions)
 
     /**
      * Like or unlike a poem (API)

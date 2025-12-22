@@ -5,7 +5,7 @@
 
 @section('content')
             <!-- Hero Section -->
-            <div class="relative bg-purple-600 rounded-lg overflow-hidden mb-6">
+            <div class="relative bg-blue-500 rounded-lg overflow-hidden mb-6">
                 <div class="absolute inset-0 bg-black/30"></div>
                 <div class="relative flex flex-col items-center justify-center text-center px-6 sm:px-8 py-16 sm:py-20">
                     <h1 class="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white mb-4">
@@ -16,11 +16,11 @@
                     </p>
                     <div class="flex flex-wrap gap-3 justify-center">
                         <a href="/poetry"
-                            class="bg-white text-purple-600 px-6 py-3 text-base font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-purple-600 transition-colors">
+                            class="bg-white text-blue-500 px-6 py-3 text-base font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-500 transition-colors">
                             Explore Poetry
                         </a>
                         <a href="/books"
-                            class="bg-white/20 text-white border border-white/30 px-6 py-3 text-base font-medium rounded-lg hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-purple-600 transition-colors">
+                            class="bg-white/20 text-white border border-white/30 px-6 py-3 text-base font-medium rounded-lg hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-500 transition-colors">
                             Browse Books
                         </a>
                     </div>
@@ -48,7 +48,7 @@
                 <!-- Books Section -->
                 <div class="bg-white rounded-lg p-6 border border-gray-200 hover:border-gray-300 transition-colors">
                     <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                        <div class="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center mr-3">
                             <i class="bx bx-book text-xl text-purple-600"></i>
                         </div>
                         <h2 class="text-xl font-semibold text-gray-900">Books</h2>
@@ -64,14 +64,14 @@
                 <!-- Academics Section -->
                 <div class="bg-white rounded-lg p-6 border border-gray-200 hover:border-gray-300 transition-colors">
                     <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                            <i class="bx bx-book-reader text-xl text-green-600"></i>
+                        <div class="w-12 h-12 bg-blue-300 rounded-lg flex items-center justify-center mr-3">
+                            <i class="bx bx-book-reader text-xl text-blue-600"></i>
                         </div>
                         <h2 class="text-xl font-semibold text-gray-900">Academics</h2>
                     </div>
                     <p class="text-sm text-gray-600 mb-4 leading-relaxed">Access academic resources, research papers, and educational materials. Enhance your learning journey.</p>
                     <a href="/academics"
-                        class="inline-flex items-center text-green-600 hover:text-green-700 text-sm font-medium">
+                        class="inline-flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium">
                         Browse Academics
                         <i class="bx bx-chevron-right ml-1"></i>
                     </a>
@@ -84,7 +84,7 @@
                     <div class="flex items-center justify-between mb-6">
                         <h2 class="text-2xl font-semibold text-gray-900">Upcoming Events</h2>
                         <a href="/events"
-                            class="text-sm text-blue-600 hover:text-blue-700 inline-flex items-center">
+                            class="text-sm text-purple-600 hover:text-purple-700 inline-flex items-center">
                             View All <i class="bx bx-chevron-right ml-1"></i>
                         </a>
                     </div>
@@ -104,7 +104,7 @@
                                         </div>
                                         <div class="flex-1 min-w-0">
                                             <h3 class="text-sm font-medium text-gray-900 line-clamp-1">
-                                                <a href="{{ route('api.events.show', $event) }}" class="hover:text-blue-600 transition-colors">
+                                                <a href="{{ route('api.events.show', $event) }}" class="hover:text-purple-600 transition-colors">
                                                     {{ $event->title }}
                                                 </a>
                                             </h3>
@@ -117,7 +117,7 @@
                                         {{ Str::limit($event->description ?? 'No description', 100) }}
                                     </p>
                                     <a href="{{ route('api.events.show', $event) }}"
-                                        class="inline-flex items-center text-sm text-blue-600 hover:text-blue-700">
+                                        class="inline-flex items-center text-sm text-purple-600 hover:text-purple-700">
                                         Learn More <i class="bx bx-chevron-right ml-1"></i>
                                     </a>
                                 </div>
@@ -135,18 +135,18 @@
             </div>
 
             <!-- Call to Action -->
-            <div class="bg-purple-600 rounded-lg p-8 sm:p-12 text-center">
+            <div class="bg-blue-500 rounded-lg p-8 sm:p-12 text-center">
                 <h2 class="text-2xl sm:text-3xl font-semibold text-white mb-4">Join Our Community</h2>
                 <p class="text-base sm:text-lg text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed">
                     Connect with fellow poetry enthusiasts, discover new authors, and participate in literary events. Start your journey today!
                 </p>
                 <div class="flex flex-col sm:flex-row gap-3 justify-center">
                     <a href="/register"
-                        class="bg-white text-purple-600 px-6 py-3 text-base font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-purple-600 transition-colors">
+                        class="bg-white text-blue-500 px-6 py-3 text-base font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-500 transition-colors">
                         Get Started
                     </a>
                     <a href="/poetry"
-                        class="bg-white/20 text-white border border-white/30 px-6 py-3 text-base font-medium rounded-lg hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-purple-600 transition-colors">
+                        class="bg-white/20 text-white border border-white/30 px-6 py-3 text-base font-medium rounded-lg hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-500 transition-colors">
                         Explore Poetry
                     </a>
                 </div>

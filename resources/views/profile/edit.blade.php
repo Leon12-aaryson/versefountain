@@ -15,30 +15,30 @@
         <div class="bg-white rounded-md border border-gray-200">
             <!-- Success Messages -->
             @if (session('status') === 'profile-updated')
-                <div class="bg-blue-50 border border-blue-200 rounded-t-xl p-4">
+                <div class="bg-purple-50 border border-purple-200 rounded-t-xl p-4">
                     <div class="flex">
                         <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                            <svg class="h-5 w-5 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                             </svg>
                         </div>
                         <div class="ml-3">
-                            <p class="text-sm font-medium text-blue-800">Profile updated successfully!</p>
+                            <p class="text-sm font-medium text-purple-800">Profile updated successfully!</p>
                         </div>
                     </div>
                 </div>
             @endif
 
             @if (session('status') === 'password-updated')
-                <div class="bg-blue-50 border border-blue-200 rounded-t-xl p-4">
+                <div class="bg-purple-50 border border-purple-200 rounded-t-xl p-4">
                     <div class="flex">
                         <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                            <svg class="h-5 w-5 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                             </svg>
                         </div>
                         <div class="ml-3">
-                            <p class="text-sm font-medium text-blue-800">Password updated successfully!</p>
+                            <p class="text-sm font-medium text-purple-800">Password updated successfully!</p>
                         </div>
                     </div>
                 </div>
@@ -47,7 +47,7 @@
             <!-- Tab Navigation -->
             <div class="border-b border-gray-200">
                 <nav class="flex flex-wrap sm:flex-nowrap space-x-0 sm:space-x-8 px-4 sm:px-6" aria-label="Tabs">
-                    <button id="profile-tab" class="tab-button active py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600 flex-1 sm:flex-none">
+                    <button id="profile-tab" class="tab-button active py-4 px-1 border-b-2 border-purple-500 font-medium text-sm text-purple-600 flex-1 sm:flex-none">
                         Profile Information
                     </button>
                     <button id="password-tab" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 flex-1 sm:flex-none">
@@ -71,7 +71,7 @@
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Name</label>
                             <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" required 
-                                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-blue-600 text-sm sm:text-base">
+                                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-purple-600 text-sm sm:text-base">
                             @error('name')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -81,7 +81,7 @@
                         <div>
                             <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
                             <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" required 
-                                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-blue-600 text-sm sm:text-base">
+                                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-purple-600 text-sm sm:text-base">
                             @error('email')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -100,7 +100,7 @@
 
                         <!-- Save Button -->
                         <div class="flex justify-end">
-                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:border-2 focus:border-blue-800 text-sm sm:text-base font-medium border-2 border-transparent">
+                            <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 focus:outline-none focus:border-2 focus:border-purple-800 text-sm sm:text-base font-medium border-2 border-transparent">
                                 Save Changes
                             </button>
                         </div>
@@ -117,7 +117,7 @@
                         <div>
                             <label for="current_password" class="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
                             <input type="password" name="current_password" id="current_password" required 
-                                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-blue-600 text-sm sm:text-base">
+                                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-purple-600 text-sm sm:text-base">
                             @error('current_password')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -127,7 +127,7 @@
                         <div>
                             <label for="password" class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
                             <input type="password" name="password" id="password" required 
-                                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-blue-600 text-sm sm:text-base">
+                                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-purple-600 text-sm sm:text-base">
                             @error('password')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -137,12 +137,12 @@
                         <div>
                             <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
                             <input type="password" name="password_confirmation" id="password_confirmation" required 
-                                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-blue-600 text-sm sm:text-base">
+                                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-purple-600 text-sm sm:text-base">
                         </div>
 
                         <!-- Save Button -->
                         <div class="flex justify-end">
-                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:border-2 focus:border-blue-800 text-sm sm:text-base font-medium border-2 border-transparent">
+                            <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 focus:outline-none focus:border-2 focus:border-purple-800 text-sm sm:text-base font-medium border-2 border-transparent">
                                 Update Password
                             </button>
                         </div>
@@ -166,7 +166,7 @@
                                 </div>
                                 <div class="flex flex-col sm:flex-row sm:justify-between">
                                     <span class="text-sm text-gray-600">Account status:</span>
-                                    <span class="text-sm text-blue-600 font-medium">Active</span>
+                                    <span class="text-sm text-purple-600 font-medium">Active</span>
                                 </div>
                             </div>
                         </div>
@@ -267,13 +267,13 @@
                 
                 // Remove active class from all tabs and contents
                 tabs.forEach(t => {
-                    t.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                    t.classList.remove('active', 'border-purple-500', 'text-purple-600');
                     t.classList.add('border-transparent', 'text-gray-500');
                 });
                 contents.forEach(c => c.classList.add('hidden'));
 
                 // Add active class to clicked tab and show content
-                this.classList.add('active', 'border-blue-500', 'text-blue-600');
+                this.classList.add('active', 'border-purple-500', 'text-purple-600');
                 this.classList.remove('border-transparent', 'text-gray-500');
                 document.getElementById(target).classList.remove('hidden');
             });

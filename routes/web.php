@@ -37,8 +37,8 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('index');
+});#1A3F7A#1A3F7A
 
 Route::get('/poetry', [PoemController::class, 'index'])->name('poetry.index');
 

@@ -28,9 +28,9 @@
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Total Poems -->
-            <div class="bg-pink-50 rounded-lg p-4 border border-pink-100">
+            <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
                 <div class="flex items-center justify-between mb-3">
-                    <div class="w-10 h-10 bg-pink-500 rounded-lg flex items-center justify-center">
+                    <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
                         <i class="bx bx-file text-white text-lg"></i>
                     </div>
                 </div>
@@ -40,9 +40,9 @@
             </div>
 
             <!-- Total Books -->
-            <div class="bg-orange-50 rounded-lg p-4 border border-orange-100">
+            <div class="bg-blue-100 rounded-lg p-4 border border-blue-200">
                 <div class="flex items-center justify-between mb-3">
-                    <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                    <div class="w-10 h-10 bg-blue-300 rounded-lg flex items-center justify-center">
                         <i class="bx bx-book text-white text-lg"></i>
                     </div>
                 </div>
@@ -52,21 +52,21 @@
             </div>
 
             <!-- Tickets -->
-            <div class="bg-green-50 rounded-lg p-4 border border-green-100">
+            <div class="bg-blue-900 rounded-lg p-4 border border-blue-800">
                 <div class="flex items-center justify-between mb-3">
-                    <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                    <div class="w-10 h-10 bg-blue-800 rounded-lg flex items-center justify-center">
                         <i class="bx bx-check text-white text-lg"></i>
                     </div>
                 </div>
-                <p class="text-sm text-gray-600 mb-1">Tickets</p>
-                <p class="text-2xl font-semibold text-gray-900 mb-1">{{ $totalTickets }}</p>
-                <p class="text-xs text-gray-500">+{{ $totalTickets > 0 ? round(($totalTickets / max($totalTickets, 1)) * 1.2, 1) : 0 }}% from yesterday</p>
+                <p class="text-sm text-blue-100 mb-1">Tickets</p>
+                <p class="text-2xl font-semibold text-white mb-1">{{ $totalTickets }}</p>
+                <p class="text-xs text-blue-200">+{{ $totalTickets > 0 ? round(($totalTickets / max($totalTickets, 1)) * 1.2, 1) : 0 }}% from yesterday</p>
             </div>
 
             <!-- Comments -->
             <div class="bg-purple-50 rounded-lg p-4 border border-purple-100">
                 <div class="flex items-center justify-between mb-3">
-                    <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
+                    <div class="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
                         <i class="bx bx-comment text-white text-lg"></i>
                     </div>
                 </div>

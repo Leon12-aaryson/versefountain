@@ -49,16 +49,29 @@ export default {
         ring: "hsl(var(--ring))",
         // Blue palette from design
         blue: {
-          50: "#eff6ff",   // Very light pastel blue
-          100: "#dbeafe",
+          50: "#eff6ff",   // Very light blue/off-white
+          100: "#dbeafe",  // Light blue
           200: "#bfdbfe",
-          300: "#93c5fd",
-          400: "#60a5fa",
-          500: "#3b82f6",   // Medium blue
-          600: "#2563eb",   // Medium-dark vibrant blue (royal/cornflower)
-          700: "#1d4ed8",   // Dark navy blue
-          800: "#1e40af",   // Darker navy
-          900: "#1e3a8a",   // Darkest navy
+          300: "#93c5fd",  // Light blue
+          400: "#60a5fa",  // Light blue
+          500: "#3b82f6",  // Medium blue
+          600: "#2563eb",  // Medium blue
+          700: "#1d4ed8",  // Dark navy blue
+          800: "#1e40af",  // Dark navy blue
+          900: "#1e3a8a",  // Dark navy blue
+        },
+        // Purple palette from design
+        purple: {
+          50: "#faf5ff",   // Very light purple/off-white
+          100: "#f3e8ff",   // Very light purple
+          200: "#e9d5ff",
+          300: "#d8b4fe",  // Light purple
+          400: "#c084fc",  // Light purple
+          500: "#a855f7",  // Medium purple
+          600: "#9333ea",  // Medium purple
+          700: "#7e22ce",
+          800: "#6b21a8",  // Very dark purple
+          900: "#581c87",  // Very dark purple/black
         },
         chart: {
           "1": "hsl(var(--chart-1))",

@@ -3,29 +3,7 @@
 @section('title', ($poem->title ?? 'Poem') . ' - VerseFountain')
 
 @section('content')
-<div class="min-h-screen bg-stone-50" x-data="{ flashMessage: { show: false, message: '', type: 'success' } }" id="poetry-show-container">
-    <!-- Flash Messages -->
-    <div x-show="flashMessage.show" 
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0 transform translate-y-2"
-         x-transition:enter-end="opacity-100 transform translate-y-0"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100 transform translate-y-0"
-         x-transition:leave-end="opacity-0 transform translate-y-2"
-         class="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full px-4"
-         style="display: none;">
-        <div x-bind:class="flashMessage.type === 'success' ? 'bg-blue-50 border border-blue-200 text-blue-800' : 'bg-red-50 border border-red-200 text-red-800'"
-             class="p-4 rounded-md flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-                <i x-bind:class="flashMessage.type === 'success' ? 'bx bx-check-circle text-lg' : 'bx bx-error-circle text-lg'"></i>
-                <span x-text="flashMessage.message" class="text-sm font-normal"></span>
-            </div>
-            <button @click="flashMessage.show = false" class="ml-4 text-gray-400 hover:text-gray-600">
-                <i class="bx bx-x text-lg"></i>
-            </button>
-        </div>
-    </div>
-
+<div class="min-h-screen bg-stone-50" id="poetry-show-container">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <!-- Back Button -->
         <div class="mb-6">
@@ -39,12 +17,12 @@
         <div class="max-w-4xl mx-auto">
             <!-- Server-side Flash Messages -->
             @if(session('success'))
-                <div class="mb-4 p-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-md flex items-center justify-between">
+                <div class="mb-4 p-4 bg-purple-50 border border-purple-200 text-purple-800 rounded-md flex items-center justify-between">
                     <div class="flex items-center space-x-2">
                         <i class="bx bx-check-circle text-lg"></i>
                         <span class="text-sm font-normal">{{ session('success') }}</span>
                     </div>
-                    <button onclick="this.parentElement.remove()" class="ml-4 text-blue-600 hover:text-blue-800">
+                    <button onclick="this.parentElement.remove()" class="ml-4 text-purple-600 hover:text-purple-800">
                         <i class="bx bx-x text-lg"></i>
                     </button>
                 </div>
@@ -62,9 +40,7 @@
                 </div>
             @endif
 
-            <div class="bg-white border-2 border-gray-200 rounded-md"
-                 x-data="poemDetail({{ $poem->id }}, {{ $isLiked ? 'true' : 'false' }})"
-                 @click.outside="showShareMenu = false">
+            <div class="bg-white border-2 border-gray-200 rounded-md" data-poem-detail>
                 
                 <!-- Header -->
                 <div class="p-6 sm:p-8 border-b border-gray-200">
@@ -92,7 +68,7 @@
                                        class="inline-flex items-center px-3 py-2 border border-gray-200 text-sm font-normal text-gray-700 hover:bg-gray-50 transition-colors">
                                         Edit
                                     </a>
-                                    <button @click="deletePoem()" 
+                                    <button data-delete-poem
                                             class="inline-flex items-center px-3 py-2 border border-gray-200 text-sm font-normal text-gray-700 hover:bg-gray-50 transition-colors">
                                         Delete
                                     </button>
@@ -128,32 +104,35 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-6">
                             <!-- Like Button -->
-                            <button @click="toggleLike()" 
-                                    :class="isLiked ? 'text-gray-900' : 'text-gray-600 hover:text-gray-900'"
-                                    class="flex items-center space-x-2 text-sm font-normal transition-colors">
-                                <i :class="isLiked ? 'bx bxs-heart' : 'bx bx-heart'" class="text-base"></i>
-                                <span x-text="likesCount">{{ $poem->userInteractions->where('type', 'like')->count() ?? 0 }}</span>
+                            <button data-like-button
+                                    class="flex items-center space-x-2 text-sm font-normal transition-colors {{ $isLiked ? 'text-gray-900' : 'text-gray-600 hover:text-gray-900' }}">
+                                <i class="{{ $isLiked ? 'bx bxs-heart' : 'bx bx-heart' }} text-base"></i>
+                                <span data-likes-count>{{ $poem->userInteractions->where('type', 'like')->count() ?? 0 }}</span>
                             </button>
 
                             <!-- Comment Button -->
-                            <button @click="showComments = !showComments" 
+                            <button data-comments-toggle
                                     class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 text-sm font-normal transition-colors">
                                 <i class="bx bx-comment text-base"></i>
                                 <span>{{ $poem->comments->count() ?? 0 }} Comments</span>
                             </button>
 
                             <!-- Rating -->
-                            <div class="flex items-center space-x-1" x-data="{ hoverRating: 0 }">
+                            <div class="flex items-center space-x-1">
+                                @php
+                                    $userRating = 0;
+                                    if (auth()->check() && isset($poem->id) && $poem->id > 0) {
+                                        $userRatingInteraction = $poem->userInteractions->where('user_id', auth()->id())->where('type', 'rating')->first();
+                                        $userRating = $userRatingInteraction ? $userRatingInteraction->rating : 0;
+                                    }
+                                @endphp
                                 @for($i = 1; $i <= 5; $i++)
-                                    <button @click="ratePoem({{ $i }})" 
-                                            @mouseenter="hoverRating = {{ $i }}"
-                                            @mouseleave="hoverRating = 0"
-                                            class="transition-colors cursor-pointer"
-                                            :class="(hoverRating >= {{ $i }} || currentRating >= {{ $i }}) ? 'text-yellow-500' : 'text-gray-400 hover:text-yellow-400'">
-                                        <i :class="(hoverRating >= {{ $i }} || currentRating >= {{ $i }}) ? 'bx bxs-star' : 'bx bx-star'" class="text-base"></i>
+                                    <button data-rating="{{ $i }}"
+                                            class="transition-colors cursor-pointer {{ $userRating >= $i ? 'text-yellow-500' : 'text-gray-400 hover:text-yellow-400' }}">
+                                        <i class="{{ $userRating >= $i ? 'bx bxs-star' : 'bx bx-star' }} text-base"></i>
                                     </button>
                                 @endfor
-                                <span class="text-xs text-gray-500 ml-2" x-text="`${avgRating} (${ratingCount})`">
+                                <span class="text-xs text-gray-500 ml-2" data-rating-display>
                                     {{ number_format($poem->userInteractions->where('type', 'rating')->avg('rating') ?? 0, 1) }} ({{ $poem->userInteractions->where('type', 'rating')->count() }})
                                 </span>
                             </div>
@@ -161,45 +140,37 @@
 
                         <!-- Share Button with Dropdown -->
                         <div class="relative">
-                            <button @click="showShareMenu = !showShareMenu" 
+                            <button data-share-toggle
                                     class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 text-sm font-normal transition-colors">
                                 <i class="bx bx-share-alt text-base"></i>
                                 <span>Share</span>
                             </button>
                             
                             <!-- Share Menu Dropdown -->
-                            <div x-show="showShareMenu" 
-                                 @click.outside="showShareMenu = false"
-                                 x-transition:enter="transition ease-out duration-100"
-                                 x-transition:enter-start="transform opacity-0 scale-95"
-                                 x-transition:enter-end="transform opacity-100 scale-100"
-                                 x-transition:leave="transition ease-in duration-75"
-                                 x-transition:leave-start="transform opacity-100 scale-100"
-                                 x-transition:leave-end="transform opacity-0 scale-95"
-                                 class="absolute right-0 mt-2 w-56 bg-white border-2 border-gray-200 rounded-md rounded-md py-2 z-50"
-                                 style="display: none;">
-                                <button @click="copyLink()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
+                            <div data-share-menu
+                                 class="absolute right-0 mt-2 w-56 bg-white border-2 border-gray-200 rounded-md py-2 z-50 hidden">
+                                <button data-share-copy class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
                                     <i class="bx bx-link text-base"></i>
                                     <span>Copy Link</span>
                                 </button>
-                                <button @click="shareToTwitter()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
+                                <button data-share-twitter class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
                                     <i class="bx bxl-twitter text-base text-blue-400"></i>
                                     <span>Share on Twitter</span>
                                 </button>
-                                <button @click="shareToFacebook()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
+                                <button data-share-facebook class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
                                     <i class="bx bxl-facebook text-base text-blue-600"></i>
                                     <span>Share on Facebook</span>
                                 </button>
-                                <button @click="shareToWhatsApp()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
+                                <button data-share-whatsapp class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
                                     <i class="bx bxl-whatsapp text-base text-blue-500"></i>
                                     <span>Share on WhatsApp</span>
                                 </button>
-                                <button @click="shareViaEmail()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
+                                <button data-share-email class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
                                     <i class="bx bx-envelope text-base"></i>
                                     <span>Share via Email</span>
                                 </button>
                                 <div class="border-t border-gray-200 my-1"></div>
-                                <button @click="shareViaNative()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
+                                <button data-share-native class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
                                     <i class="bx bx-share text-base"></i>
                                     <span>More Options...</span>
                                 </button>
@@ -209,19 +180,13 @@
                 </div>
 
                 <!-- Comments Section -->
-                <div x-show="showComments" 
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 transform -translate-y-2"
-                     x-transition:enter-end="opacity-100 transform translate-y-0"
-                     x-transition:leave="transition ease-in duration-200"
-                     x-transition:leave-start="opacity-100 transform translate-y-0"
-                     x-transition:leave-end="opacity-0 transform -translate-y-2"
-                     class="border-t border-gray-200">
+                <div data-comments-section
+                     class="border-t border-gray-200 hidden">
                     
                     <!-- Comment Form -->
                     @auth
                         <div class="p-6 border-b border-gray-200">
-                            <form @submit.prevent="submitComment()">
+                            <form data-comment-form>
                                 <div class="flex space-x-3">
                                     <div class="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
                                         <span class="text-xs font-normal text-gray-700">
@@ -229,14 +194,13 @@
                                         </span>
                                     </div>
                                     <div class="flex-1">
-                                        <textarea x-model="newComment" 
+                                        <textarea name="content"
                                                   placeholder="Write a comment..." 
-                                                  class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 bg-white focus:outline-none resize-none text-sm"
-                                                  rows="3"></textarea>
+                                                  class="w-full px-3 py-2 border-2 border-gray-300 focus:border-purple-600 bg-white focus:outline-none resize-none text-sm"
+                                                  rows="3" required></textarea>
                                         <div class="mt-2 flex justify-end">
                                             <button type="submit" 
-                                                    :disabled="!newComment.trim()"
-                                                    class="px-4 py-2 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                                    class="px-4 py-2 bg-purple-600 text-white text-sm font-normal hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                                                 Comment
                                             </button>
                                         </div>
@@ -279,302 +243,136 @@
     </div>
 </div>
 
-    <script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.querySelector('[data-poem-detail]');
+    if (!container) return;
+
     const apiBaseUrl = "{{ url('/api/poems') }}";
+    const poemId = {{ $poem->id }};
+    const isLiked = {{ $isLiked ? 'true' : 'false' }};
+    const likesCount = {{ $poem->userInteractions->where('type', 'like')->count() ?? 0 }};
+    @php
+        $userRating = 0;
+        if (auth()->check() && isset($poem->id) && $poem->id > 0) {
+            $userRatingInteraction = $poem->userInteractions->where('user_id', auth()->id())->where('type', 'rating')->first();
+            $userRating = $userRatingInteraction ? $userRatingInteraction->rating : 0;
+        }
+    @endphp
+    const currentRating = {{ $userRating }};
+    const avgRating = {{ number_format($poem->userInteractions->where('type', 'rating')->avg('rating') ?? 0, 1) }};
+    const ratingCount = {{ $poem->userInteractions->where('type', 'rating')->count() }};
+    const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
     const poemTitle = "{{ addslashes($poem->title ?? '') }}";
     const poemContent = "{{ addslashes(Str::limit($poem->content ?? '', 200)) }}";
     const poetryIndexUrl = "{{ route('poetry.index') }}";
-    const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
-    
-    // Flash message function
-    function showFlashMessage(message, type = 'success') {
-        // Find the Alpine.js component
-        const container = document.getElementById('poetry-show-container');
-        if (container && container.__x) {
-            const alpineData = container.__x.$data;
-            alpineData.flashMessage.show = true;
-            alpineData.flashMessage.message = message;
-            alpineData.flashMessage.type = type;
+
+    // Initialize PoemDetail
+    const poemDetail = new PoemDetail(container, {
+        poemId: poemId,
+        isLiked: isLiked,
+        likesCount: likesCount,
+        currentRating: currentRating,
+        avgRating: avgRating,
+        ratingCount: ratingCount,
+        poemUrl: window.location.href,
+        apiBaseUrl: apiBaseUrl,
+        isAuthenticated: isAuthenticated
+    });
+
+    // Delete poem handler
+    const deleteBtn = container.querySelector('[data-delete-poem]');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', async function() {
+            if (!confirm('Are you sure you want to delete this poem?')) {
+                return;
+            }
             
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                alpineData.flashMessage.show = false;
-            }, 5000);
-        } else {
-            // Fallback: create flash message element
-            const flashDiv = document.createElement('div');
-            flashDiv.className = `fixed top-16 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full px-4`;
-            flashDiv.innerHTML = `
-                <div class="p-4 rounded-md flex items-center justify-between ${type === 'success' ? 'bg-blue-50 border border-blue-200 text-blue-800' : 'bg-red-50 border border-red-200 text-red-800'}">
-                    <div class="flex items-center space-x-2">
-                        <i class="bx ${type === 'success' ? 'bx-check-circle' : 'bx-error-circle'} text-lg"></i>
-                        <span class="text-sm font-normal">${message}</span>
-                    </div>
-                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 ${type === 'success' ? 'text-blue-600 hover:text-blue-800' : 'text-red-600 hover:text-red-800'}">
-                        <i class="bx bx-x text-lg"></i>
-                    </button>
-                </div>
-            `;
-            document.body.appendChild(flashDiv);
-            
-            // Auto-remove after 5 seconds
-            setTimeout(() => {
-                if (flashDiv.parentElement) {
-                    flashDiv.remove();
-                }
-            }, 5000);
-        }
-    }
-    
-    function poemDetail(poemId, initialLiked) {
-        return {
-            poemId: poemId,
-            isLiked: initialLiked,
-            likesCount: {{ $poem->userInteractions->where('type', 'like')->count() ?? 0 }},
-            currentRating: @php
-                $userRating = 0;
-                if (auth()->check() && isset($poem->id) && $poem->id > 0) {
-                    $userRatingInteraction = $poem->userInteractions->where('user_id', auth()->id())->where('type', 'rating')->first();
-                    $userRating = $userRatingInteraction ? $userRatingInteraction->rating : 0;
-                }
-                echo $userRating;
-            @endphp,
-            avgRating: {{ number_format($poem->userInteractions->where('type', 'rating')->avg('rating') ?? 0, 1) }},
-            ratingCount: {{ $poem->userInteractions->where('type', 'rating')->count() }},
-            showComments: false,
-            newComment: '',
-            showShareMenu: false,
-            poemUrl: window.location.href,
-            
-            async toggleLike() {
-                if (!isAuthenticated) {
-                    window.location.href = '/login';
-                    return;
-                }
-                
-                try {
-                    const response = await fetch(apiBaseUrl + '/' + this.poemId + '/like', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        credentials: 'same-origin'
-                    });
-                    
-                    if (!response.ok) {
-                        if (response.status === 401) {
-                            window.location.href = '/login';
-                            return;
-                        }
-                        throw new Error('Failed to toggle like');
+            try {
+                const response = await fetch(`${apiBaseUrl}/${poemId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': window.csrfToken,
+                        'Accept': 'application/json'
                     }
-                    
-                    const data = await response.json();
-                    this.isLiked = data.liked;
-                    this.likesCount = data.likes_count;
-                    showFlashMessage(data.liked ? 'Poem liked!' : 'Like removed.', 'success');
-                } catch (error) {
-                    console.error('Error toggling like:', error);
-                    showFlashMessage('Failed to toggle like. Please try again.', 'error');
-                }
-            },
-            
-            async ratePoem(rating) {
-                if (!isAuthenticated) {
-                    window.location.href = '/login';
-                    return;
-                }
+                });
                 
-                try {
-                    const response = await fetch(apiBaseUrl + '/' + this.poemId + '/rate', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        credentials: 'same-origin',
-                        body: JSON.stringify({ rating: rating })
-                    });
-                    
-                    if (!response.ok) {
-                        if (response.status === 401) {
-                            window.location.href = '/login';
-                            return;
-                        }
-                        throw new Error('Failed to rate poem');
+                if (response.ok) {
+                    if (window.flashMessage) {
+                        window.flashMessage.show('Poem deleted successfully!', 'success');
                     }
-                    
-                    const data = await response.json();
-                    
-                    // Update the user's rating immediately
-                    this.currentRating = parseInt(data.rating);
-                    this.avgRating = parseFloat(data.average_rating).toFixed(1);
-                    if (data.rating_count !== undefined) {
-                        this.ratingCount = parseInt(data.rating_count);
-                    }
-                    
-                    showFlashMessage(`Rated ${rating} star${rating > 1 ? 's' : ''}!`, 'success');
-                } catch (error) {
-                    console.error('Error rating poem:', error);
-                    showFlashMessage('Failed to rate poem. Please try again.', 'error');
-                }
-            },
-            
-            async submitComment() {
-                if (!this.newComment.trim()) return;
-                
-                try {
-                    const response = await fetch(apiBaseUrl + '/' + this.poemId + '/comments', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        credentials: 'same-origin',
-                        body: JSON.stringify({ content: this.newComment })
-                    });
-                    
-                    if (!response.ok) {
-                        if (response.status === 401) {
-                            window.location.href = '/login';
-                            return;
-                        }
-                        throw new Error('Failed to submit comment');
-                    }
-                    
-                    this.newComment = '';
-                    showFlashMessage('Comment added successfully!', 'success');
-                    setTimeout(() => window.location.reload(), 1000);
-                } catch (error) {
-                    console.error('Error submitting comment:', error);
-                    showFlashMessage('Failed to submit comment. Please try again.', 'error');
-                }
-            },
-            
-            async deletePoem() {
-                if (!confirm('Are you sure you want to delete this poem?')) {
-                    return;
-                }
-                
-                try {
-                    const response = await fetch(apiBaseUrl + '/' + this.poemId, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'Accept': 'application/json'
-                        }
-                    });
-                    
-                    if (response.ok) {
-                        showFlashMessage('Poem deleted successfully!', 'success');
-                        setTimeout(() => window.location.href = poetryIndexUrl, 1000);
-                    } else {
-                        showFlashMessage('Failed to delete poem.', 'error');
-                    }
-                } catch (error) {
-                    console.error('Error deleting poem:', error);
-                    showFlashMessage('Failed to delete poem.', 'error');
-                }
-            },
-            
-            copyLink() {
-                this.showShareMenu = false;
-                const url = window.location.href;
-                const shareText = `${poemTitle}\n\n${poemContent}\n\n${url}\n\nShared from VerseFountain`;
-                
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(url).then(() => {
-                        showFlashMessage('Link copied to clipboard!', 'success');
-                    }).catch(() => {
-                        this.fallbackCopy(url);
-                    });
+                    setTimeout(() => window.location.href = poetryIndexUrl, 1000);
                 } else {
-                    this.fallbackCopy(url);
+                    if (window.flashMessage) {
+                        window.flashMessage.show('Failed to delete poem.', 'error');
+                    }
                 }
-            },
+            } catch (error) {
+                console.error('Error deleting poem:', error);
+                if (window.flashMessage) {
+                    window.flashMessage.show('Failed to delete poem.', 'error');
+                }
+            }
+        });
+    }
+
+    // Share handlers
+    const shareHandlers = {
+        twitter: () => {
+            const url = encodeURIComponent(window.location.href);
+            const text = encodeURIComponent(`${poemTitle} - ${poemContent.substring(0, 100)}...`);
+            window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', 'width=550,height=420');
+        },
+        facebook: () => {
+            const url = encodeURIComponent(window.location.href);
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=550,height=420');
+        },
+        whatsapp: () => {
+            const url = encodeURIComponent(window.location.href);
+            const text = encodeURIComponent(`${poemTitle}\n\n${poemContent.substring(0, 100)}...\n\n${window.location.href}`);
+            window.open(`https://wa.me/?text=${text}`, '_blank');
+        },
+        email: () => {
+            const subject = encodeURIComponent(`Check out this poem: ${poemTitle}`);
+            const body = encodeURIComponent(`${poemContent}\n\nRead more: ${window.location.href}\n\nShared from VerseFountain`);
+            window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        },
+        native: async () => {
+            const poemData = {
+                title: poemTitle || 'Poem from VerseFountain',
+                text: poemContent || 'Check out this poem on VerseFountain',
+                url: window.location.href
+            };
             
-            fallbackCopy(text) {
-                const textArea = document.createElement('textarea');
-                textArea.value = text;
-                textArea.style.position = 'fixed';
-                textArea.style.left = '-999999px';
-                textArea.style.top = '-999999px';
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
-                
+            if (navigator.share) {
                 try {
-                    document.execCommand('copy');
-                    showFlashMessage('Link copied to clipboard!', 'success');
-                } catch (err) {
-                    showFlashMessage('Unable to copy. Please copy manually: ' + text, 'error');
-                }
-                
-                document.body.removeChild(textArea);
-            },
-            
-            shareToTwitter() {
-                this.showShareMenu = false;
-                const url = encodeURIComponent(window.location.href);
-                const text = encodeURIComponent(`${poemTitle} - ${poemContent.substring(0, 100)}...`);
-                window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', 'width=550,height=420');
-            },
-            
-            shareToFacebook() {
-                this.showShareMenu = false;
-                const url = encodeURIComponent(window.location.href);
-                window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=550,height=420');
-            },
-            
-            shareToWhatsApp() {
-                this.showShareMenu = false;
-                const url = encodeURIComponent(window.location.href);
-                const text = encodeURIComponent(`${poemTitle}\n\n${poemContent.substring(0, 100)}...\n\n${window.location.href}`);
-                window.open(`https://wa.me/?text=${text}`, '_blank');
-            },
-            
-            shareViaEmail() {
-                this.showShareMenu = false;
-                const subject = encodeURIComponent(`Check out this poem: ${poemTitle}`);
-                const body = encodeURIComponent(`${poemContent}\n\nRead more: ${window.location.href}\n\nShared from VerseFountain`);
-                window.location.href = `mailto:?subject=${subject}&body=${body}`;
-            },
-            
-            async shareViaNative() {
-                this.showShareMenu = false;
-                const poemData = {
-                    title: poemTitle || 'Poem from VerseFountain',
-                    text: poemContent || 'Check out this poem on VerseFountain',
-                    url: window.location.href
-                };
-                
-                if (navigator.share) {
-                    try {
-                        if (navigator.canShare && !navigator.canShare(poemData)) {
-                            throw new Error('Cannot share this data');
-                        }
-                        await navigator.share(poemData);
-                        showFlashMessage('Poem shared successfully!', 'success');
-                        return;
-                    } catch (error) {
-                        if (error.name === 'AbortError' || error.name === 'NotAllowedError') {
-                            return;
-                        }
+                    await navigator.share(poemData);
+                    if (window.flashMessage) {
+                        window.flashMessage.show('Poem shared successfully!', 'success');
+                    }
+                    return;
+                } catch (error) {
+                    if (error.name !== 'AbortError' && error.name !== 'NotAllowedError') {
                         console.error('Share error:', error);
                     }
                 }
-                
-                // Fallback to copy link
-                this.copyLink();
             }
+            
+            // Fallback to copy link
+            poemDetail.copyLink();
         }
-    }
-    </script>
+    };
+
+    // Attach share handlers
+    Object.keys(shareHandlers).forEach(key => {
+        const btn = container.querySelector(`[data-share-${key}]`);
+        if (btn) {
+            btn.addEventListener('click', () => {
+                shareHandlers[key]();
+                poemDetail.toggleShareMenu();
+            });
+        }
+    });
+});
+</script>
 @endsection
