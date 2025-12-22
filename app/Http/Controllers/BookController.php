@@ -52,7 +52,7 @@ class BookController extends Controller
                 $limit = $request->input('limit', 10);
                 $offset = $request->input('offset', 0);
 
-                return $query->select('id', 'title', 'author', 'description', 'cover_image', 'genre', 'approved', 'uploaded_by_id', 'created_at')
+                return $query->select('id', 'title', 'author', 'description', 'coverImage', 'genre', 'approved', 'uploadedById', 'created_at')
                              ->with('uploadedBy:id,username')
                              ->offset($offset)
                              ->limit($limit)
@@ -194,7 +194,7 @@ class BookController extends Controller
             'genre' => 'nullable|string|max:255',
         ]);
 
-        $book = Book::create($validatedData + ['uploaded_by_id' => $user->id, 'approved' => false]); // Default to false for admin approval
+        $book = Book::create($validatedData + ['uploadedById' => $user->id, 'approved' => false]); // Default to false for admin approval
 
         // Clear cache to ensure fresh data
         Cache::flush(); // Clear all book caches

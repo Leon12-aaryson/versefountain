@@ -3,23 +3,23 @@
 @section('title', 'Poetry - VerseFountain')
 
 @section('content')
-    <div class="min-h-screen bg-stone-50">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div class="min-h-screen">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
             <!-- Page Header -->
-            <div class="mb-10 sm:mb-12">
+            <div class="mb-8">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <div class="mb-6 sm:mb-0">
-                        <h1 class="text-3xl sm:text-4xl font-light text-gray-800 mb-2 tracking-wide">
+                        <h1 class="text-3xl sm:text-4xl font-semibold text-gray-900 mb-2">
                             Poetry
                         </h1>
-                        <p class="text-sm sm:text-base text-gray-600 leading-relaxed max-w-2xl">
+                        <p class="text-base text-gray-600 leading-relaxed max-w-2xl">
                             Discover beautiful poems from classic and contemporary poets
                         </p>
                     </div>
                     @auth
                         <div class="mt-4 sm:mt-0">
                             <a href="{{ route('poetry.create') }}"
-                                class="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-normal rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
+                                class="inline-flex items-center px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
                                 <i class="bx bx-plus text-base mr-2"></i>
                                 Create Poem
                             </a>
@@ -29,7 +29,7 @@
             </div>
 
             <!-- Search and Filter Section -->
-            <div class="bg-white border-2 border-gray-200 rounded-md p-5 sm:p-6 mb-8 sm:mb-10">
+            <div class="bg-white rounded-lg p-5 border border-gray-200 mb-8">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- Search -->
                     <div class="sm:col-span-2 lg:col-span-1">
@@ -73,9 +73,9 @@
             </div>
 
             <!-- Poems Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                 @forelse($poems as $poem)
-                    <div class="bg-white border-2 border-gray-200 rounded-md hover:border-gray-300 focus-within:border-blue-600 transition-colors"
+                    <div class="bg-white rounded-lg border border-gray-200 hover:border-gray-300 focus-within:border-blue-400 transition-colors"
                          data-poem-card
                          data-poem-id="{{ $poem->id }}"
                          data-initial-liked="{{ auth()->check() && $poem->userInteractions->where('user_id', auth()->id())->where('type', 'like')->count() > 0 ? 'true' : 'false' }}"
@@ -138,20 +138,22 @@
                         </div>
                     </div>
                 @empty
-                    <div class="col-span-full text-center py-16 sm:py-20">
+                    <div class="col-span-full text-center py-20">
                         <div class="max-w-md mx-auto">
-                            <i class="bx bx-file text-6xl text-gray-300 mb-4"></i>
-                            <h3 class="text-lg font-normal text-gray-700 mb-2">No poems yet</h3>
-                            <p class="text-sm text-gray-500 mb-6">Be the first to share your poetry with the community.</p>
+                            <div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <i class="bx bx-file text-5xl text-blue-500"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-gray-900 mb-3">No poems yet</h3>
+                            <p class="text-base text-gray-600 mb-8">Be the first to share your poetry with the community.</p>
                             @auth
                                 <a href="{{ route('poetry.create') }}" 
-                                   class="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-normal rounded-md hover:bg-blue-700 focus:outline-none focus:border-2 focus:border-blue-800 transition-colors border-2 border-transparent">
+                                   class="inline-flex items-center px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
                                     <i class="bx bx-plus text-base mr-2"></i>
                                     Create Your First Poem
                                 </a>
                             @else
                                 <a href="{{ route('register') }}" 
-                                   class="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-normal rounded-md hover:bg-blue-700 focus:outline-none focus:border-2 focus:border-blue-800 transition-colors border-2 border-transparent">
+                                   class="inline-flex items-center px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
                                     <i class="bx bx-user-plus text-base mr-2"></i>
                                     Sign Up to Get Started
                                 </a>

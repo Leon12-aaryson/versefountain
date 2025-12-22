@@ -14,8 +14,8 @@ class Book extends Model
         'title',
         'author',
         'description',
-        'cover_image',  // Updated to snake_case
-        'uploaded_by_id', // Updated to snake_case
+        'coverImage',
+        'uploadedById',
         'genre',
         'approved',
     ];
@@ -29,6 +29,6 @@ class Book extends Model
      */
     public function uploadedBy()
     {
-        return $this->belongsTo(User::class, 'uploaded_by_id'); // Updated to snake_case
+        return $this->belongsTo(User::class, 'uploadedById');
     }
 }

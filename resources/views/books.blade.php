@@ -3,17 +3,16 @@
 @section('title', 'Books - VerseFountain')
 
 @section('content')
-    <div class="min-h-screen bg-stone-50">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div class="min-h-screen">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
             <!-- Page Header -->
-            <div class="mb-10 sm:mb-12">
-                <h1 class="text-3xl sm:text-4xl font-light text-gray-800 mb-2 tracking-wide">Books</h1>
-                <p class="text-sm sm:text-base text-gray-600 leading-relaxed max-w-2xl">Explore our vast collection of
-                    eBooks and literary works</p>
+            <div class="mb-8">
+                <h1 class="text-3xl sm:text-4xl font-semibold text-gray-900 mb-2">Books</h1>
+                <p class="text-base text-gray-600 leading-relaxed max-w-2xl">Explore our vast collection of eBooks and literary works</p>
             </div>
 
             <!-- Search and Filter Section -->
-            <div class="bg-white border-2 border-gray-200 rounded-md p-5 sm:p-6 mb-8 sm:mb-10">
+            <div class="bg-white rounded-lg p-5 border border-gray-200 mb-8">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- Search -->
                     <div class="sm:col-span-2 lg:col-span-1">
@@ -63,11 +62,11 @@
 
             <!-- Featured Books -->
             @if($featuredBooks->count() > 0)
-                <div class="mb-10 sm:mb-12">
-                    <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">Featured Books</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+                <div class="mb-10">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-6">Featured Books</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                         @foreach($featuredBooks as $book)
-                            <div class="bg-white border-2 border-gray-200 rounded-md hover:border-gray-300 focus-within:border-blue-600 transition-colors">
+                            <div class="bg-white rounded-lg border border-gray-200 hover:border-gray-300 focus-within:border-purple-400 transition-colors overflow-hidden">
                                 <div class="h-40 sm:h-48 bg-gray-100 flex items-center justify-center">
                                     @if($book->coverImage)
                                         <img src="{{ $book->coverImage }}" alt="{{ $book->title }}" class="w-full h-full object-cover">
@@ -127,12 +126,12 @@
             @endif
 
             <!-- Recent Additions -->
-            <div class="mb-10 sm:mb-12">
-                <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">Recent Additions</h2>
+            <div class="mb-10">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">Recent Additions</h2>
                 @if($recentBooks->count() > 0)
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                         @foreach($recentBooks as $book)
-                            <div class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-blue-600 transition-colors">
+                            <div class="bg-white rounded-lg border border-gray-200 p-5 hover:border-gray-300 focus-within:border-purple-400 transition-colors">
                                 <div class="flex items-start space-x-4">
                                     <div
                                         class="w-16 h-20 sm:w-20 sm:h-24 bg-gray-100 flex items-center justify-center flex-shrink-0">

@@ -39,7 +39,7 @@ class User extends Authenticatable
 
     public function uploadedBooks()
     {
-        return $this->hasMany(Book::class, 'uploaded_by_id');
+        return $this->hasMany(Book::class, 'uploadedById');
     }
 
     public function createdEvents()
