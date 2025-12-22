@@ -1,6 +1,6 @@
 @props(['title', 'description', 'activeTab' => 'login'])
 
-<div class="bg-white border border-gray-200">
+<div class="bg-white border-2 border-gray-200 rounded-md">
     <div class="p-6">
         <div class="mb-6">
             <h3 class="text-xl font-light text-gray-800 tracking-wide">{{ $title }}</h3>
@@ -11,11 +11,11 @@
         <div class="mb-6">
             <div class="flex border border-gray-200">
                 <a href="{{ route('register') }}" 
-                   class="flex-1 text-center py-2 px-4 text-sm font-normal {{ $activeTab === 'register' ? 'bg-gray-800 text-white' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors' }}">
+                   class="flex-1 text-center py-2 px-4 text-sm font-normal rounded-md {{ $activeTab === 'register' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors' }}">
                     Register
                 </a>
                 <a href="{{ route('login') }}" 
-                   class="flex-1 text-center py-2 px-4 text-sm font-normal {{ $activeTab === 'login' ? 'bg-gray-800 text-white' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors' }}">
+                   class="flex-1 text-center py-2 px-4 text-sm font-normal rounded-md {{ $activeTab === 'login' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors' }}">
                     Login
                 </a>
             </div>

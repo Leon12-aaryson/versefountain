@@ -15,7 +15,7 @@
         </div>
 
         <div class="max-w-4xl mx-auto">
-            <div class="bg-white border border-gray-200">
+            <div class="bg-white border-2 border-gray-200 rounded-md">
                 <!-- Header -->
                 <div class="p-6 sm:p-8 border-b border-gray-200">
                     <div class="flex items-start justify-between">
@@ -47,7 +47,7 @@
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-600">Pages: {{ $resource->pages }}</span>
                             @if(isset($resource->id) && $resource->id > 0)
-                                <a href="/academics/{{ $resource->id }}/download" class="px-4 py-2 bg-gray-800 text-white text-sm font-normal hover:bg-gray-700 transition-colors">
+                                <a href="/academics/{{ $resource->id }}/download" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
                                     Download PDF
                                 </a>
                             @endif

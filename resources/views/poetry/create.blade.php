@@ -10,7 +10,7 @@
             <p class="text-sm sm:text-base text-gray-600">Share your poetry with the world</p>
         </div>
 
-        <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6"
+        <div class="bg-white rounded-md p-4 sm:p-6"
              x-data="poemForm()">
                 
                 <form method="POST" action="/api/poems" @submit="handleSubmit">
@@ -23,7 +23,7 @@
                             <input id="title" 
                                    name="title" 
                                    type="text" 
-                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                                   class="mt-1 block w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:border-blue-600" 
                                    value="{{ old('title') }}"
                                    required 
                                    autofocus />
@@ -41,7 +41,7 @@
                                            name="is_video" 
                                            value="0" 
                                            x-model="isVideo"
-                                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700">
+                                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-blue-700">
                                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Text Poem</span>
                                 </label>
                                 <label class="flex items-center">
@@ -49,7 +49,7 @@
                                            name="is_video" 
                                            value="1" 
                                            x-model="isVideo"
-                                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700">
+                                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-blue-700">
                                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Video Poem</span>
                                 </label>
                             </div>
@@ -76,7 +76,7 @@
                                       name="content" 
                                       rows="12"
                                       required
-                                      class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm resize-none"
+                                      class="mt-1 block w-full border-2 border-gray-300 dark:border-gray-600 dark:bg-blue-700 dark:text-white focus:border-blue-600 focus:outline-none rounded-md resize-none transition-colors"
                                       placeholder="Write your poem here..."
                                       x-text="isVideo == 1 ? 'Describe your video poem...' : 'Write your poem here...'">{{ old('content') }}</textarea>
                             <div class="mt-2 flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
@@ -89,7 +89,7 @@
                         <!-- Preview -->
                         <div x-show="showPreview" x-transition>
                             <x-input-label :value="__('Preview')" />
-                            <div class="mt-2 bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                            <div class="mt-2 bg-gray-50 dark:bg-blue-700 rounded-md p-4 border border-gray-200 dark:border-gray-600">
                                 <h3 class="font-semibold text-lg text-gray-900 dark:text-white mb-2" x-text="title || 'Untitled'">Untitled</h3>
                                 <div class="prose prose-sm max-w-none dark:prose-invert">
                                     <p class="whitespace-pre-line text-gray-700 dark:text-gray-300" x-text="content || 'No content yet'">No content yet</p>
@@ -102,14 +102,14 @@
                             <div class="flex space-x-3">
                                 <button type="button" 
                                         @click="showPreview = !showPreview"
-                                        class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        class="inline-flex items-center px-4 py-2 border-2 border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-blue-600 hover:bg-gray-50 dark:hover:bg-blue-700 focus:outline-none focus:border-2 focus:border-blue-600">
                                     <span x-text="showPreview ? 'Hide Preview' : 'Show Preview'">Show Preview</span>
                                 </button>
                             </div>
                             
                             <div class="flex space-x-3">
                                 <a href="{{ route('poetry.index') }}" 
-                                   class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                   class="inline-flex items-center px-4 py-2 border-2 border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-blue-600 hover:bg-gray-50 dark:hover:bg-blue-700 focus:outline-none focus:border-2 focus:border-blue-600">
                                     Cancel
                                 </a>
                                 <x-primary-button :disabled="isSubmitting || !isValid">

@@ -36,12 +36,19 @@
 
             @if (session('status') === 'password-updated')
                 <p
-                    x-data="{ show: true }"
-                    x-show="show"
-                    x-transition
-                    x-init="setTimeout(() => show = false, 2000)"
+                    id="password-saved-message"
                     class="text-sm text-gray-600"
                 >{{ __('Saved.') }}</p>
+                <script>
+                    setTimeout(() => {
+                        const msg = document.getElementById('password-saved-message');
+                        if (msg) {
+                            msg.style.transition = 'opacity 0.5s';
+                            msg.style.opacity = '0';
+                            setTimeout(() => msg.remove(), 500);
+                        }
+                    }, 2000);
+                </script>
             @endif
         </div>
     </form>

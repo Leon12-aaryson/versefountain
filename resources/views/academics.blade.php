@@ -13,7 +13,7 @@
             </div>
 
             <!-- Search and Filter Section -->
-            <div class="bg-white border border-gray-200 p-5 sm:p-6 mb-8 sm:mb-10">
+            <div class="bg-white border-2 border-gray-200 rounded-md p-5 sm:p-6 mb-8 sm:mb-10">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- Search -->
                     <div class="sm:col-span-2 lg:col-span-1">
@@ -22,7 +22,7 @@
                             Resources</label>
                         <div class="relative">
                             <input type="text" id="search" placeholder="Search papers, subjects, or authors..."
-                                class="w-full pl-9 pr-3 py-2 border border-gray-300 focus:border-gray-500 text-sm bg-white focus:outline-none">
+                                class="w-full pl-9 pr-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none">
                             <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
                                 <i class="bx bx-search text-base text-gray-400"></i>
                             </div>
@@ -34,7 +34,7 @@
                         <label for="subject"
                             class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Subject</label>
                         <select id="subject"
-                            class="w-full px-3 py-2 border border-gray-300 focus:border-gray-500 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="">All Subjects</option>
                             <option value="literature">Literature</option>
                             <option value="history">History</option>
@@ -49,7 +49,7 @@
                         <label for="type"
                             class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Type</label>
                         <select id="type"
-                            class="w-full px-3 py-2 border border-gray-300 focus:border-gray-500 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="">All Types</option>
                             <option value="research-paper">Research Paper</option>
                             <option value="essay">Essay</option>
@@ -66,7 +66,7 @@
                     <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">Featured Resources</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
                         @foreach($featuredResources as $resource)
-                            <div class="bg-white border border-gray-200 hover:border-gray-300 transition-colors">
+                            <div class="bg-white border-2 border-gray-200 rounded-md hover:border-gray-300 focus-within:border-blue-600 transition-colors">
                                 <div class="h-40 sm:h-48 bg-gray-100 flex items-center justify-center">
                                     <i class="bx bx-file text-6xl text-gray-400"></i>
                                 </div>
@@ -115,7 +115,7 @@
                                 $icon = $icons[$subject] ?? 'bx-file';
                             @endphp
                             <a href="/academics?subject={{ urlencode($subject) }}"
-                                class="bg-white border border-gray-200 p-4 sm:p-6 text-center hover:border-gray-300 transition-colors cursor-pointer block">
+                                class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-blue-600 transition-colors cursor-pointer block">
                                 <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
                                     <i class="bx {{ $icon }} text-xl sm:text-2xl text-gray-600"></i>
                                 </div>
@@ -134,7 +134,7 @@
                 @if($recentPapers->count() > 0)
                     <div class="space-y-5 sm:space-y-6">
                         @foreach($recentPapers as $paper)
-                            <div class="bg-white border border-gray-200 p-4 sm:p-6 hover:border-gray-300 transition-colors">
+                            <div class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-blue-600 transition-colors">
                                 <div class="flex items-start space-x-4">
                                     <div
                                         class="w-12 h-16 sm:w-16 sm:h-20 bg-gray-100 flex items-center justify-center flex-shrink-0">

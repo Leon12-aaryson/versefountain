@@ -11,7 +11,7 @@
     <div class="min-h-screen bg-stone-50">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
             <!-- Chatroom Header -->
-            <div class="bg-white border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+            <div class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 mb-6 sm:mb-8">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-4">
                         <a href="{{ route('chatrooms.index') }}"
@@ -37,7 +37,7 @@
 
             @if($isMember)
                 <!-- Chat Interface -->
-                <div class="bg-white border border-gray-200" x-data="chatInterface({{ $chatroom->id }})">
+                <div class="bg-white border-2 border-gray-200 rounded-md" x-data="chatInterface({{ $chatroom->id }})">
 
                     <!-- Messages Area -->
                     <div class="h-96 sm:h-[500px] overflow-y-auto p-4 sm:p-6 space-y-4" x-ref="messagesContainer"
@@ -97,11 +97,11 @@
                         <form @submit.prevent="sendMessage()" class="flex space-x-3">
                             <div class="flex-1">
                                 <input x-model="newMessage" type="text" placeholder="Type your message..."
-                                    class="w-full px-3 py-2 border border-gray-300 focus:border-gray-500 bg-white focus:outline-none text-sm"
+                                    class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 bg-white focus:outline-none text-sm"
                                     :disabled="isSending">
                             </div>
                             <button type="submit" :disabled="!newMessage.trim() || isSending"
-                                class="px-4 py-2 bg-gray-800 text-white text-sm font-normal hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                class="px-4 py-2 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span x-show="!isSending">Send</span>
                                 <span x-show="isSending">Sending...</span>
                             </button>
@@ -110,7 +110,7 @@
                 </div>
             @else
                 <!-- Join Prompt -->
-                <div class="bg-white border border-gray-200 p-8 sm:p-12 text-center">
+                <div class="bg-white border-2 border-gray-200 rounded-md p-8 sm:p-12 text-center">
                     <div class="max-w-md mx-auto">
                         <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -121,7 +121,7 @@
                         <p class="text-gray-600 mb-4 font-light">You need to join this chatroom to participate in the
                             conversation.</p>
                         <button onclick="joinChatroom({{ $chatroom->id }})"
-                            class="px-6 py-2.5 bg-gray-800 text-white text-sm font-normal hover:bg-gray-700 transition-colors">
+                            class="px-6 py-2.5 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
                             Join Chatroom
                         </button>
                     </div>
@@ -333,8 +333,8 @@
             existingNotifications.forEach(notification => notification.remove());
 
             const notification = document.createElement('div');
-            notification.className = 'notification fixed top-4 right-4 px-6 py-3 rounded-lg text-white z-50 shadow-lg ' +
-                (type === 'success' ? 'bg-green-500' : 'bg-red-500');
+            notification.className = 'notification fixed top-4 right-4 px-6 py-3 rounded-md text-white z-50 ' +
+                (type === 'success' ? 'bg-blue-500' : 'bg-red-500');
             notification.textContent = message;
 
             notification.style.transform = 'translateX(100%)';

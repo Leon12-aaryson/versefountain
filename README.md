@@ -159,6 +159,6 @@ VerseFountain aims to become the premier digital platform for poetry communities
 
 ---
 
-**VerseFountain** - Where poetry flows freely and communities flourish! 🌊✨
+**Slogan:** VerseFountain: Where words flow freely and creatives flourish.
 
-*Building bridges between poets, readers, and the timeless art of verse.*
+**Tagline:** Connecting writers, readers, authors, and every creative soul through the power of words.

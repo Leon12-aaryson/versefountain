@@ -15,7 +15,7 @@
         </div>
 
         <div class="max-w-4xl mx-auto">
-            <div class="bg-white border border-gray-200">
+            <div class="bg-white border-2 border-gray-200 rounded-md">
                 <!-- Header -->
                 <div class="p-6 sm:p-8 border-b border-gray-200">
                     <div class="flex items-start justify-between">

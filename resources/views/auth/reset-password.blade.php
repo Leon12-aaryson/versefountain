@@ -3,7 +3,7 @@
 @section('title', 'Reset Password - VerseFountain')
 
 @section('auth-content')
-    <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+    <div class="bg-white rounded-md border border-gray-200">
         <div class="p-6">
             <div class="mb-6">
                 <h3 class="text-xl font-semibold text-gray-900">Reset Password</h3>
@@ -20,7 +20,7 @@
                 <div class="space-y-2">
                     <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
                     <input id="email" type="email" name="email" value="{{ old('email', $request->email) }}" required autofocus 
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                           class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:border-blue-600 focus:outline-none placeholder-gray-400"
                            placeholder="Enter your email">
                     @error('email')
                         <p class="text-sm text-red-500">{{ $message }}</p>
@@ -31,7 +31,7 @@
                 <div class="space-y-2">
                     <label for="password" class="block text-sm font-medium text-gray-700">New Password</label>
                     <input id="password" type="password" name="password" required 
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                           class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:border-blue-600 focus:outline-none placeholder-gray-400"
                            placeholder="Enter new password">
                     @error('password')
                         <p class="text-sm text-red-500">{{ $message }}</p>
@@ -42,7 +42,7 @@
                 <div class="space-y-2">
                     <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Confirm New Password</label>
                     <input id="password_confirmation" type="password" name="password_confirmation" required 
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                           class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:border-blue-600 focus:outline-none placeholder-gray-400"
                            placeholder="Confirm new password">
                     @error('password_confirmation')
                         <p class="text-sm text-red-500">{{ $message }}</p>
@@ -51,7 +51,7 @@
 
                 <!-- Submit Button -->
                 <button type="submit" 
-                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md font-medium hover:bg-blue-700 focus:border-2 focus:border-blue-600 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
                     Reset Password
                 </button>
             </form>

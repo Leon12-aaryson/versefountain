@@ -47,6 +47,19 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
+        // Blue palette from design
+        blue: {
+          50: "#eff6ff",   // Very light pastel blue
+          100: "#dbeafe",
+          200: "#bfdbfe",
+          300: "#93c5fd",
+          400: "#60a5fa",
+          500: "#3b82f6",   // Medium blue
+          600: "#2563eb",   // Medium-dark vibrant blue (royal/cornflower)
+          700: "#1d4ed8",   // Dark navy blue
+          800: "#1e40af",   // Darker navy
+          900: "#1e3a8a",   // Darkest navy
+        },
         chart: {
           "1": "hsl(var(--chart-1))",
           "2": "hsl(var(--chart-2))",

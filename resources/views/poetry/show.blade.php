@@ -14,8 +14,8 @@
          x-transition:leave-end="opacity-0 transform translate-y-2"
          class="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full px-4"
          style="display: none;">
-        <div x-bind:class="flashMessage.type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-red-50 border border-red-200 text-red-800'"
-             class="p-4 rounded-lg shadow-lg flex items-center justify-between">
+        <div x-bind:class="flashMessage.type === 'success' ? 'bg-blue-50 border border-blue-200 text-blue-800' : 'bg-red-50 border border-red-200 text-red-800'"
+             class="p-4 rounded-md flex items-center justify-between">
             <div class="flex items-center space-x-2">
                 <i x-bind:class="flashMessage.type === 'success' ? 'bx bx-check-circle text-lg' : 'bx bx-error-circle text-lg'"></i>
                 <span x-text="flashMessage.message" class="text-sm font-normal"></span>
@@ -39,19 +39,19 @@
         <div class="max-w-4xl mx-auto">
             <!-- Server-side Flash Messages -->
             @if(session('success'))
-                <div class="mb-4 p-4 bg-green-50 border border-green-200 text-green-800 rounded-lg flex items-center justify-between">
+                <div class="mb-4 p-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-md flex items-center justify-between">
                     <div class="flex items-center space-x-2">
                         <i class="bx bx-check-circle text-lg"></i>
                         <span class="text-sm font-normal">{{ session('success') }}</span>
                     </div>
-                    <button onclick="this.parentElement.remove()" class="ml-4 text-green-600 hover:text-green-800">
+                    <button onclick="this.parentElement.remove()" class="ml-4 text-blue-600 hover:text-blue-800">
                         <i class="bx bx-x text-lg"></i>
                     </button>
                 </div>
             @endif
 
             @if(session('error'))
-                <div class="mb-4 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg flex items-center justify-between">
+                <div class="mb-4 p-4 bg-red-50 border border-red-200 text-red-800 rounded-md flex items-center justify-between">
                     <div class="flex items-center space-x-2">
                         <i class="bx bx-error-circle text-lg"></i>
                         <span class="text-sm font-normal">{{ session('error') }}</span>
@@ -62,7 +62,7 @@
                 </div>
             @endif
 
-            <div class="bg-white border border-gray-200"
+            <div class="bg-white border-2 border-gray-200 rounded-md"
                  x-data="poemDetail({{ $poem->id }}, {{ $isLiked ? 'true' : 'false' }})"
                  @click.outside="showShareMenu = false">
                 
@@ -176,7 +176,7 @@
                                  x-transition:leave="transition ease-in duration-75"
                                  x-transition:leave-start="transform opacity-100 scale-100"
                                  x-transition:leave-end="transform opacity-0 scale-95"
-                                 class="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50"
+                                 class="absolute right-0 mt-2 w-56 bg-white border-2 border-gray-200 rounded-md rounded-md py-2 z-50"
                                  style="display: none;">
                                 <button @click="copyLink()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
                                     <i class="bx bx-link text-base"></i>
@@ -191,7 +191,7 @@
                                     <span>Share on Facebook</span>
                                 </button>
                                 <button @click="shareToWhatsApp()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
-                                    <i class="bx bxl-whatsapp text-base text-green-500"></i>
+                                    <i class="bx bxl-whatsapp text-base text-blue-500"></i>
                                     <span>Share on WhatsApp</span>
                                 </button>
                                 <button @click="shareViaEmail()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
@@ -231,12 +231,12 @@
                                     <div class="flex-1">
                                         <textarea x-model="newComment" 
                                                   placeholder="Write a comment..." 
-                                                  class="w-full px-3 py-2 border border-gray-300 focus:border-gray-500 bg-white focus:outline-none resize-none text-sm"
+                                                  class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 bg-white focus:outline-none resize-none text-sm"
                                                   rows="3"></textarea>
                                         <div class="mt-2 flex justify-end">
                                             <button type="submit" 
                                                     :disabled="!newComment.trim()"
-                                                    class="px-4 py-2 bg-gray-800 text-white text-sm font-normal hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                                    class="px-4 py-2 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                                                 Comment
                                             </button>
                                         </div>
@@ -305,12 +305,12 @@
             const flashDiv = document.createElement('div');
             flashDiv.className = `fixed top-16 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full px-4`;
             flashDiv.innerHTML = `
-                <div class="p-4 rounded-lg shadow-lg flex items-center justify-between ${type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-red-50 border border-red-200 text-red-800'}">
+                <div class="p-4 rounded-md flex items-center justify-between ${type === 'success' ? 'bg-blue-50 border border-blue-200 text-blue-800' : 'bg-red-50 border border-red-200 text-red-800'}">
                     <div class="flex items-center space-x-2">
                         <i class="bx ${type === 'success' ? 'bx-check-circle' : 'bx-error-circle'} text-lg"></i>
                         <span class="text-sm font-normal">${message}</span>
                     </div>
-                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 ${type === 'success' ? 'text-green-600 hover:text-green-800' : 'text-red-600 hover:text-red-800'}">
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 ${type === 'success' ? 'text-blue-600 hover:text-blue-800' : 'text-red-600 hover:text-red-800'}">
                         <i class="bx bx-x text-lg"></i>
                     </button>
                 </div>

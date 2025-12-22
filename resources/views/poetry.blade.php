@@ -18,8 +18,8 @@
                     </div>
                     @auth
                         <div class="mt-4 sm:mt-0">
-                            <a href="/poetry/create"
-                                class="inline-flex items-center px-5 py-2.5 bg-gray-800 text-white text-sm font-normal rounded-sm hover:bg-gray-700 transition-colors">
+                            <a href="{{ route('poetry.create') }}"
+                                class="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-normal rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
                                 <i class="bx bx-plus text-base mr-2"></i>
                                 Create Poem
                             </a>
@@ -29,14 +29,14 @@
             </div>
 
             <!-- Search and Filter Section -->
-            <div class="bg-white border border-gray-200 p-5 sm:p-6 mb-8 sm:mb-10">
+            <div class="bg-white border-2 border-gray-200 rounded-md p-5 sm:p-6 mb-8 sm:mb-10">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- Search -->
                     <div class="sm:col-span-2 lg:col-span-1">
                         <label for="search" class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Search Poems</label>
                         <div class="relative">
                             <input type="text" id="search" placeholder="Search by title, author, or content..."
-                                class="w-full pl-9 pr-3 py-2 border border-gray-300 focus:border-gray-500 text-sm bg-white focus:outline-none">
+                                class="w-full pl-9 pr-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none">
                             <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
                                 <i class="bx bx-search text-base text-gray-400"></i>
                             </div>
@@ -47,7 +47,7 @@
                     <div>
                         <label for="category" class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Category</label>
                         <select id="category"
-                            class="w-full px-3 py-2 border border-gray-300 focus:border-gray-500 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="">All Categories</option>
                             <option value="love">Love</option>
                             <option value="nature">Nature</option>
@@ -62,7 +62,7 @@
                     <div>
                         <label for="sort" class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Sort By</label>
                         <select id="sort"
-                            class="w-full px-3 py-2 border border-gray-300 focus:border-gray-500 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="newest">Newest First</option>
                             <option value="oldest">Oldest First</option>
                             <option value="popular">Most Popular</option>
@@ -75,8 +75,11 @@
             <!-- Poems Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
                 @forelse($poems as $poem)
-                    <div class="bg-white border border-gray-200 hover:border-gray-300 transition-colors"
-                         x-data="poemCard({{ $poem->id }}, {{ auth()->check() && $poem->userInteractions->where('user_id', auth()->id())->where('type', 'like')->count() > 0 ? 'true' : 'false' }}, {{ auth()->check() ? ($poem->userInteractions->where('user_id', auth()->id())->where('type', 'rating')->first()?->rating ?? 0) : 0 }})">
+                    <div class="bg-white border-2 border-gray-200 rounded-md hover:border-gray-300 focus-within:border-blue-600 transition-colors"
+                         data-poem-card
+                         data-poem-id="{{ $poem->id }}"
+                         data-initial-liked="{{ auth()->check() && $poem->userInteractions->where('user_id', auth()->id())->where('type', 'like')->count() > 0 ? 'true' : 'false' }}"
+                         data-initial-rating="{{ auth()->check() ? ($poem->userInteractions->where('user_id', auth()->id())->where('type', 'rating')->first()?->rating ?? 0) : 0 }}">
                         <div class="p-6 sm:p-8">
                             <!-- Title -->
                             <h3 class="text-lg font-normal text-gray-900 mb-4 leading-snug">
@@ -100,11 +103,10 @@
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-4 text-xs text-gray-500">
                                     <!-- Likes -->
-                                    <button @click="toggleLike()" 
-                                            :class="isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'"
-                                            class="flex items-center space-x-1 transition-colors">
-                                        <i :class="isLiked ? 'bx bxs-heart' : 'bx bx-heart'" class="text-sm"></i>
-                                        <span x-text="likesCount">{{ $poem->userInteractions->where('type', 'like')->count() }}</span>
+                                    <button data-like-button
+                                            class="flex items-center space-x-1 transition-colors {{ auth()->check() && $poem->userInteractions->where('user_id', auth()->id())->where('type', 'like')->count() > 0 ? 'text-red-500' : 'text-gray-500 hover:text-red-500' }}">
+                                        <i class="{{ auth()->check() && $poem->userInteractions->where('user_id', auth()->id())->where('type', 'like')->count() > 0 ? 'bx bxs-heart' : 'bx bx-heart' }} text-sm"></i>
+                                        <span data-likes-count>{{ $poem->userInteractions->where('type', 'like')->count() }}</span>
                                     </button>
                                     
                                     <!-- Comments -->
@@ -116,12 +118,13 @@
                                     <!-- Rating -->
                                     <div class="flex items-center space-x-1">
                                         @for($i = 1; $i <= 5; $i++)
-                                            <button @click="ratePoem({{ $i }})" 
-                                                    @mouseenter="hoverRating = {{ $i }}"
-                                                    @mouseleave="hoverRating = 0"
-                                                    class="transition-colors cursor-pointer"
-                                                    :class="(hoverRating >= {{ $i }} || currentRating >= {{ $i }}) ? 'text-yellow-500' : 'text-gray-400 hover:text-yellow-400'">
-                                                <i :class="(hoverRating >= {{ $i }} || currentRating >= {{ $i }}) ? 'bx bxs-star' : 'bx bx-star'" class="text-xs"></i>
+                                            @php
+                                                $userRating = auth()->check() ? ($poem->userInteractions->where('user_id', auth()->id())->where('type', 'rating')->first()?->rating ?? 0) : 0;
+                                                $isActive = $userRating >= $i;
+                                            @endphp
+                                            <button data-rating="{{ $i }}"
+                                                    class="transition-colors cursor-pointer {{ $isActive ? 'text-yellow-500' : 'text-gray-400 hover:text-yellow-400' }}">
+                                                <i class="{{ $isActive ? 'bx bxs-star' : 'bx bx-star' }} text-xs"></i>
                                             </button>
                                         @endfor
                                     </div>
@@ -142,13 +145,13 @@
                             <p class="text-sm text-gray-500 mb-6">Be the first to share your poetry with the community.</p>
                             @auth
                                 <a href="{{ route('poetry.create') }}" 
-                                   class="inline-flex items-center px-5 py-2.5 bg-gray-800 text-white text-sm font-normal rounded-sm hover:bg-gray-700 transition-colors">
+                                   class="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-normal rounded-md hover:bg-blue-700 focus:outline-none focus:border-2 focus:border-blue-800 transition-colors border-2 border-transparent">
                                     <i class="bx bx-plus text-base mr-2"></i>
                                     Create Your First Poem
                                 </a>
                             @else
                                 <a href="{{ route('register') }}" 
-                                   class="inline-flex items-center px-5 py-2.5 bg-gray-800 text-white text-sm font-normal rounded-sm hover:bg-gray-700 transition-colors">
+                                   class="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-normal rounded-md hover:bg-blue-700 focus:outline-none focus:border-2 focus:border-blue-800 transition-colors border-2 border-transparent">
                                     <i class="bx bx-user-plus text-base mr-2"></i>
                                     Sign Up to Get Started
                                 </a>
@@ -168,124 +171,117 @@
     </div>
 
     <script>
-    function poemCard(poemId, initialLiked, initialRating) {
-        return {
-            poemId: poemId,
-            isLiked: initialLiked,
-            likesCount: 0,
-            currentRating: initialRating || 0,
-            hoverRating: 0,
-            avgRating: 0,
-            ratingCount: 0,
+    // Poem card functionality (vanilla JavaScript)
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('[data-poem-card]').forEach(card => {
+            const poemId = card.getAttribute('data-poem-id');
+            const initialLiked = card.getAttribute('data-initial-liked') === 'true';
+            const initialRating = parseInt(card.getAttribute('data-initial-rating') || '0');
             
-            init() {
-                // Initialize with current state
-                const likesElement = this.$el.querySelector('[x-text="likesCount"]');
-                if (likesElement) {
-                    this.likesCount = parseInt(likesElement.textContent) || 0;
-                }
-                
-                // Fetch user's current rating and stats
-                @auth
-                this.fetchUserRating();
-                @endauth
-            },
+            let isLiked = initialLiked;
+            let likesCount = parseInt(card.querySelector('[data-likes-count]')?.textContent || '0');
+            let currentRating = initialRating;
+            let hoverRating = 0;
             
-            async fetchUserRating() {
-                try {
-                    const response = await fetch(`{{ url('/api/poems') }}/${this.poemId}/user-status`, {
-                        method: 'GET',
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        credentials: 'same-origin'
-                    });
+            // Like button
+            const likeButton = card.querySelector('[data-like-button]');
+            if (likeButton) {
+                likeButton.addEventListener('click', async function() {
+                    @guest
+                        window.location.href = '/login';
+                        return;
+                    @endguest
                     
-                    if (response.ok) {
-                        const data = await response.json();
-                        this.currentRating = parseInt(data.rating || 0);
-                        this.avgRating = parseFloat(data.average_rating || 0).toFixed(1);
-                        this.ratingCount = parseInt(data.rating_count || 0);
+                    try {
+                        const response = await fetch(`/api/poems/${poemId}/like`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json'
+                            },
+                            credentials: 'same-origin'
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            isLiked = data.liked;
+                            likesCount = data.likes_count;
+                            
+                            const icon = likeButton.querySelector('i');
+                            const countSpan = card.querySelector('[data-likes-count]');
+                            
+                            if (icon) {
+                                icon.className = isLiked ? 'bx bxs-heart text-sm' : 'bx bx-heart text-sm';
+                            }
+                            if (countSpan) {
+                                countSpan.textContent = likesCount;
+                            }
+                            likeButton.className = likeButton.className.replace(/text-(red|gray)-500/g, '') + (isLiked ? ' text-red-500' : ' text-gray-500 hover:text-red-500');
+                        }
+                    } catch (error) {
+                        console.error('Error toggling like:', error);
                     }
-                } catch (error) {
-                    console.error('Error fetching user rating:', error);
-                }
-            },
+                });
+            }
             
-            async toggleLike() {
-                @guest
-                    window.location.href = '/login';
-                    return;
-                @endguest
-                
-                try {
-                    const response = await fetch(`{{ url('/api/poems') }}/${this.poemId}/like`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        credentials: 'same-origin'
-                    });
-                    
-                    if (!response.ok) {
-                        if (response.status === 401) {
+            // Rating buttons
+            for (let i = 1; i <= 5; i++) {
+                const ratingButton = card.querySelector(`[data-rating="${i}"]`);
+                if (ratingButton) {
+                    ratingButton.addEventListener('click', async function() {
+                        @guest
                             window.location.href = '/login';
                             return;
+                        @endguest
+                        
+                        try {
+                            const response = await fetch(`/api/poems/${poemId}/rate`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({ rating: i }),
+                                credentials: 'same-origin'
+                            });
+                            
+                            if (response.ok) {
+                                const data = await response.json();
+                                currentRating = parseInt(data.rating);
+                                updateRatingDisplay();
+                            }
+                        } catch (error) {
+                            console.error('Error rating poem:', error);
                         }
-                        throw new Error('Failed to toggle like');
-                    }
-                    
-                    const data = await response.json();
-                    this.isLiked = data.liked;
-                    this.likesCount = data.likes_count;
-                } catch (error) {
-                    console.error('Error toggling like:', error);
-                }
-            },
-            
-            async ratePoem(rating) {
-                @guest
-                    window.location.href = '/login';
-                    return;
-                @endguest
-                
-                try {
-                    const response = await fetch(`{{ url('/api/poems') }}/${this.poemId}/rate`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        credentials: 'same-origin',
-                        body: JSON.stringify({ rating: rating })
                     });
                     
-                    if (!response.ok) {
-                        if (response.status === 401) {
-                            window.location.href = '/login';
-                            return;
-                        }
-                        throw new Error('Failed to rate poem');
-                    }
+                    ratingButton.addEventListener('mouseenter', function() {
+                        hoverRating = i;
+                        updateRatingDisplay();
+                    });
                     
-                    const data = await response.json();
-                    this.currentRating = parseInt(data.rating);
-                    this.avgRating = parseFloat(data.average_rating).toFixed(1);
-                    if (data.rating_count !== undefined) {
-                        this.ratingCount = parseInt(data.rating_count);
-                    }
-                } catch (error) {
-                    console.error('Error rating poem:', error);
+                    ratingButton.addEventListener('mouseleave', function() {
+                        hoverRating = 0;
+                        updateRatingDisplay();
+                    });
                 }
             }
-        }
-    }
+            
+            function updateRatingDisplay() {
+                for (let i = 1; i <= 5; i++) {
+                    const btn = card.querySelector(`[data-rating="${i}"]`);
+                    const icon = btn?.querySelector('i');
+                    if (btn && icon) {
+                        const isActive = hoverRating >= i || currentRating >= i;
+                        icon.className = isActive ? 'bx bxs-star text-xs' : 'bx bx-star text-xs';
+                        btn.className = btn.className.replace(/text-(yellow|gray)-[0-9]+/g, '') + (isActive ? ' text-yellow-500' : ' text-gray-400 hover:text-yellow-400');
+                    }
+                }
+            }
+        });
+    });
     </script>
 
     <style>

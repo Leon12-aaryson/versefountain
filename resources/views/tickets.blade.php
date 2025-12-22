@@ -13,7 +13,7 @@
             </div>
 
             <!-- Search and Filter Section -->
-            <div class="bg-white border border-gray-200 p-5 sm:p-6 mb-8 sm:mb-10">
+            <div class="bg-white border-2 border-gray-200 rounded-md p-5 sm:p-6 mb-8 sm:mb-10">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- Search -->
                     <div class="sm:col-span-2 lg:col-span-1">
@@ -22,7 +22,7 @@
                             Events</label>
                         <div class="relative">
                             <input type="text" id="search" placeholder="Search events, locations, or organizers..."
-                                class="w-full pl-9 pr-3 py-2 border border-gray-300 focus:border-gray-500 text-sm bg-white focus:outline-none">
+                                class="w-full pl-9 pr-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none">
                             <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
                                 <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -37,7 +37,7 @@
                         <label for="category"
                             class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Category</label>
                         <select id="category"
-                            class="w-full px-3 py-2 border border-gray-300 focus:border-gray-500 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="">All Categories</option>
                             <option value="poetry-reading">Poetry Reading</option>
                             <option value="workshop">Workshop</option>
@@ -51,7 +51,7 @@
                         <label for="date"
                             class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Date</label>
                         <select id="date"
-                            class="w-full px-3 py-2 border border-gray-300 focus:border-gray-500 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="">All Dates</option>
                             <option value="today">Today</option>
                             <option value="tomorrow">Tomorrow</option>
@@ -120,7 +120,7 @@
                 <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">Featured Events</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
                     @foreach($featuredEvents as $event)
-                        <div class="bg-white border border-gray-200 hover:border-gray-300 transition-colors">
+                        <div class="bg-white border-2 border-gray-200 rounded-md hover:border-gray-300 focus-within:border-blue-600 transition-colors">
                             <div class="h-40 sm:h-48 bg-gray-100 flex items-center justify-center">
                                 <svg class="w-12 h-12 sm:w-16 sm:h-16 text-gray-400" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -149,7 +149,7 @@
                                 <div class="flex items-center justify-between">
                                     <span class="text-xs text-gray-500">{{ $event['date'] }}</span>
                                     <button
-                                        class="px-3 py-1 bg-gray-800 text-white text-xs font-normal hover:bg-gray-700 transition-colors">
+                                        class="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-normal hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
                                         Buy Ticket
                                     </button>
                                 </div>
@@ -164,7 +164,7 @@
                 <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">Upcoming Events</h2>
                 <div class="space-y-5 sm:space-y-6">
                     @foreach($upcomingEvents as $event)
-                        <div class="bg-white border border-gray-200 p-4 sm:p-6 hover:border-gray-300 transition-colors">
+                        <div class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-blue-600 transition-colors">
                             <div class="flex items-start space-x-4">
                                 <div
                                     class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 flex items-center justify-center flex-shrink-0">
@@ -196,7 +196,7 @@
                                     <div class="flex items-center justify-between">
                                         <span class="text-xs text-gray-500">{{ $event['date'] }}</span>
                                         <button
-                                            class="px-3 py-1 bg-gray-800 text-white text-xs font-normal hover:bg-gray-700 transition-colors">
+                                            class="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-normal hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
                                             Buy Ticket
                                         </button>
                                     </div>
@@ -212,7 +212,7 @@
                 <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">Browse by Category</h2>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
                     <div
-                        class="bg-white border border-gray-200 p-4 sm:p-6 text-center hover:border-gray-300 transition-colors cursor-pointer">
+                        class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-blue-600 transition-colors cursor-pointer">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
@@ -226,7 +226,7 @@
                     </div>
 
                     <div
-                        class="bg-white border border-gray-200 p-4 sm:p-6 text-center hover:border-gray-300 transition-colors cursor-pointer">
+                        class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-blue-600 transition-colors cursor-pointer">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
@@ -240,7 +240,7 @@
                     </div>
 
                     <div
-                        class="bg-white border border-gray-200 p-4 sm:p-6 text-center hover:border-gray-300 transition-colors cursor-pointer">
+                        class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-blue-600 transition-colors cursor-pointer">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
@@ -254,7 +254,7 @@
                     </div>
 
                     <div
-                        class="bg-white border border-gray-200 p-4 sm:p-6 text-center hover:border-gray-300 transition-colors cursor-pointer">
+                        class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-blue-600 transition-colors cursor-pointer">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
@@ -272,7 +272,7 @@
             <!-- My Tickets Section -->
             <div class="mb-10 sm:mb-12">
                 <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">My Tickets</h2>
-                <div class="bg-white border border-gray-200 p-4 sm:p-6">
+                <div class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6">
                     <div class="text-center py-8">
                         <svg class="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
@@ -284,7 +284,7 @@
                         <p class="text-sm sm:text-base text-gray-600 mb-4 font-light">Purchase tickets for upcoming events
                             to see them here.</p>
                         <button
-                            class="px-6 py-2.5 bg-gray-800 text-white text-sm font-normal hover:bg-gray-700 transition-colors">
+                            class="px-6 py-2.5 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
                             Browse Events
                         </button>
                     </div>
@@ -293,7 +293,7 @@
 
             <!-- Load More Button -->
             <div class="text-center">
-                <button class="px-6 py-2.5 bg-gray-800 text-white text-sm font-normal hover:bg-gray-700 transition-colors">
+                <button class="px-6 py-2.5 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
                     Load More Events
                 </button>
             </div>

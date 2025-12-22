@@ -44,7 +44,7 @@ Route::get('/poetry', [PoemController::class, 'index'])->name('poetry.index');
 
 Route::get('/poetry/create', function () {
     return view('poetry.create');
-})->middleware('auth');
+})->middleware('auth')->name('poetry.create');
 
 Route::get('/poetry/{poem}', [App\Http\Controllers\PoemController::class, 'show'])->name('poetry.show');
 

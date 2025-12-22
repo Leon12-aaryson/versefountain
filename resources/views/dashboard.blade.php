@@ -13,7 +13,7 @@
             </div>
 
             <!-- Dashboard Content -->
-            <div class="bg-white border border-gray-200 p-6 sm:p-8">
+            <div class="bg-white border-2 border-gray-200 rounded-md p-6 sm:p-8">
                 <div class="text-gray-900 font-light">
                     {{ __("You're logged in!") }}
                 </div>

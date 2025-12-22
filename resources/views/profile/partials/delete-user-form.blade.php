@@ -10,11 +10,12 @@
     </header>
 
     <x-danger-button
-        x-data=""
-        x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')"
+        onclick="document.getElementById('confirm-user-deletion').classList.remove('hidden')"
     >{{ __('Delete Account') }}</x-danger-button>
 
-    <x-modal name="confirm-user-deletion" :show="$errors->userDeletion->isNotEmpty()" focusable>
+    <div id="confirm-user-deletion" class="fixed inset-0 z-50 overflow-y-auto {{ $errors->userDeletion->isNotEmpty() ? '' : 'hidden' }}" style="background-color: rgba(0, 0, 0, 0.5);">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="bg-white rounded-md max-w-md w-full">
         <form method="post" action="{{ route('profile.destroy') }}" class="p-6">
             @csrf
             @method('delete')
@@ -42,7 +43,7 @@
             </div>
 
             <div class="mt-6 flex justify-end">
-                <x-secondary-button x-on:click="$dispatch('close')">
+                <x-secondary-button onclick="document.getElementById('confirm-user-deletion').classList.add('hidden')">
                     {{ __('Cancel') }}
                 </x-secondary-button>
 
@@ -51,5 +52,28 @@
                 </x-danger-button>
             </div>
         </form>
-    </x-modal>
+            </div>
+        </div>
+    </div>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('confirm-user-deletion');
+    if (modal) {
+        // Close on background click
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+            }
+        });
+        
+        // Close on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                modal.classList.add('hidden');
+            }
+        });
+    }
+});
+</script>
