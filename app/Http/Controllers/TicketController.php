@@ -48,7 +48,8 @@ class TicketController extends Controller
             'payment_id' => 'nullable|exists:payments,id', // Optional for paid events
         ]);
 
-        $event = Event::find($validatedData['event_id']);
+        // Load event with relationships in a single query
+        $event = Event::with('tickets')->find($validatedData['event_id']);
 
         if (!$event) {
             return response()->json(['message' => 'Event not found.'], 404);
@@ -60,17 +61,29 @@ class TicketController extends Controller
         }
         // Further check: if payment_id is provided, ensure it's for this user and event and is completed
         if (isset($validatedData['payment_id'])) {
-            $payment = $user->payments()->where('id', $validatedData['payment_id'])
-                                         ->where('event_id', $event->id)
-                                         ->where('status', 'completed')
-                                         ->first();
+            $payment = $user->payments()
+                ->where('id', $validatedData['payment_id'])
+                ->where('event_id', $event->id)
+                ->where('status', 'completed')
+                ->first();
             if (!$payment) {
                 return response()->json(['message' => 'Invalid or incomplete payment for this event.'], 400);
             }
         }
 
-        // Prevent duplicate tickets for the same user and event (especially for free events)
-        if (Ticket::where('user_id', $user->id)->where('event_id', $event->id)->exists()) {
+        // Prevent duplicate tickets - use eager loaded relationship if available, otherwise query
+        $hasTicket = $event->tickets->contains(function ($ticket) use ($user) {
+            return $ticket->user_id === $user->id;
+        });
+        
+        if (!$hasTicket) {
+            // Double check with query in case relationship wasn't fully loaded
+            $hasTicket = Ticket::where('user_id', $user->id)
+                ->where('event_id', $event->id)
+                ->exists();
+        }
+        
+        if ($hasTicket) {
             return response()->json(['message' => 'You already have a ticket for this event.'], 409);
         }
 

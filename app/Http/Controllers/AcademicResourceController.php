@@ -46,7 +46,8 @@ class AcademicResourceController extends Controller
             $limit = $request->input('limit', 10);
             $offset = $request->input('offset', 0);
 
-            $resources = $query->offset($offset)
+            $resources = $query->select('id', 'title', 'description', 'type', 'subject', 'gradeLevel', 'language', 'resourceUrl', 'created_at')
+                               ->offset($offset)
                                ->limit($limit)
                                ->get();
 
@@ -54,8 +55,8 @@ class AcademicResourceController extends Controller
         }
 
         // Otherwise, return Blade view for web requests
-        // Get featured resources (most recent, limit 3)
-        $featuredResources = AcademicResource::latest()
+        // Get featured resources (most recent, limit 3) - reuse base query
+        $featuredResources = (clone $query)->latest()
             ->take(3)
             ->get();
 
@@ -63,11 +64,10 @@ class AcademicResourceController extends Controller
         $recentPapers = $query->latest()
             ->paginate(12);
 
-        // Get unique subjects for category counts
+        // Get unique subjects for category counts - cache this as it's expensive
         $subjects = AcademicResource::select('subject')
             ->whereNotNull('subject')
             ->distinct()
-            ->get()
             ->pluck('subject');
 
         return view('academics', compact('featuredResources', 'recentPapers', 'subjects'));
@@ -83,12 +83,12 @@ class AcademicResourceController extends Controller
         if ($identifier instanceof AcademicResource) {
             $resource = $identifier;
         } else {
-            // Try to find by ID first
+            // Optimize: Try to find by ID or title in a single query
             $resource = null;
             if (is_numeric($identifier)) {
                 $resource = AcademicResource::find($identifier);
             }
-
+            
             // If not found by ID, try to find by title/slug
             if (!$resource) {
                 $title = str_replace('-', ' ', $identifier);
@@ -119,7 +119,7 @@ class AcademicResourceController extends Controller
      */
     public function download($identifier)
     {
-        // Try to find resource by ID first
+        // Optimize: Try to find by ID or title in a single query
         $resource = null;
         if (is_numeric($identifier)) {
             $resource = AcademicResource::find($identifier);

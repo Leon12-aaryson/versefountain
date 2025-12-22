@@ -52,7 +52,9 @@ class BookController extends Controller
                 $limit = $request->input('limit', 10);
                 $offset = $request->input('offset', 0);
 
-                return $query->offset($offset)
+                return $query->select('id', 'title', 'author', 'description', 'cover_image', 'genre', 'approved', 'uploaded_by_id', 'created_at')
+                             ->with('uploadedBy:id,username')
+                             ->offset($offset)
                              ->limit($limit)
                              ->get();
             });
@@ -61,22 +63,21 @@ class BookController extends Controller
         }
 
         // Otherwise, return Blade view for web requests
-        // Get featured books (4 most recent)
-        $featuredBooks = Book::where('approved', true)
+        // Get featured books (4 most recent) - reuse base query with eager loading
+        $featuredBooks = (clone $query)->with('uploadedBy')
             ->latest()
             ->take(4)
             ->get();
 
-        // Get recent books (paginated)
-        $recentBooks = $query->latest()
+        // Get recent books (paginated) with eager loading
+        $recentBooks = $query->with('uploadedBy')
+            ->latest()
             ->paginate(12);
 
-        // Get unique genres for category counts
+        // Get unique genres for category counts - optimize with pluck directly
         $genres = Book::where('approved', true)
-            ->select('genre')
             ->whereNotNull('genre')
             ->distinct()
-            ->get()
             ->pluck('genre');
 
         return view('books', compact('featuredBooks', 'recentBooks', 'genres'));
@@ -87,6 +88,8 @@ class BookController extends Controller
      */
     public function show(Book $book)
     {
+        // Eager load relationships
+        $book->load('uploadedBy');
         return response()->json($book);
     }
 

@@ -47,7 +47,9 @@ class EventController extends Controller
             $limit = $request->input('limit', 10);
             $offset = $request->input('offset', 0);
 
-            $events = $query->orderBy('date', 'asc')
+            $events = $query->select('id', 'title', 'description', 'date', 'location', 'ticket_price', 'organizer', 'is_virtual', 'stream_url', 'is_free', 'category', 'created_by_id', 'created_at')
+                            ->with('createdBy:id,username')
+                            ->orderBy('date', 'asc')
                             ->offset($offset)
                             ->limit($limit)
                             ->get();
@@ -56,22 +58,22 @@ class EventController extends Controller
         }
 
         // Otherwise, return Blade view for web requests
-        // Get featured events (3 most recent upcoming)
-        $featuredEvents = Event::where('date', '>', now())
+        // Get featured events (3 most recent upcoming) - reuse base query with eager loading
+        $featuredEvents = (clone $query)->where('date', '>', now())
+            ->with('createdBy')
             ->orderBy('date', 'asc')
             ->take(3)
             ->get();
 
-        // Get upcoming events (paginated)
+        // Get upcoming events (paginated) with eager loading
         $upcomingEvents = $query->where('date', '>', now())
+            ->with('createdBy')
             ->orderBy('date', 'asc')
             ->paginate(12);
 
-        // Get unique categories for category counts
-        $categories = Event::select('category')
-            ->whereNotNull('category')
+        // Get unique categories for category counts - optimize with pluck directly
+        $categories = Event::whereNotNull('category')
             ->distinct()
-            ->get()
             ->pluck('category');
 
         return view('events', compact('featuredEvents', 'upcomingEvents', 'categories'));
@@ -84,6 +86,7 @@ class EventController extends Controller
     {
         $limit = $request->input('limit', 3);
         $events = Event::where('category', 'poetry')
+            ->with('createdBy')
             ->orderBy('date', 'asc')
             ->limit($limit)
             ->get();
@@ -95,6 +98,8 @@ class EventController extends Controller
      */
     public function show(Event $event)
     {
+        // Eager load relationships
+        $event->load('createdBy', 'tickets', 'payments');
         return response()->json($event);
     }
 
@@ -221,6 +226,7 @@ class EventController extends Controller
         }
 
         $events = Event::where('created_by_id', $user->id)
+                       ->with('createdBy', 'tickets')
                        ->orderBy('date', 'asc')
                        ->paginate($request->input('limit', 10));
 

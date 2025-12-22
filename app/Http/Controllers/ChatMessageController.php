@@ -19,7 +19,9 @@ class ChatMessageController extends Controller
         // Check if user is authorized to view messages in this room (especially if private)
         if ($chatroom->isPrivate) {
             $user = Auth::user();
-            if (!$user || !$chatroom->members()->where('user_id', $user->id)->exists()) {
+            // Load members once and check in memory
+            $chatroom->load('members');
+            if (!$user || !$chatroom->members->contains('id', $user->id)) {
                 return response()->json(['message' => 'Forbidden. You are not a member of this private chat room.'], 403);
             }
         }
@@ -27,7 +29,9 @@ class ChatMessageController extends Controller
         $limit = $request->input('limit', 50); // Default to 50 messages
         $offset = $request->input('offset', 0);
 
-        $messages = $chatroom->messages()->with('user:id,username')
+        $messages = $chatroom->messages()
+                         ->select('id', 'room_id', 'user_id', 'message', 'created_at')
+                         ->with('user:id,username')
                          ->orderBy('created_at', 'asc')
                          ->offset($offset)
                          ->limit($limit)
@@ -58,7 +62,9 @@ class ChatMessageController extends Controller
         }
 
         // Ensure user is a member of the room before sending message
-        if (!$chatroom->members()->where('user_id', $user->id)->exists()) {
+        // Load members once and check in memory
+        $chatroom->load('members');
+        if (!$chatroom->members->contains('id', $user->id)) {
             return response()->json(['message' => 'Forbidden. You are not a member of this chat room.'], 403);
         }
 

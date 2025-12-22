@@ -12,7 +12,7 @@ class ChatRoomController extends Controller
 {
     public function index(Request $request)
     {
-        $query = ChatRoom::query();
+        $query = ChatRoom::query()->withCount('members');
 
         if ($request->has('isPrivate')) {
             $request->validate(['isPrivate' => 'boolean']);
@@ -25,15 +25,15 @@ class ChatRoomController extends Controller
 
         if ($request->boolean('joined') && Auth::check()) {
             $user = Auth::user();
-            $query->whereHas('members', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
+            // Use whereIn with subquery for better performance than whereHas
+            $query->whereIn('chat_rooms.id', function ($subquery) use ($user) {
+                $subquery->select('room_id')
+                         ->from('user_chat_rooms')
+                         ->where('user_id', $user->id);
             });
         }
 
-        $chatRooms = $query->get()->map(function ($room) {
-            $room->members_count = $room->members()->count();
-            return $room;
-        });
+        $chatRooms = $query->get();
 
         return response()->json($chatRooms);
     }
@@ -45,7 +45,8 @@ class ChatRoomController extends Controller
         
         if ($chatroom->isPrivate) {
             $user = Auth::user();
-            if (!$user || !$chatroom->members()->where('user_id', $user->id)->exists()) {
+            // Use eager loaded relationship instead of separate query
+            if (!$user || !$chatroom->members->contains('id', $user->id)) {
                 abort(403, 'Forbidden. You are not a member of this private chat room.');
             }
         }
@@ -55,9 +56,13 @@ class ChatRoomController extends Controller
 
     public function apiShow(ChatRoom $room)
     {
+        // Load relationships for API response
+        $room->load('members');
+        
         if ($room->isPrivate) {
             $user = Auth::user();
-            if (!$user || !$room->members()->where('user_id', $user->id)->exists()) {
+            // Use eager loaded relationship instead of separate query
+            if (!$user || !$room->members->contains('id', $user->id)) {
                 return response()->json(['message' => 'Forbidden. You are not a member of this private chat room.'], 403);
             }
         }
@@ -94,10 +99,7 @@ class ChatRoomController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        $chatRooms = $user->chatRooms()->get()->map(function ($room) {
-            $room->members_count = $room->members()->count();
-            return $room;
-        });
+        $chatRooms = $user->chatRooms()->withCount('members')->get();
 
         return response()->json($chatRooms);
     }
@@ -115,7 +117,9 @@ class ChatRoomController extends Controller
             }
         }
 
-        if ($room->members()->where('user_id', $user->id)->exists()) {
+        // Load members once to check membership
+        $room->load('members');
+        if ($room->members->contains('id', $user->id)) {
             return response()->json(['message' => 'Already a member of this chat room.'], 200);
         }
 
@@ -152,7 +156,9 @@ class ChatRoomController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        $isMember = $room->members()->where('user_id', $user->id)->exists();
+        // Load members once and check in memory
+        $room->load('members');
+        $isMember = $room->members->contains('id', $user->id);
         return response()->json(['isMember' => $isMember]);
     }
 }
