@@ -6,7 +6,9 @@
 @section('content')
             <!-- Hero Section -->
             <div class="relative bg-blue-500 rounded-lg overflow-hidden mb-6">
-                <div class="absolute inset-0 bg-black/30"></div>
+                <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1920&q=80');"></div>
+                <div class="absolute inset-0 bg-blue-500/80"></div>
+                <div class="absolute inset-0 bg-black/20"></div>
                 <div class="relative flex flex-col items-center justify-center text-center px-6 sm:px-8 py-16 sm:py-20">
                     <h1 class="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white mb-4">
                         Welcome to VerseFountain
@@ -48,14 +50,14 @@
                 <!-- Books Section -->
                 <div class="bg-white rounded-lg p-6 border border-gray-200 hover:border-gray-300 transition-colors">
                     <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center mr-3">
-                            <i class="bx bx-book text-xl text-purple-600"></i>
+                        <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mr-3">
+                            <i class="bx bx-book text-xl text-blue-600"></i>
                         </div>
                         <h2 class="text-xl font-semibold text-gray-900">Books</h2>
                     </div>
                     <p class="text-sm text-gray-600 mb-4 leading-relaxed">Access a vast collection of books, from literary classics to modern bestsellers. Find your next great read.</p>
                     <a href="/books"
-                        class="inline-flex items-center text-purple-600 hover:text-purple-700 text-sm font-medium">
+                        class="inline-flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium">
                         Browse Books
                         <i class="bx bx-chevron-right ml-1"></i>
                     </a>
@@ -84,7 +86,7 @@
                     <div class="flex items-center justify-between mb-6">
                         <h2 class="text-2xl font-semibold text-gray-900">Upcoming Events</h2>
                         <a href="/events"
-                            class="text-sm text-purple-600 hover:text-purple-700 inline-flex items-center">
+                            class="text-sm text-blue-600 hover:text-blue-700 inline-flex items-center">
                             View All <i class="bx bx-chevron-right ml-1"></i>
                         </a>
                     </div>
@@ -104,7 +106,7 @@
                                         </div>
                                         <div class="flex-1 min-w-0">
                                             <h3 class="text-sm font-medium text-gray-900 line-clamp-1">
-                                                <a href="{{ route('api.events.show', $event) }}" class="hover:text-purple-600 transition-colors">
+                                                <a href="{{ route('api.events.show', $event) }}" class="hover:text-blue-600 transition-colors">
                                                     {{ $event->title }}
                                                 </a>
                                             </h3>
@@ -117,7 +119,7 @@
                                         {{ Str::limit($event->description ?? 'No description', 100) }}
                                     </p>
                                     <a href="{{ route('api.events.show', $event) }}"
-                                        class="inline-flex items-center text-sm text-purple-600 hover:text-purple-700">
+                                        class="inline-flex items-center text-sm text-blue-600 hover:text-blue-700">
                                         Learn More <i class="bx bx-chevron-right ml-1"></i>
                                     </a>
                                 </div>

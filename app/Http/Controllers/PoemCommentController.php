@@ -41,7 +41,7 @@ class PoemCommentController extends Controller
         $userReactions = [];
         if ($user && $commentIds->isNotEmpty()) {
             $userReactions = CommentReaction::whereIn('comment_id', $commentIds)
-                ->where('user_id', $user->id)
+                ->where('user_id', $user->getKey())
                 ->pluck('reaction', 'comment_id')
                 ->toArray();
         }
@@ -80,8 +80,8 @@ class PoemCommentController extends Controller
         ]);
 
         $comment = $poem->comments()->create([
-            'user_id' => $user->id,
-            'content' => $request->content,
+            'user_id' => Auth::id(),
+            'content' => $request->input('content'),
         ]);
 
         // Eager load user to return with the comment
@@ -101,7 +101,7 @@ class PoemCommentController extends Controller
         }
 
         // Authorization check
-        if ($user->id !== $comment->user_id && !$user->isAdmin) {
+        if ($user->getKey() !== $comment->user_id && !$user->isAdmin) {
             return response()->json(['message' => 'Forbidden. You do not own this comment or are not an administrator.'], 403);
         }
 

@@ -13,16 +13,16 @@
     --popover: 0 0% 100%;
     --popover-foreground: 120 15% 20%;
 
-    --primary: 271 81% 56%;  /* Medium purple (#9333ea) */
+    --primary: 217 91% 60%;  /* Medium blue (#2563eb) */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 217 91% 60%;  /* Medium blue (#2563eb) */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 270 20% 98%;  /* Very light purple/off-white (#faf5ff) */
-    --muted-foreground: 271 20% 40%;
+    --muted: 210 30% 95%;  /* Very light blue/off-white (#eff6ff) */
+    --muted-foreground: 217 20% 40%;
 
-    --accent: 271 81% 56%;  /* Medium purple accent */
+    --accent: 217 91% 60%;  /* Medium blue accent */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -39,13 +39,13 @@
     --chart-5: 0 84.2% 60.2%;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 271 20% 20%;
-    --sidebar-primary: 271 81% 56%;  /* Medium purple */
+    --sidebar-foreground: 217 20% 20%;
+    --sidebar-primary: 217 91% 60%;  /* Medium blue */
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 270 20% 98%;  /* Very light purple */
-    --sidebar-accent-foreground: 271 20% 40%;
-    --sidebar-border: 271 20% 85%;
-    --sidebar-ring: 271 81% 56%;  /* Medium purple */
+    --sidebar-accent: 210 30% 95%;  /* Very light blue */
+    --sidebar-accent-foreground: 217 20% 40%;
+    --sidebar-border: 217 20% 85%;
+    --sidebar-ring: 217 91% 60%;  /* Medium blue */
 
     --radius: 0.375rem;  /* Moderate rounded corners */
   }

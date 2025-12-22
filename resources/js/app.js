@@ -165,7 +165,7 @@ class FlashMessage {
         this.messageElement = document.createElement('div');
         this.messageElement.className = `p-4 rounded-md flex items-center justify-between ${
             type === 'success' 
-                ? 'bg-purple-50 border border-purple-200 text-purple-800' 
+                ? 'bg-blue-50 border border-blue-200 text-blue-800' 
                 : 'bg-red-50 border border-red-200 text-red-800'
         }`;
         
@@ -176,7 +176,7 @@ class FlashMessage {
             </div>
             <button onclick="this.parentElement.remove()" class="ml-4 ${
                 type === 'success' 
-                    ? 'text-purple-600 hover:text-purple-800' 
+                    ? 'text-blue-600 hover:text-blue-800' 
                     : 'text-red-600 hover:text-red-800'
             }">
                 <i class="bx bx-x text-lg"></i>

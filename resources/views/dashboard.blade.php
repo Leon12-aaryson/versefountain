@@ -64,9 +64,9 @@
             </div>
 
             <!-- Comments -->
-            <div class="bg-purple-50 rounded-lg p-4 border border-purple-100">
+            <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
                 <div class="flex items-center justify-between mb-3">
-                    <div class="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                         <i class="bx bx-comment text-white text-lg"></i>
                     </div>
                 </div>
@@ -83,7 +83,7 @@
         <div class="lg:col-span-2 bg-white rounded-lg p-6 border border-gray-200">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-lg font-semibold text-gray-900">Recent Poems</h2>
-                <a href="{{ route('poetry.create') }}" class="text-sm text-purple-600 hover:text-purple-700">
+                <a href="{{ route('poetry.create') }}" class="text-sm text-blue-600 hover:text-blue-700">
                     Create New <i class="bx bx-plus ml-1"></i>
                 </a>
             </div>
@@ -126,7 +126,7 @@
                                 <i class="bx bx-file text-3xl text-gray-400"></i>
                             </div>
                             <p class="text-gray-600 mb-4">You haven't created any poems yet.</p>
-                            <a href="{{ route('poetry.create') }}" class="inline-flex items-center px-5 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors">
+                            <a href="{{ route('poetry.create') }}" class="inline-flex items-center px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
                                 <i class="bx bx-plus text-base mr-2"></i>
                                 Create Your First Poem
                             </a>
@@ -141,26 +141,26 @@
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
                 <div class="space-y-2">
                     <a href="{{ route('poetry.create') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-                        <div class="w-9 h-9 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-                            <i class="bx bx-file text-purple-600 text-base"></i>
+                        <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="bx bx-file text-blue-600 text-base"></i>
                         </div>
                         <span class="text-sm text-gray-900">Create Poem</span>
                     </a>
                     <a href="/books" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-                        <div class="w-9 h-9 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-                            <i class="bx bx-book text-purple-600 text-base"></i>
+                        <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="bx bx-book text-blue-600 text-base"></i>
                         </div>
                         <span class="text-sm text-gray-900">Browse Books</span>
                     </a>
                     <a href="/events" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-                        <div class="w-9 h-9 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-                            <i class="bx bx-calendar text-purple-600 text-base"></i>
+                        <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="bx bx-calendar text-blue-600 text-base"></i>
                         </div>
                         <span class="text-sm text-gray-900">View Events</span>
                     </a>
                     <a href="{{ route('chatrooms.index') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-                        <div class="w-9 h-9 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-                            <i class="bx bx-chat text-purple-600 text-base"></i>
+                        <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="bx bx-chat text-blue-600 text-base"></i>
                         </div>
                         <span class="text-sm text-gray-900">Join Chatroom</span>
                     </a>
@@ -171,19 +171,19 @@
             <div class="bg-white rounded-lg p-5 border border-gray-200">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-900">Upcoming Events</h2>
-                    <a href="/events" class="text-sm text-purple-600 hover:text-purple-700">View All</a>
+                    <a href="/events" class="text-sm text-blue-600 hover:text-blue-700">View All</a>
                 </div>
                 @if($upcomingEvents->count() > 0)
                     <div class="space-y-3">
                         @foreach($upcomingEvents as $event)
                             <div class="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
                                 <h3 class="text-sm font-semibold text-gray-900 mb-1 line-clamp-1">
-                                    <a href="{{ route('api.events.show', $event) }}" class="hover:text-purple-600 transition-colors">
+                                    <a href="{{ route('api.events.show', $event) }}" class="hover:text-blue-600 transition-colors">
                                         {{ $event->title }}
                                     </a>
                                 </h3>
                                 <p class="text-xs text-gray-600 mb-2">{{ $event->date ? $event->date->format('M d, Y') : 'Date TBA' }}</p>
-                                <a href="{{ route('api.events.show', $event) }}" class="text-xs font-medium text-purple-600 hover:text-purple-700">
+                                <a href="{{ route('api.events.show', $event) }}" class="text-xs font-medium text-blue-600 hover:text-blue-700">
                                     View Details <i class="bx bx-chevron-right ml-1"></i>
                                 </a>
                                     </div>
@@ -204,13 +204,13 @@
         <div class="bg-white rounded-lg p-6 border border-gray-200">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-lg font-semibold text-gray-900">My Recent Books</h2>
-                <a href="/books" class="text-sm text-purple-600 hover:text-purple-700">View All</a>
+                <a href="/books" class="text-sm text-blue-600 hover:text-blue-700">View All</a>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($userBooks as $book)
                     <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
                                 <h3 class="text-base font-semibold text-gray-900 mb-2">
-                                    <a href="{{ route('books.show', $book) }}" class="hover:text-purple-600 transition-colors">
+                                    <a href="{{ route('books.show', $book) }}" class="hover:text-blue-600 transition-colors">
                                         {{ $book->title }}
                                     </a>
                                 </h3>

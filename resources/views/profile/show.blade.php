@@ -15,7 +15,7 @@
         <div class="bg-white border-2 border-gray-200 rounded-md p-5 sm:p-6 mb-8 sm:mb-10">
         <div class="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
             <!-- User Avatar -->
-            <div class="w-20 h-20 sm:w-24 sm:h-24 bg-purple-600 text-white rounded-full flex items-center justify-center text-2xl sm:text-3xl font-light">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl sm:text-3xl font-light">
                 {{ strtoupper(substr($user->name ?? 'A', 0, 1)) }}
             </div>
             
@@ -41,7 +41,7 @@
             
             <!-- Quick Actions -->
             <div class="flex flex-col sm:flex-row gap-2">
-                <a href="/profile/edit" class="bg-purple-600 text-white px-4 py-2 text-sm font-normal hover:bg-purple-700 transition-colors text-center">
+                <a href="/profile/edit" class="bg-blue-600 text-white px-4 py-2 text-sm font-normal hover:bg-blue-700 transition-colors text-center">
                     Edit Profile
                 </a>
                 <a href="/poetry/create" class="bg-white border-2 border-gray-200 rounded-md text-gray-800 px-4 py-2 text-sm font-normal hover:bg-gray-50 transition-colors text-center">
@@ -76,7 +76,7 @@
                 <div>
                     <div class="flex items-center justify-between mb-6 sm:mb-8">
                         <h3 class="text-lg sm:text-xl font-light text-gray-800 tracking-wide">My Poems</h3>
-                        <a href="/poetry/create" class="px-3 sm:px-4 py-2 bg-purple-600 text-white text-sm font-normal hover:bg-purple-700 transition-colors focus:outline-none focus:border-2 focus:border-purple-800 border-2 border-transparent">
+                        <a href="/poetry/create" class="px-3 sm:px-4 py-2 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
                             Write New Poem
                         </a>
                     </div>
@@ -135,7 +135,7 @@
                         </svg>
                         <h3 class="text-lg font-light text-gray-800 mb-2 tracking-wide">No poems yet</h3>
                         <p class="text-gray-600 mb-4 font-light">Start your poetic journey by writing your first poem.</p>
-                        <a href="/poetry/create" class="px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-normal hover:bg-purple-700 transition-colors focus:outline-none focus:border-2 focus:border-purple-800 border-2 border-transparent">
+                        <a href="/poetry/create" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
                             Write Your First Poem
                         </a>
                     </div>
@@ -183,7 +183,7 @@
                         </svg>
                         <h3 class="text-lg font-light text-gray-800 mb-2 tracking-wide">No tickets yet</h3>
                         <p class="text-gray-600 mb-4 font-light">Purchase tickets for upcoming events to see them here.</p>
-                        <a href="/tickets" class="px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-normal hover:bg-purple-700 transition-colors focus:outline-none focus:border-2 focus:border-purple-800 border-2 border-transparent">
+                        <a href="/tickets" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
                             Browse Events
                         </a>
                     </div>

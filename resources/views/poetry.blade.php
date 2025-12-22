@@ -19,7 +19,7 @@
                     @auth
                         <div class="mt-4 sm:mt-0">
                             <a href="{{ route('poetry.create') }}"
-                                class="inline-flex items-center px-5 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors">
+                                class="inline-flex items-center px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
                                 <i class="bx bx-plus text-base mr-2"></i>
                                 Create Poem
                             </a>
@@ -36,7 +36,7 @@
                         <label for="search" class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Search Poems</label>
                         <div class="relative">
                             <input type="text" id="search" placeholder="Search by title, author, or content..."
-                                class="w-full pl-9 pr-3 py-2 border-2 border-gray-300 focus:border-purple-600 text-sm bg-white focus:outline-none">
+                                class="w-full pl-9 pr-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none">
                             <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
                                 <i class="bx bx-search text-base text-gray-400"></i>
                             </div>
@@ -47,7 +47,7 @@
                     <div>
                         <label for="category" class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Category</label>
                         <select id="category"
-                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-purple-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="">All Categories</option>
                             <option value="love">Love</option>
                             <option value="nature">Nature</option>
@@ -62,7 +62,7 @@
                     <div>
                         <label for="sort" class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Sort By</label>
                         <select id="sort"
-                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-purple-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="newest">Newest First</option>
                             <option value="oldest">Oldest First</option>
                             <option value="popular">Most Popular</option>
@@ -75,7 +75,7 @@
             <!-- Poems Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                 @forelse($poems as $poem)
-                    <div class="bg-white rounded-lg border border-gray-200 hover:border-gray-300 focus-within:border-purple-400 transition-colors"
+                    <div class="bg-white rounded-lg border border-gray-200 hover:border-gray-300 focus-within:border-blue-400 transition-colors"
                          data-poem-card
                          data-poem-id="{{ $poem->id }}"
                          data-initial-liked="{{ auth()->check() && $poem->userInteractions->where('user_id', auth()->id())->where('type', 'like')->count() > 0 ? 'true' : 'false' }}"
@@ -147,13 +147,13 @@
                             <p class="text-base text-gray-600 mb-8">Be the first to share your poetry with the community.</p>
                             @auth
                                 <a href="{{ route('poetry.create') }}" 
-                                   class="inline-flex items-center px-5 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors">
+                                   class="inline-flex items-center px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
                                     <i class="bx bx-plus text-base mr-2"></i>
                                     Create Your First Poem
                                 </a>
                             @else
                                 <a href="{{ route('register') }}" 
-                                   class="inline-flex items-center px-5 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors">
+                                   class="inline-flex items-center px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
                                     <i class="bx bx-user-plus text-base mr-2"></i>
                                     Sign Up to Get Started
                                 </a>

@@ -21,7 +21,7 @@
                             Events</label>
                         <div class="relative">
                             <input type="text" id="search" placeholder="Search events, locations, or organizers..."
-                                class="w-full pl-9 pr-3 py-2 border-2 border-gray-300 focus:border-purple-600 text-sm bg-white focus:outline-none">
+                                class="w-full pl-9 pr-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none">
                             <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
                                 <i class="bx bx-search text-base text-gray-400"></i>
                             </div>
@@ -33,7 +33,7 @@
                         <label for="category"
                             class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Category</label>
                         <select id="category"
-                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-purple-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="">All Categories</option>
                             <option value="poetry-reading">Poetry Reading</option>
                             <option value="workshop">Workshop</option>
@@ -47,7 +47,7 @@
                         <label for="date"
                             class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Date</label>
                         <select id="date"
-                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-purple-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="">All Dates</option>
                             <option value="today">Today</option>
                             <option value="tomorrow">Tomorrow</option>
@@ -91,12 +91,12 @@
                                             class="text-xs text-gray-500">{{ $event->date ? $event->date->format('M d, Y • g:i A') : 'Date TBA' }}</span>
                                         @auth
                                             <a href="{{ route('tickets.index') }}?event={{ $event->id }}"
-                                                class="px-3 py-1 bg-purple-600 text-white rounded-md text-xs font-normal hover:bg-purple-700 transition-colors inline-block">
+                                                class="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-normal hover:bg-blue-700 transition-colors inline-block">
                                                 Register
                                             </a>
                                         @else
                                             <a href="{{ route('login') }}"
-                                                class="px-3 py-1 bg-purple-600 text-white rounded-md text-xs font-normal hover:bg-purple-700 transition-colors inline-block">
+                                                class="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-normal hover:bg-blue-700 transition-colors inline-block">
                                                 Register
                                             </a>
                                         @endauth
@@ -114,7 +114,7 @@
                 @if($upcomingEvents->count() > 0)
                     <div class="space-y-5 sm:space-y-6">
                         @foreach($upcomingEvents as $event)
-                            <div class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-purple-600 transition-colors">
+                            <div class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-blue-600 transition-colors">
                                 <div class="flex items-start space-x-4">
                                     <div
                                         class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 flex items-center justify-center flex-shrink-0">
@@ -143,12 +143,12 @@
                                                 class="text-xs text-gray-500">{{ $event->date ? $event->date->format('M d, Y • g:i A') : 'Date TBA' }}</span>
                                             @auth
                                                 <a href="{{ route('tickets.index') }}?event={{ $event->id }}"
-                                                    class="px-3 py-1 bg-purple-600 text-white rounded-md text-xs font-normal hover:bg-purple-700 transition-colors inline-block">
+                                                    class="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-normal hover:bg-blue-700 transition-colors inline-block">
                                                     Register
                                                 </a>
                                             @else
                                                 <a href="{{ route('login') }}"
-                                                    class="px-3 py-1 bg-purple-600 text-white rounded-md text-xs font-normal hover:bg-purple-700 transition-colors inline-block">
+                                                    class="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-normal hover:bg-blue-700 transition-colors inline-block">
                                                     Register
                                                 </a>
                                             @endauth
@@ -194,7 +194,7 @@
                                 $icon = $icons[$category] ?? 'bx-calendar';
                             @endphp
                             <a href="/events?category={{ urlencode($category) }}"
-                                class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-purple-600 transition-colors cursor-pointer block">
+                                class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-blue-600 transition-colors cursor-pointer block">
                                 <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
                                     <i class="bx {{ $icon }} text-xl sm:text-2xl text-gray-600"></i>
                                 </div>

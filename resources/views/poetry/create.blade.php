@@ -21,7 +21,7 @@
                         <input id="title" 
                                name="title" 
                                type="text" 
-                               class="mt-1 block w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:border-purple-600" 
+                               class="mt-1 block w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:border-blue-600" 
                                value="{{ old('title') }}"
                                required 
                                autofocus />
@@ -39,14 +39,14 @@
                                        name="is_video" 
                                        value="0" 
                                        checked
-                                       class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300">
+                                       class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
                                 <span class="ml-2 text-sm text-gray-700">Text Poem</span>
                             </label>
                             <label class="flex items-center">
                                 <input type="radio" 
                                        name="is_video" 
                                        value="1" 
-                                       class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300">
+                                       class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
                                 <span class="ml-2 text-sm text-gray-700">Video Poem</span>
                             </label>
                         </div>
@@ -58,7 +58,7 @@
                         <input id="video_url" 
                                name="video_url" 
                                type="url" 
-                               class="mt-1 block w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:border-purple-600" 
+                               class="mt-1 block w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:border-blue-600" 
                                value="{{ old('video_url') }}" />
                         <p class="mt-1 text-sm text-gray-500">
                             Enter the embed URL from YouTube or other video platforms
@@ -75,7 +75,7 @@
                                   name="content" 
                                   rows="12"
                                   required
-                                  class="mt-1 block w-full border-2 border-gray-300 focus:border-purple-600 focus:outline-none rounded-md resize-none transition-colors"
+                                  class="mt-1 block w-full border-2 border-gray-300 focus:border-blue-600 focus:outline-none rounded-md resize-none transition-colors"
                                   placeholder="Write your poem here...">{{ old('content') }}</textarea>
                         <div class="mt-2 flex justify-between items-center text-sm text-gray-500">
                             <span data-content-length>0</span>
@@ -102,18 +102,18 @@
                         <div class="flex space-x-3">
                             <button type="button" 
                                     data-preview-toggle
-                                    class="inline-flex items-center px-4 py-2 border-2 border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:border-2 focus:border-purple-600">
+                                    class="inline-flex items-center px-4 py-2 border-2 border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:border-2 focus:border-blue-600">
                                 <span>Show Preview</span>
                             </button>
                         </div>
                         
                         <div class="flex space-x-3">
                             <a href="{{ route('poetry.index') }}" 
-                               class="inline-flex items-center px-4 py-2 border-2 border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:border-2 focus:border-purple-600">
+                               class="inline-flex items-center px-4 py-2 border-2 border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:border-2 focus:border-blue-600">
                                 Cancel
                             </a>
                             <button type="submit" 
-                                    class="inline-flex items-center px-4 py-2 bg-purple-600 border-2 border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-800 focus:outline-none focus:border-purple-800 transition ease-in-out duration-150">
+                                    class="inline-flex items-center px-4 py-2 bg-blue-600 border-2 border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:border-blue-800 transition ease-in-out duration-150">
                                 <span>Create Poem</span>
                             </button>
                         </div>

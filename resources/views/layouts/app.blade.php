@@ -17,7 +17,7 @@
         <!-- Logo -->
         <div class="px-6 py-6 border-b border-gray-200">
             <a href="/" class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                     <i class="bx bx-book text-white text-xl"></i>
                 </div>
                 <span class="text-xl font-semibold text-gray-900">VerseFountain</span>
@@ -29,52 +29,52 @@
             <nav class="flex-1 px-4 py-6 space-y-1">
                 <div class="space-y-1">
                     @auth
-                        <a href="/dashboard" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('dashboard*') ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-50' }}">
-                            <i class="bx bx-grid-alt mr-3 text-lg {{ request()->is('dashboard*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
+                        <a href="/dashboard" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('dashboard*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
+                            <i class="bx bx-grid-alt mr-3 text-lg {{ request()->is('dashboard*') ? 'text-blue-600' : 'text-gray-500' }}"></i>
                             Dashboard
                         </a>
                     @endauth
                     
-                    <a href="/" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('/') && !request()->is('dashboard*') ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-50' }}">
-                        <i class="bx bx-home mr-3 text-lg {{ request()->is('/') && !request()->is('dashboard*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
+                    <a href="/" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('/') && !request()->is('dashboard*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
+                        <i class="bx bx-home mr-3 text-lg {{ request()->is('/') && !request()->is('dashboard*') ? 'text-blue-600' : 'text-gray-500' }}"></i>
                         Home
                     </a>
                     
-                    <a href="/poetry" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('poetry*') ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-50' }}">
-                        <i class="bx bx-file mr-3 text-lg {{ request()->is('poetry*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
+                    <a href="/poetry" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('poetry*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
+                        <i class="bx bx-file mr-3 text-lg {{ request()->is('poetry*') ? 'text-blue-600' : 'text-gray-500' }}"></i>
                         Poetry
                     </a>
                     
-                    <a href="/books" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('books*') ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-50' }}">
-                        <i class="bx bx-book mr-3 text-lg {{ request()->is('books*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
+                    <a href="/books" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('books*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
+                        <i class="bx bx-book mr-3 text-lg {{ request()->is('books*') ? 'text-blue-600' : 'text-gray-500' }}"></i>
                         Books
                     </a>
                     
-                    <a href="/academics" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('academics*') ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-50' }}">
-                        <i class="bx bx-book-reader mr-3 text-lg {{ request()->is('academics*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
+                    <a href="/academics" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('academics*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
+                        <i class="bx bx-book-reader mr-3 text-lg {{ request()->is('academics*') ? 'text-blue-600' : 'text-gray-500' }}"></i>
                         Academics
                     </a>
                     
                     @auth
-                        <a href="{{ route('chatrooms.index') }}" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('chat*') ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-50' }}">
-                            <i class="bx bx-chat mr-3 text-lg {{ request()->is('chat*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
+                        <a href="{{ route('chatrooms.index') }}" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('chat*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
+                            <i class="bx bx-chat mr-3 text-lg {{ request()->is('chat*') ? 'text-blue-600' : 'text-gray-500' }}"></i>
                             Chatrooms
                         </a>
                     @endauth
                     
-                    <a href="/events" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('events*') ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-50' }}">
-                        <i class="bx bx-calendar mr-3 text-lg {{ request()->is('events*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
+                    <a href="/events" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('events*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
+                        <i class="bx bx-calendar mr-3 text-lg {{ request()->is('events*') ? 'text-blue-600' : 'text-gray-500' }}"></i>
                         Events
                     </a>
                     
                     @auth
-                        <a href="/tickets" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('tickets*') ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-50' }}">
-                            <i class="bx bx-ticket mr-3 text-lg {{ request()->is('tickets*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
+                        <a href="/tickets" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('tickets*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
+                            <i class="bx bx-receipt mr-3 text-lg {{ request()->is('tickets*') ? 'text-blue-600' : 'text-gray-500' }}"></i>
                             Tickets
                         </a>
                         
-                        <a href="/profile" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('profile*') ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-50' }}">
-                            <i class="bx bx-user mr-3 text-lg {{ request()->is('profile*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
+                        <a href="/profile" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('profile*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
+                            <i class="bx bx-user mr-3 text-lg {{ request()->is('profile*') ? 'text-blue-600' : 'text-gray-500' }}"></i>
                             Profile
                         </a>
                     @else
@@ -89,10 +89,10 @@
             @auth
                 <!-- Upgrade Card -->
                 <div class="px-4 pb-6">
-                    <div class="bg-purple-600 rounded-lg p-4 text-white">
+                    <div class="bg-blue-600 rounded-lg p-4 text-white">
                         <h3 class="font-semibold mb-1">VerseFountain Pro</h3>
-                        <p class="text-xs text-purple-100 mb-3">Get access to all features</p>
-                        <a href="/subscriptions" class="block w-full bg-white text-purple-600 text-xs font-medium text-center py-2 rounded-lg hover:bg-purple-50 transition-colors">
+                        <p class="text-xs text-blue-100 mb-3">Get access to all features</p>
+                        <a href="/subscriptions" class="block w-full bg-white text-blue-600 text-xs font-medium text-center py-2 rounded-lg hover:bg-blue-50 transition-colors">
                             Get Pro
                         </a>
                     </div>
@@ -115,7 +115,7 @@
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <i class="bx bx-search text-gray-400"></i>
                     </div>
-                    <input type="text" placeholder="Search here..." class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <input type="text" placeholder="Search here..." class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
             </div>
             
@@ -131,7 +131,7 @@
                     <!-- User Profile -->
                     <div class="relative" id="user-dropdown-container">
                         <button id="user-dropdown-toggle" class="flex items-center space-x-2 px-2 py-1 hover:bg-gray-50 rounded-lg transition-colors">
-                            <div class="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                            <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
                                 {{ strtoupper(substr(auth()->user()->first_name ?? auth()->user()->username ?? 'A', 0, 1)) }}
                             </div>
                             <div class="hidden lg:block text-left">
@@ -174,7 +174,7 @@
                     <a href="/login" class="text-sm font-medium text-gray-700 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
                         Log In
                     </a>
-                    <a href="/register" class="bg-purple-600 text-white px-5 py-2 text-sm font-medium hover:bg-purple-700 rounded-lg transition-colors">
+                    <a href="/register" class="bg-blue-600 text-white px-5 py-2 text-sm font-medium hover:bg-blue-700 rounded-lg transition-colors">
                         Sign Up
                     </a>
                 @endauth

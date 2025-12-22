@@ -17,12 +17,12 @@
         <div class="max-w-4xl mx-auto">
             <!-- Server-side Flash Messages -->
             @if(session('success'))
-                <div class="mb-4 p-4 bg-purple-50 border border-purple-200 text-purple-800 rounded-md flex items-center justify-between">
+                <div class="mb-4 p-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-md flex items-center justify-between">
                     <div class="flex items-center space-x-2">
                         <i class="bx bx-check-circle text-lg"></i>
                         <span class="text-sm font-normal">{{ session('success') }}</span>
                     </div>
-                    <button onclick="this.parentElement.remove()" class="ml-4 text-purple-600 hover:text-purple-800">
+                    <button onclick="this.parentElement.remove()" class="ml-4 text-blue-600 hover:text-blue-800">
                         <i class="bx bx-x text-lg"></i>
                     </button>
                 </div>
@@ -196,11 +196,11 @@
                                     <div class="flex-1">
                                         <textarea name="content"
                                                   placeholder="Write a comment..." 
-                                                  class="w-full px-3 py-2 border-2 border-gray-300 focus:border-purple-600 bg-white focus:outline-none resize-none text-sm"
+                                                  class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 bg-white focus:outline-none resize-none text-sm"
                                                   rows="3" required></textarea>
                                         <div class="mt-2 flex justify-end">
                                             <button type="submit" 
-                                                    class="px-4 py-2 bg-purple-600 text-white text-sm font-normal hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                                    class="px-4 py-2 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                                                 Comment
                                             </button>
                                         </div>

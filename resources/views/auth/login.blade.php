@@ -18,7 +18,7 @@
             <div class="space-y-2">
                 <label for="email" class="block text-xs font-normal text-gray-600 uppercase tracking-wide">Email</label>
                 <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" 
-                       class="w-full px-3 py-2 border-2 border-gray-300 focus:border-purple-600 bg-white focus:outline-none placeholder-gray-400 text-sm rounded-md transition-colors"
+                       class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 bg-white focus:outline-none placeholder-gray-400 text-sm rounded-md transition-colors"
                        placeholder="Enter your email">
                 @error('email')
                     <p class="text-sm text-gray-600">{{ $message }}</p>
@@ -29,7 +29,7 @@
             <div class="space-y-2">
                 <label for="password" class="block text-xs font-normal text-gray-600 uppercase tracking-wide">Password</label>
                 <input id="password" type="password" name="password" required autocomplete="current-password"
-                       class="w-full px-3 py-2 border-2 border-gray-300 focus:border-purple-600 bg-white focus:outline-none placeholder-gray-400 text-sm rounded-md transition-colors"
+                       class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 bg-white focus:outline-none placeholder-gray-400 text-sm rounded-md transition-colors"
                        placeholder="Enter your password">
                 @error('password')
                     <p class="text-sm text-gray-600">{{ $message }}</p>
@@ -47,7 +47,7 @@
 
             <!-- Submit Button -->
             <button type="submit" 
-                    class="w-full bg-purple-600 text-white py-2.5 px-4 font-normal hover:bg-purple-700 transition-colors text-sm rounded-md">
+                    class="w-full bg-blue-600 text-white py-2.5 px-4 font-normal hover:bg-blue-700 transition-colors text-sm rounded-md">
                 Sign In
             </button>
 
