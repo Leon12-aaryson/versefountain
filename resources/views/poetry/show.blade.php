@@ -40,7 +40,7 @@
                 </div>
             @endif
 
-            <div class="bg-white border-2 border-gray-200 rounded-md" data-poem-detail>
+            <div class="bg-white shadow-sm rounded-md" data-poem-detail>
                 
                 <!-- Header -->
                 <div class="p-6 sm:p-8 border-b border-gray-200">
@@ -65,11 +65,11 @@
                             @if(Auth::id() === $poem->author_id)
                                 <div class="flex space-x-2">
                                     <a href="{{ route('poetry.edit', $poem) }}" 
-                                       class="inline-flex items-center px-3 py-2 border border-gray-200 text-sm font-normal text-gray-700 hover:bg-gray-50 transition-colors">
+                                       class="inline-flex items-center px-3 py-2 shadow-sm text-sm font-normal text-gray-700 hover:bg-gray-50 transition-colors">
                                         Edit
                                     </a>
                                     <button data-delete-poem
-                                            class="inline-flex items-center px-3 py-2 border border-gray-200 text-sm font-normal text-gray-700 hover:bg-gray-50 transition-colors">
+                                            class="inline-flex items-center px-3 py-2 shadow-sm text-sm font-normal text-gray-700 hover:bg-gray-50 transition-colors">
                                         Delete
                                     </button>
                                 </div>
@@ -148,7 +148,7 @@
                             
                             <!-- Share Menu Dropdown -->
                             <div data-share-menu
-                                 class="absolute right-0 mt-2 w-56 bg-white border-2 border-gray-200 rounded-md py-2 z-50 hidden">
+                                 class="absolute right-0 mt-2 w-56 bg-white shadow-sm rounded-md py-2 z-50 hidden">
                                 <button data-share-copy class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
                                     <i class="bx bx-link text-base"></i>
                                     <span>Copy Link</span>

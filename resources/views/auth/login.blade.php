@@ -6,7 +6,7 @@
     <x-auth-card title="Welcome to VerseFountain" description="Sign in to your account to continue" activeTab="login">
         <!-- Session Status -->
         @if (session('status'))
-            <div class="mb-4 p-4 bg-gray-50 border border-gray-200">
+            <div class="mb-4 p-4 bg-gray-50">
                 <p class="text-sm text-gray-700 font-light">{{ session('status') }}</p>
             </div>
         @endif

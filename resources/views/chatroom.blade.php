@@ -11,7 +11,7 @@
     <div class="min-h-screen bg-stone-50">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
             <!-- Chatroom Header -->
-            <div class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 mb-6 sm:mb-8">
+            <div class="bg-white shadow-sm rounded-md p-4 sm:p-6 mb-6 sm:mb-8">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-4">
                         <a href="{{ route('chatrooms.index') }}"
@@ -37,7 +37,7 @@
 
             @if($isMember)
                 <!-- Chat Interface -->
-                <div class="bg-white border-2 border-gray-200 rounded-md" data-chat-interface>
+                <div class="bg-white shadow-sm rounded-md" data-chat-interface">
 
                     <!-- Messages Area -->
                     <div class="h-96 sm:h-[500px] overflow-y-auto p-4 sm:p-6 space-y-4" data-messages-container>
@@ -90,7 +90,7 @@
                 </div>
             @else
                 <!-- Join Prompt -->
-                <div class="bg-white border-2 border-gray-200 rounded-md p-8 sm:p-12 text-center">
+                <div class="bg-white shadow-sm rounded-md p-8 sm:p-12 text-center">
                     <div class="max-w-md mx-auto">
                         <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"

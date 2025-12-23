@@ -120,7 +120,7 @@
                 <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">Featured Events</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
                     @foreach($featuredEvents as $event)
-                        <div class="bg-white border-2 border-gray-200 rounded-md hover:border-gray-300 focus-within:border-blue-600 transition-colors">
+                        <div class="bg-white shadow-sm rounded-md transition-colors">
                             <div class="h-40 sm:h-48 bg-gray-100 flex items-center justify-center">
                                 <svg class="w-12 h-12 sm:w-16 sm:h-16 text-gray-400" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -164,7 +164,7 @@
                 <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">Upcoming Events</h2>
                 <div class="space-y-5 sm:space-y-6">
                     @foreach($upcomingEvents as $event)
-                        <div class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-blue-600 transition-colors">
+                        <div class="bg-white shadow-sm rounded-md p-4 sm:p-6 transition-colors">
                             <div class="flex items-start space-x-4">
                                 <div
                                     class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 flex items-center justify-center flex-shrink-0">
@@ -212,7 +212,7 @@
                 <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">Browse by Category</h2>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
                     <div
-                        class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-blue-600 transition-colors cursor-pointer">
+                        class="bg-white shadow-sm rounded-md p-4 sm:p-6 transition-colors cursor-pointer">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
@@ -226,7 +226,7 @@
                     </div>
 
                     <div
-                        class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-blue-600 transition-colors cursor-pointer">
+                        class="bg-white shadow-sm rounded-md p-4 sm:p-6 transition-colors cursor-pointer">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
@@ -240,7 +240,7 @@
                     </div>
 
                     <div
-                        class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-blue-600 transition-colors cursor-pointer">
+                        class="bg-white shadow-sm rounded-md p-4 sm:p-6 transition-colors cursor-pointer">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
@@ -254,7 +254,7 @@
                     </div>
 
                     <div
-                        class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-blue-600 transition-colors cursor-pointer">
+                        class="bg-white shadow-sm rounded-md p-4 sm:p-6 transition-colors cursor-pointer">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">

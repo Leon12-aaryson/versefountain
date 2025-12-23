@@ -12,7 +12,7 @@
         </div>
 
         <!-- User Info Card -->
-        <div class="bg-white border-2 border-gray-200 rounded-md p-5 sm:p-6 mb-8 sm:mb-10">
+        <div class="bg-white shadow-sm rounded-md p-5 sm:p-6 mb-8 sm:mb-10">
         <div class="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
             <!-- User Avatar -->
             <div class="w-20 h-20 sm:w-24 sm:h-24 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl sm:text-3xl font-light">
@@ -44,7 +44,7 @@
                 <a href="/profile/edit" class="bg-blue-600 text-white px-4 py-2 text-sm font-normal hover:bg-blue-700 transition-colors text-center">
                     Edit Profile
                 </a>
-                <a href="/poetry/create" class="bg-white border-2 border-gray-200 rounded-md text-gray-800 px-4 py-2 text-sm font-normal hover:bg-gray-50 transition-colors text-center">
+                <a href="/poetry/create" class="bg-white shadow-sm rounded-md text-gray-800 px-4 py-2 text-sm font-normal hover:bg-gray-50 transition-colors text-center">
                     Write Poem
                 </a>
             </div>
@@ -52,7 +52,7 @@
     </div>
 
     <!-- Content Tabs -->
-    <div class="bg-white border-2 border-gray-200 rounded-md">
+    <div class="bg-white shadow-sm rounded-md">
         <!-- Tab Navigation -->
         <div class="border-b border-gray-200">
             <nav class="flex space-x-8 px-4 sm:px-6" aria-label="Tabs">
@@ -83,7 +83,7 @@
                     
                     <!-- Sample Poems (Replace with actual data) -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-                        <div class="border border-gray-200 p-4 hover:border-gray-300 transition-colors">
+                        <div class="bg-gray-50 p-4 transition-colors">
                             <h4 class="font-normal text-gray-900 mb-2">Whispers of the Wind</h4>
                             <p class="text-sm text-gray-600 mb-3 font-light">A gentle breeze carries secrets through the trees...</p>
                             <div class="flex items-center justify-between text-xs text-gray-500">
@@ -105,7 +105,7 @@
                             </div>
                         </div>
                         
-                        <div class="border border-gray-200 p-4 hover:border-gray-300 transition-colors">
+                        <div class="bg-gray-50 p-4 transition-colors">
                             <h4 class="font-normal text-gray-900 mb-2">Midnight Dreams</h4>
                             <p class="text-sm text-gray-600 mb-3 font-light">In the quiet hours when the world sleeps...</p>
                             <div class="flex items-center justify-between text-xs text-gray-500">
@@ -149,7 +149,7 @@
                     
                     <!-- Sample Tickets -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-                        <div class="border border-gray-200 p-4 hover:border-gray-300 transition-colors">
+                        <div class="bg-gray-50 p-4 transition-colors">
                             <div class="flex items-center justify-between mb-3 pb-3 border-b border-gray-200">
                                 <span class="text-xs text-gray-600 uppercase tracking-wide">Poetry Reading</span>
                                 <span class="text-xs text-gray-500">$15</span>
@@ -162,7 +162,7 @@
                             </div>
                         </div>
                         
-                        <div class="border border-gray-200 p-4 hover:border-gray-300 transition-colors">
+                        <div class="bg-gray-50 p-4 transition-colors">
                             <div class="flex items-center justify-between mb-3 pb-3 border-b border-gray-200">
                                 <span class="text-xs text-gray-600 uppercase tracking-wide">Workshop</span>
                                 <span class="text-xs text-gray-500">$25</span>
@@ -196,7 +196,7 @@
                     <h3 class="text-lg sm:text-xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">Account Settings</h3>
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
-                        <div class="bg-gray-50 border border-gray-200 p-4 sm:p-6">
+                        <div class="bg-gray-50 p-4 sm:p-6">
                             <h4 class="font-normal text-gray-900 mb-2">Profile Information</h4>
                             <p class="text-sm text-gray-600 mb-4 font-light">Update your account profile information and email address.</p>
                             <a href="/profile/edit" class="text-xs text-gray-700 hover:text-gray-900 font-normal uppercase tracking-wide">
@@ -204,7 +204,7 @@
                             </a>
                         </div>
                         
-                        <div class="bg-gray-50 border border-gray-200 p-4 sm:p-6">
+                        <div class="bg-gray-50 p-4 sm:p-6">
                             <h4 class="font-normal text-gray-900 mb-2">Change Password</h4>
                             <p class="text-sm text-gray-600 mb-4 font-light">Ensure your account is using a long, random password to stay secure.</p>
                             <a href="/profile/edit" class="text-xs text-gray-700 hover:text-gray-900 font-normal uppercase tracking-wide">
@@ -212,7 +212,7 @@
                             </a>
                         </div>
                         
-                        <div class="bg-gray-50 border border-gray-200 p-4 sm:p-6">
+                        <div class="bg-gray-50 p-4 sm:p-6">
                             <h4 class="font-normal text-gray-900 mb-2">Email Notifications</h4>
                             <p class="text-sm text-gray-600 mb-4 font-light">Manage your email notification preferences.</p>
                             <a href="/profile/edit" class="text-xs text-gray-700 hover:text-gray-900 font-normal uppercase tracking-wide">
@@ -220,7 +220,7 @@
                             </a>
                         </div>
                         
-                        <div class="bg-gray-50 border border-gray-200 p-4 sm:p-6">
+                        <div class="bg-gray-50 p-4 sm:p-6">
                             <h4 class="font-normal text-gray-900 mb-2">Privacy Settings</h4>
                             <p class="text-sm text-gray-600 mb-4 font-light">Control your privacy and data sharing preferences.</p>
                             <a href="/profile/edit" class="text-xs text-gray-700 hover:text-gray-900 font-normal uppercase tracking-wide">

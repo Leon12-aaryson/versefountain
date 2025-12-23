@@ -16,7 +16,7 @@
             </div>
 
             <!-- Search and Filter Section -->
-            <div class="bg-white rounded-lg p-5 border border-gray-200 mb-8">
+            <div class="bg-white rounded-lg p-5 shadow-sm mb-8">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <!-- Search -->
                     <div class="sm:col-span-2 lg:col-span-1">
@@ -68,7 +68,7 @@
                 <h2 class="text-xl font-semibold text-gray-900 mb-6">Available Chatrooms</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     @foreach($chatrooms as $index => $room)
-                        <div class="bg-white rounded-lg border border-gray-200 hover:border-gray-300 focus-within:border-blue-400 transition-colors overflow-hidden">
+                        <div class="bg-white rounded-lg shadow-sm transition-colors overflow-hidden">
                             <div class="h-40 sm:h-48 bg-gray-100 flex items-center justify-center">
                                 <svg class="w-12 h-12 sm:w-16 sm:h-16 text-gray-400" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -97,7 +97,7 @@
                                                     Enter Chat
                                                 </a>
                                                 <button onclick="leaveChatroom({{ $room->id }})"
-                                                    class="px-3 py-1 bg-white border-2 border-gray-200 rounded-md text-gray-700 text-xs font-normal hover:bg-gray-50 focus:outline-none focus:border-blue-600 transition-colors">
+                                                    class="px-3 py-1 bg-white shadow-sm rounded-md text-gray-700 text-xs font-normal hover:bg-gray-50 focus:outline-none transition-colors">
                                                     Leave
                                                 </button>
                                             @else
@@ -109,7 +109,7 @@
                                             @endif
                                         @else
                                             <a href="{{ route('login') }}"
-                                                class="px-3 py-1 bg-white border-2 border-gray-200 rounded-md text-gray-700 text-xs font-normal hover:bg-gray-50 transition-colors">
+                                                class="px-3 py-1 bg-white shadow-sm rounded-md text-gray-700 text-xs font-normal hover:bg-gray-50 transition-colors">
                                                 Login to Join
                                             </a>
                                         @endauth

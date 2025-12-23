@@ -32,7 +32,7 @@
             <!-- Featured Sections -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
                 <!-- Poetry Section -->
-                <div class="bg-white rounded-lg p-6 border border-gray-200 hover:border-gray-300 transition-colors">
+                <div class="bg-white rounded-lg p-6 shadow-sm transition-colors">
                     <div class="flex items-center mb-4">
                         <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
                             <i class="bx bx-file text-xl text-blue-600"></i>
@@ -48,7 +48,7 @@
                 </div>
 
                 <!-- Books Section -->
-                <div class="bg-white rounded-lg p-6 border border-gray-200 hover:border-gray-300 transition-colors">
+                <div class="bg-white rounded-lg p-6 shadow-sm transition-colors">
                     <div class="flex items-center mb-4">
                         <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mr-3">
                             <i class="bx bx-book text-xl text-blue-600"></i>
@@ -64,7 +64,7 @@
                 </div>
 
                 <!-- Academics Section -->
-                <div class="bg-white rounded-lg p-6 border border-gray-200 hover:border-gray-300 transition-colors">
+                <div class="bg-white rounded-lg p-6 shadow-sm transition-colors">
                     <div class="flex items-center mb-4">
                         <div class="w-12 h-12 bg-blue-300 rounded-lg flex items-center justify-center mr-3">
                             <i class="bx bx-book-reader text-xl text-blue-600"></i>
@@ -82,7 +82,7 @@
 
             <!-- Events Section -->
             <div class="mb-12">
-                <div class="bg-white rounded-lg p-6 border border-gray-200">
+                <div class="bg-white rounded-lg p-6 shadow-sm">
                     <div class="flex items-center justify-between mb-6">
                         <h2 class="text-2xl font-semibold text-gray-900">Upcoming Events</h2>
                         <a href="/events"
@@ -99,7 +99,7 @@
                     @if($upcomingEvents->count() > 0)
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             @foreach($upcomingEvents as $event)
-                                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                                <div class="p-4 bg-gray-50 rounded-lg transition-colors">
                                     <div class="flex items-center mb-3">
                                         <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
                                             <i class="bx bx-calendar text-lg text-blue-600"></i>

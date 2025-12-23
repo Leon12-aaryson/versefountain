@@ -3,7 +3,7 @@
 @section('title', 'Forgot Password - VerseFountain')
 
 @section('auth-content')
-    <div class="bg-white rounded-md border border-gray-200">
+    <div class="bg-white rounded-md shadow-sm">
         <div class="p-6">
             <div class="mb-6">
                 <h3 class="text-xl font-semibold text-gray-900">Forgot Password</h3>

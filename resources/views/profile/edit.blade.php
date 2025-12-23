@@ -12,7 +12,7 @@
         </div>
 
         <!-- Settings Tabs -->
-        <div class="bg-white rounded-md border border-gray-200">
+        <div class="bg-white rounded-md shadow-sm">
             <!-- Success Messages -->
             @if (session('status') === 'profile-updated')
                 <div class="bg-blue-50 border border-blue-200 rounded-t-xl p-4">

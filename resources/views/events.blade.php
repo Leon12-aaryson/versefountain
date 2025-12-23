@@ -12,7 +12,7 @@
             </div>
 
             <!-- Search and Filter Section -->
-            <div class="bg-white rounded-lg p-5 border border-gray-200 mb-8">
+            <div class="bg-white rounded-lg p-5 shadow-sm mb-8">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- Search -->
                     <div class="sm:col-span-2 lg:col-span-1">
@@ -64,7 +64,7 @@
                     <h2 class="text-xl font-semibold text-gray-900 mb-6">Featured Events</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                         @foreach($featuredEvents as $event)
-                            <div class="bg-white rounded-lg border border-gray-200 hover:border-gray-300 focus-within:border-green-400 transition-colors overflow-hidden">
+                            <div class="bg-white rounded-lg shadow-sm transition-colors overflow-hidden">
                                 <div class="h-40 sm:h-48 bg-gray-100 flex items-center justify-center">
                                     <i class="bx bx-calendar text-6xl text-gray-400"></i>
                                 </div>
@@ -114,7 +114,7 @@
                 @if($upcomingEvents->count() > 0)
                     <div class="space-y-5 sm:space-y-6">
                         @foreach($upcomingEvents as $event)
-                            <div class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-blue-600 transition-colors">
+                            <div class="bg-white shadow-sm rounded-md p-4 sm:p-6 transition-colors">
                                 <div class="flex items-start space-x-4">
                                     <div
                                         class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 flex items-center justify-center flex-shrink-0">
@@ -194,7 +194,7 @@
                                 $icon = $icons[$category] ?? 'bx-calendar';
                             @endphp
                             <a href="/events?category={{ urlencode($category) }}"
-                                class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6 hover:border-gray-300 focus-within:border-blue-600 transition-colors cursor-pointer block">
+                                class="bg-white shadow-sm rounded-md p-4 sm:p-6 transition-colors cursor-pointer block">
                                 <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
                                     <i class="bx {{ $icon }} text-xl sm:text-2xl text-gray-600"></i>
                                 </div>

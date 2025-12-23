@@ -28,7 +28,7 @@
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Total Poems -->
-            <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
+            <div class="bg-blue-50 rounded-lg p-4 ">
                 <div class="flex items-center justify-between mb-3">
                     <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
                         <i class="bx bx-file text-white text-lg"></i>
@@ -40,7 +40,7 @@
             </div>
 
             <!-- Total Books -->
-            <div class="bg-blue-100 rounded-lg p-4 border border-blue-200">
+            <div class="bg-blue-100 rounded-lg p-4 ">
                 <div class="flex items-center justify-between mb-3">
                     <div class="w-10 h-10 bg-blue-300 rounded-lg flex items-center justify-center">
                         <i class="bx bx-book text-white text-lg"></i>
@@ -52,7 +52,7 @@
             </div>
 
             <!-- Tickets -->
-            <div class="bg-blue-900 rounded-lg p-4 border border-blue-800">
+            <div class="bg-blue-900 rounded-lg p-4 ">
                 <div class="flex items-center justify-between mb-3">
                     <div class="w-10 h-10 bg-blue-800 rounded-lg flex items-center justify-center">
                         <i class="bx bx-check text-white text-lg"></i>
@@ -64,7 +64,7 @@
             </div>
 
             <!-- Comments -->
-            <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
+            <div class="bg-blue-50 rounded-lg p-4 ">
                 <div class="flex items-center justify-between mb-3">
                     <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                         <i class="bx bx-comment text-white text-lg"></i>
@@ -80,7 +80,7 @@
     <!-- Main Content Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Recent Poems -->
-        <div class="lg:col-span-2 bg-white rounded-lg p-6 border border-gray-200">
+        <div class="lg:col-span-2 bg-white rounded-lg p-6 shadow-sm">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-lg font-semibold text-gray-900">Recent Poems</h2>
                 <a href="{{ route('poetry.create') }}" class="text-sm text-blue-600 hover:text-blue-700">
@@ -90,7 +90,7 @@
             @if($userPoems->count() > 0)
                 <div class="space-y-3">
                     @foreach($userPoems as $poem)
-                        <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                        <div class="p-4 bg-gray-50 rounded-lg shadow-sm  transition-colors">
                                     <div class="flex items-start justify-between">
                                         <div class="flex-1 min-w-0">
                                             <h3 class="text-base font-semibold text-gray-900 mb-1">
@@ -137,28 +137,28 @@
         <!-- Quick Actions & Upcoming Events -->
         <div class="space-y-6">
             <!-- Quick Actions -->
-            <div class="bg-white rounded-lg p-5 border border-gray-200">
+            <div class="bg-white rounded-lg p-5 shadow-sm">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
                 <div class="space-y-2">
-                    <a href="{{ route('poetry.create') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+                    <a href="{{ route('poetry.create') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors shadow-sm">
                         <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
                             <i class="bx bx-file text-blue-600 text-base"></i>
                         </div>
                         <span class="text-sm text-gray-900">Create Poem</span>
                     </a>
-                    <a href="/books" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+                    <a href="/books" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors shadow-sm">
                         <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
                             <i class="bx bx-book text-blue-600 text-base"></i>
                         </div>
                         <span class="text-sm text-gray-900">Browse Books</span>
                     </a>
-                    <a href="/events" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+                    <a href="/events" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors shadow-sm">
                         <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
                             <i class="bx bx-calendar text-blue-600 text-base"></i>
                         </div>
                         <span class="text-sm text-gray-900">View Events</span>
                     </a>
-                    <a href="{{ route('chatrooms.index') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+                    <a href="{{ route('chatrooms.index') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors shadow-sm">
                         <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
                             <i class="bx bx-chat text-blue-600 text-base"></i>
                         </div>
@@ -168,7 +168,7 @@
             </div>
 
             <!-- Upcoming Events -->
-            <div class="bg-white rounded-lg p-5 border border-gray-200">
+            <div class="bg-white rounded-lg p-5 shadow-sm">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-900">Upcoming Events</h2>
                     <a href="/events" class="text-sm text-blue-600 hover:text-blue-700">View All</a>
@@ -176,7 +176,7 @@
                 @if($upcomingEvents->count() > 0)
                     <div class="space-y-3">
                         @foreach($upcomingEvents as $event)
-                            <div class="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                            <div class="p-3 bg-gray-50 rounded-lg shadow-sm  transition-colors">
                                 <h3 class="text-sm font-semibold text-gray-900 mb-1 line-clamp-1">
                                     <a href="{{ route('api.events.show', $event) }}" class="hover:text-blue-600 transition-colors">
                                         {{ $event->title }}
@@ -201,14 +201,14 @@
 
     <!-- Recent Books -->
     @if($userBooks->count() > 0)
-        <div class="bg-white rounded-lg p-6 border border-gray-200">
+        <div class="bg-white rounded-lg p-6 shadow-sm">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-lg font-semibold text-gray-900">My Recent Books</h2>
                 <a href="/books" class="text-sm text-blue-600 hover:text-blue-700">View All</a>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($userBooks as $book)
-                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                    <div class="p-4 bg-gray-50 rounded-lg shadow-sm  transition-colors">
                                 <h3 class="text-base font-semibold text-gray-900 mb-2">
                                     <a href="{{ route('books.show', $book) }}" class="hover:text-blue-600 transition-colors">
                                         {{ $book->title }}

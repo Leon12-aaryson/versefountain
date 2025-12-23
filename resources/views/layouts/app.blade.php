@@ -11,19 +11,19 @@
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     @yield('head')
 </head>
-<body class="antialiased bg-gray-50 overflow-x-hidden">
+<body class="antialiased bg-gray-100 overflow-x-hidden">
     <!-- Desktop Sidebar Navigation -->
     <div class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:bg-white lg:border-r lg:border-gray-200">
-        <!-- Logo -->
+            <!-- Logo -->
         <div class="px-6 py-6 border-b border-gray-200">
             <a href="/" class="flex items-center space-x-3">
                 <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                     <i class="bx bx-book text-white text-xl"></i>
-                </div>
+            </div>
                 <span class="text-xl font-semibold text-gray-900">VerseFountain</span>
             </a>
         </div>
-        
+
         <!-- Navigation Menu -->
         <div class="flex-1 flex flex-col min-h-0 overflow-y-auto sidebar-scroll">
             <nav class="flex-1 px-4 py-6 space-y-1">
@@ -183,9 +183,9 @@
     </header>
 
     <!-- Main Content -->
-    <main class="lg:pl-64 min-h-screen pb-20 md:pb-0 bg-gray-50">
+    <main class="lg:pl-64 min-h-screen pb-20 md:pb-0 bg-gray-100">
         <div class="px-4 sm:px-6 lg:px-8 py-6">
-            @yield('content')
+        @yield('content')
         </div>
     </main>
 

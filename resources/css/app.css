@@ -129,16 +129,18 @@
     @apply outline-none;
   }
 
-  /* Interactive cards with border focus */
-  .card-interactive,
-  [class*="hover:border"] {
-    @apply border-2;
-    transition: border-color 0.2s ease;
+  /* Interactive cards with shadow */
+  .card-interactive {
+    @apply shadow-sm;
+    transition: box-shadow 0.2s ease;
   }
 
-  .card-interactive:focus-visible,
-  [class*="hover:border"]:focus-visible {
-    @apply border-blue-600 outline-none;
+  .card-interactive:hover {
+    @apply shadow-md;
+  }
+
+  .card-interactive:focus-visible {
+    @apply shadow-lg outline-none;
   }
 
   /* Custom Scrollbar */
@@ -270,12 +272,12 @@ a, button {
 
 /* Enhanced card styles */
 .card-modern {
-    @apply bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm;
+    @apply bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-modern:hover {
-    @apply shadow-xl border-blue-200;
+    @apply shadow-xl;
     transform: translateY(-4px);
 }
 

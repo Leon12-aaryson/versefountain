@@ -1,6 +1,6 @@
 @props(['placeholder' => 'Search...', 'filters' => []])
 
-<div class="bg-white rounded-md p-6 mb-6">
+<div class="bg-white rounded-md p-6 mb-6 shadow-sm">
     <div class="flex flex-col md:flex-row gap-4">
         <div class="flex-1">
             <input type="text" placeholder="{{ $placeholder }}" 

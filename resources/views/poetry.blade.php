@@ -29,14 +29,14 @@
             </div>
 
             <!-- Search and Filter Section -->
-            <div class="bg-white rounded-lg p-5 border border-gray-200 mb-8">
+            <div class="bg-white rounded-lg p-5 shadow-sm mb-8">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- Search -->
                     <div class="sm:col-span-2 lg:col-span-1">
                         <label for="search" class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Search Poems</label>
                         <div class="relative">
                             <input type="text" id="search" placeholder="Search by title, author, or content..."
-                                class="w-full pl-9 pr-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none">
+                                class="w-full pl-9 pr-3 py-2 shadow-sm focus:border-blue-600 text-sm bg-white focus:outline-none">
                             <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
                                 <i class="bx bx-search text-base text-gray-400"></i>
                             </div>
@@ -47,7 +47,7 @@
                     <div>
                         <label for="category" class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Category</label>
                         <select id="category"
-                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 shadow-sm focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="">All Categories</option>
                             <option value="love">Love</option>
                             <option value="nature">Nature</option>
@@ -62,7 +62,7 @@
                     <div>
                         <label for="sort" class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Sort By</label>
                         <select id="sort"
-                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 shadow-sm focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="newest">Newest First</option>
                             <option value="oldest">Oldest First</option>
                             <option value="popular">Most Popular</option>
@@ -75,7 +75,7 @@
             <!-- Poems Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                 @forelse($poems as $poem)
-                    <div class="bg-white rounded-lg border border-gray-200 hover:border-gray-300 focus-within:border-blue-400 transition-colors"
+                    <div class="bg-white rounded-lg shadow-sm  focus-within:border-blue-400 transition-colors"
                          data-poem-card
                          data-poem-id="{{ $poem->id }}"
                          data-initial-liked="{{ auth()->check() && $poem->userInteractions->where('user_id', auth()->id())->where('type', 'like')->count() > 0 ? 'true' : 'false' }}"

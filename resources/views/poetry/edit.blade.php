@@ -10,7 +10,7 @@
             <p class="text-gray-600">Update your poetry</p>
         </div>
 
-        <div class="bg-white overflow-hidden sm:rounded-md border border-gray-200 p-6">
+        <div class="bg-white overflow-hidden sm:rounded-md shadow-sm p-6">
             <form method="POST" action="{{ route('poetry.update', $poem) }}" id="poem-edit-form" data-poem-form>
                 @csrf
                 @method('PUT')
@@ -91,7 +91,7 @@
                     <!-- Preview -->
                     <div id="preview-section" data-preview-section style="display: none;">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Preview</label>
-                        <div class="mt-2 bg-gray-50 rounded-md p-4 border border-gray-200">
+                        <div class="mt-2 bg-gray-50 rounded-md p-4 shadow-sm">
                             <h3 class="font-semibold text-lg text-gray-900 mb-2" data-preview-title>Untitled</h3>
                             <div class="prose prose-sm max-w-none">
                                 <p class="whitespace-pre-line text-gray-700" data-preview-content>No content yet</p>
@@ -104,14 +104,14 @@
                         <div class="flex space-x-3">
                             <button type="button" 
                                     data-preview-toggle
-                                    class="inline-flex items-center px-4 py-2 border-2 border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:border-2 focus:border-blue-600">
+                                    class="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:border-2 focus:border-blue-600">
                                 <span>Show Preview</span>
                             </button>
                         </div>
                         
                         <div class="flex space-x-3">
                             <a href="{{ route('poetry.show', $poem) }}" 
-                               class="inline-flex items-center px-4 py-2 border-2 border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:border-2 focus:border-blue-600">
+                               class="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:border-2 focus:border-blue-600">
                                 Cancel
                             </a>
                             <button type="submit" 
