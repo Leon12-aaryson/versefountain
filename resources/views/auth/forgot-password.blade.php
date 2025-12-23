@@ -24,7 +24,7 @@
                 <div class="space-y-2">
                     <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus 
-                           class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:border-blue-600 focus:outline-none placeholder-gray-400"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:border-blue-600 focus:outline-none placeholder-gray-400"
                            placeholder="Enter your email">
                     @error('email')
                         <p class="text-sm text-red-500">{{ $message }}</p>

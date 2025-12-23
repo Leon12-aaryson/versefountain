@@ -111,7 +111,7 @@
   select {
     @apply rounded-md;
     @apply focus:outline-none focus:border-blue-600;
-    @apply border-2;
+    @apply border border-gray-300;
     transition: border-color 0.2s ease;
   }
 

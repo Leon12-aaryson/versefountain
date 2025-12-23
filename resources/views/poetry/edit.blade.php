@@ -22,7 +22,7 @@
                         <input id="title" 
                                name="title" 
                                type="text" 
-                               class="mt-1 block w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:border-blue-600" 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:border-blue-600" 
                                value="{{ old('title', $poem->title) }}"
                                required 
                                autofocus />
@@ -60,7 +60,7 @@
                         <input id="video_url" 
                                name="video_url" 
                                type="url" 
-                               class="mt-1 block w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:border-blue-600" 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:border-blue-600" 
                                value="{{ old('video_url', $poem->video_url) }}" />
                         <p class="mt-1 text-sm text-gray-500">
                             Enter the embed URL from YouTube or other video platforms
@@ -77,7 +77,7 @@
                                   name="content" 
                                   rows="12"
                                   required
-                                  class="mt-1 block w-full border-2 border-gray-300 focus:border-blue-600 focus:outline-none rounded-md resize-none transition-colors"
+                                  class="mt-1 block w-full border border-gray-300 focus:border-blue-600 focus:outline-none rounded-md resize-none transition-colors"
                                   placeholder="{{ $poem->is_video ? 'Describe your video poem...' : 'Write your poem here...' }}">{{ old('content', $poem->content) }}</textarea>
                         <div class="mt-2 flex justify-between items-center text-sm text-gray-500">
                             <span data-content-length>{{ strlen(old('content', $poem->content)) }}</span>

@@ -20,7 +20,7 @@
                 <div class="space-y-2">
                     <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
                     <input id="email" type="email" name="email" value="{{ old('email', $request->email) }}" required autofocus 
-                           class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:border-blue-600 focus:outline-none placeholder-gray-400"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:border-blue-600 focus:outline-none placeholder-gray-400"
                            placeholder="Enter your email">
                     @error('email')
                         <p class="text-sm text-red-500">{{ $message }}</p>
@@ -31,7 +31,7 @@
                 <div class="space-y-2">
                     <label for="password" class="block text-sm font-medium text-gray-700">New Password</label>
                     <input id="password" type="password" name="password" required 
-                           class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:border-blue-600 focus:outline-none placeholder-gray-400"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:border-blue-600 focus:outline-none placeholder-gray-400"
                            placeholder="Enter new password">
                     @error('password')
                         <p class="text-sm text-red-500">{{ $message }}</p>
@@ -42,7 +42,7 @@
                 <div class="space-y-2">
                     <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Confirm New Password</label>
                     <input id="password_confirmation" type="password" name="password_confirmation" required 
-                           class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:border-blue-600 focus:outline-none placeholder-gray-400"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:border-blue-600 focus:outline-none placeholder-gray-400"
                            placeholder="Confirm new password">
                     @error('password_confirmation')
                         <p class="text-sm text-red-500">{{ $message }}</p>

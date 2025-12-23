@@ -71,7 +71,7 @@
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Name</label>
                             <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" required 
-                                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-blue-600 text-sm sm:text-base">
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-600 text-sm sm:text-base">
                             @error('name')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -81,7 +81,7 @@
                         <div>
                             <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
                             <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" required 
-                                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-blue-600 text-sm sm:text-base">
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-600 text-sm sm:text-base">
                             @error('email')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -91,7 +91,7 @@
                         <div>
                             <label for="bio" class="block text-sm font-medium text-gray-700 mb-2">Bio</label>
                             <textarea name="bio" id="bio" rows="4" 
-                                      class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-blue-600 text-sm sm:text-base"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-600 text-sm sm:text-base"
                                       placeholder="Tell us about yourself...">{{ old('bio', $user->bio ?? '') }}</textarea>
                             @error('bio')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -117,7 +117,7 @@
                         <div>
                             <label for="current_password" class="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
                             <input type="password" name="current_password" id="current_password" required 
-                                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-blue-600 text-sm sm:text-base">
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-600 text-sm sm:text-base">
                             @error('current_password')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -127,7 +127,7 @@
                         <div>
                             <label for="password" class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
                             <input type="password" name="password" id="password" required 
-                                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-blue-600 text-sm sm:text-base">
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-600 text-sm sm:text-base">
                             @error('password')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -137,7 +137,7 @@
                         <div>
                             <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
                             <input type="password" name="password_confirmation" id="password_confirmation" required 
-                                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-blue-600 text-sm sm:text-base">
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-600 text-sm sm:text-base">
                         </div>
 
                         <!-- Save Button -->
@@ -238,7 +238,7 @@
                     <div>
                         <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Enter your password to confirm</label>
                         <input type="password" name="password" id="password" required 
-                               class="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-red-500 text-sm sm:text-base transition-colors">
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-red-500 text-sm sm:text-base transition-colors">
                     </div>
                     
                     <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
