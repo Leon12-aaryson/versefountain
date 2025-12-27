@@ -24,10 +24,7 @@
                             <input type="text" id="search" placeholder="Search events, locations, or organizers..."
                                 class="w-full pl-9 pr-3 py-2 focus:border-blue-600 text-sm bg-white focus:outline-none">
                             <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
+                                <i class="bx bx-search text-gray-400"></i>
                             </div>
                         </div>
                     </div>
@@ -122,12 +119,7 @@
                     @foreach($featuredEvents as $event)
                         <div class="bg-white shadow-sm rounded-md transition-colors">
                             <div class="h-40 sm:h-48 bg-gray-100 flex items-center justify-center">
-                                <svg class="w-12 h-12 sm:w-16 sm:h-16 text-gray-400" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                    </path>
-                                </svg>
+                                <i class="bx bx-calendar text-gray-400"></i>
                             </div>
                             <div class="p-4 sm:p-6">
                                 <div class="flex items-center justify-between mb-3 pb-3 border-b border-gray-200">
@@ -137,13 +129,7 @@
                                 <h3 class="font-normal text-gray-900 mb-1 text-sm sm:text-base">{{ $event['title'] }}</h3>
                                 <p class="text-gray-600 text-xs sm:text-sm mb-3 font-light">{{ $event['description'] }}</p>
                                 <div class="flex items-center text-xs text-gray-500 mb-3">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
-                                        </path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    </svg>
+                                    <i class="bx bx-map text-gray-600 mr-1"></i>
                                     <span>{{ $event['location'] }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
@@ -168,12 +154,7 @@
                             <div class="flex items-start space-x-4">
                                 <div
                                     class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                        </path>
-                                    </svg>
+                                    <i class="bx bx-calendar text-gray-400"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center justify-between mb-2">
@@ -184,13 +165,7 @@
                                     <h3 class="font-normal text-gray-900 text-sm sm:text-base mb-1">{{ $event['title'] }}</h3>
                                     <p class="text-gray-600 text-xs sm:text-sm mb-3 font-light">{{ $event['description'] }}</p>
                                     <div class="flex items-center text-xs text-gray-500 mb-3">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
-                                            </path>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        </svg>
+                                        <i class="bx bx-map text-gray-600 mr-1"></i>
                                         <span>{{ $event['location'] }}</span>
                                     </div>
                                     <div class="flex items-center justify-between">
@@ -211,57 +186,33 @@
             <div class="mb-10 sm:mb-12">
                 <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">Browse by Category</h2>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-                    <div
-                        class="bg-white shadow-sm rounded-md p-4 sm:p-6 transition-colors cursor-pointer">
+                    <div class="bg-white shadow-sm rounded-md p-4 sm:p-6 transition-colors cursor-pointer">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                </path>
-                            </svg>
+                            <i class="bx bx-book-reader text-gray-600"></i>
                         </div>
                         <h3 class="font-normal text-gray-900 text-sm sm:text-base">Poetry Readings</h3>
                         <p class="text-xs sm:text-sm text-gray-500 mt-1">12 events</p>
                     </div>
 
-                    <div
-                        class="bg-white shadow-sm rounded-md p-4 sm:p-6 transition-colors cursor-pointer">
+                    <div class="bg-white shadow-sm rounded-md p-4 sm:p-6 transition-colors cursor-pointer">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z">
-                                </path>
-                            </svg>
+                            <i class="bx bx-bulb text-gray-600"></i>
                         </div>
                         <h3 class="font-normal text-gray-900 text-sm sm:text-base">Workshops</h3>
                         <p class="text-xs sm:text-sm text-gray-500 mt-1">8 events</p>
                     </div>
 
-                    <div
-                        class="bg-white shadow-sm rounded-md p-4 sm:p-6 transition-colors cursor-pointer">
+                    <div class="bg-white shadow-sm rounded-md p-4 sm:p-6 transition-colors cursor-pointer">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-                                </path>
-                            </svg>
+                            <i class="bx bx-book-reader text-gray-600"></i>
                         </div>
                         <h3 class="font-normal text-gray-900 text-sm sm:text-base">Book Launches</h3>
                         <p class="text-xs sm:text-sm text-gray-500 mt-1">5 events</p>
                     </div>
 
-                    <div
-                        class="bg-white shadow-sm rounded-md p-4 sm:p-6 transition-colors cursor-pointer">
+                    <div class="bg-white shadow-sm rounded-md p-4 sm:p-6 transition-colors cursor-pointer">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
-                                </path>
-                            </svg>
+                            <i class="bx bx-conference text-gray-600"></i>
                         </div>
                         <h3 class="font-normal text-gray-900 text-sm sm:text-base">Conferences</h3>
                         <p class="text-xs sm:text-sm text-gray-500 mt-1">3 events</p>
@@ -274,12 +225,7 @@
                 <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">My Tickets</h2>
                 <div class="bg-white shadow-sm rounded-md p-4 sm:p-6">
                     <div class="text-center py-8">
-                        <svg class="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z">
-                            </path>
-                        </svg>
+                        <i class="bx bx-ticket text-gray-400 mx-auto mb-4"></i>
                         <h3 class="text-lg sm:text-xl font-light text-gray-900 mb-2">No tickets yet</h3>
                         <p class="text-sm sm:text-base text-gray-600 mb-4 font-light">Purchase tickets for upcoming events
                             to see them here.</p>
@@ -293,7 +239,8 @@
 
             <!-- Load More Button -->
             <div class="text-center">
-                <button class="px-6 py-2.5 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none">
+                <button
+                    class="px-6 py-2.5 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none">
                     Load More Events
                 </button>
             </div>

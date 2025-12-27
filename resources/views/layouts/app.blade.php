@@ -13,7 +13,7 @@
 </head>
 <body class="antialiased bg-gray-100 overflow-x-hidden">
     <!-- Desktop Sidebar Navigation -->
-    <div class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:bg-white lg:border-r lg:border-gray-200">
+    <div class="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 md:bg-white md:border-r md:border-gray-200 md:z-30">
             <!-- Logo -->
         <div class="px-6 py-6 border-b border-gray-200">
             <a href="/" class="flex items-center space-x-3">
@@ -102,11 +102,11 @@
     </div>
 
     <!-- Top Header Bar -->
-    <header class="lg:pl-64 bg-white border-b border-gray-200 sticky top-0 z-50">
+    <header class="md:pl-64 bg-white border-b border-gray-200 sticky top-0 z-40">
         <div class="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
             <!-- Page Title -->
             <div class="flex-1">
-                <h1 class="text-xl font-semibold text-gray-900">@yield('page-title', 'Dashboard')</h1>
+                <h1 class="text-xl font-semibold text-gray-900">@yield('page-title', auth()->check() ? 'Dashboard' : 'Home')</h1>
             </div>
             
             <!-- Search Bar -->
@@ -183,7 +183,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="lg:pl-64 min-h-screen pb-20 md:pb-0 bg-gray-100">
+    <main class="md:pl-64 min-h-screen pb-20 md:pb-0 bg-gray-100">
         <div class="px-4 sm:px-6 lg:px-8 py-6">
         @yield('content')
         </div>
