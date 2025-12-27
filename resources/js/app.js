@@ -137,7 +137,7 @@ if (window.csrfToken) {
 }
 
 // ============================================
-// Vanilla JS Components (Alpine.js Replacements)
+// Vanilla JS Components
 // ============================================
 
 // Flash Message System

@@ -1,10 +1,14 @@
-@props(['title', 'description', 'activeTab' => 'login'])
+@extends('layouts.auth')
 
+@section('auth-content')
+@php
+    $activeTab = isset($activeTab) ? $activeTab : (request()->routeIs('register') ? 'register' : 'login');
+@endphp
 <div class="bg-white shadow-sm rounded-md">
     <div class="p-6">
         <div class="mb-6">
-            <h3 class="text-xl font-light text-gray-800 tracking-wide">{{ $title }}</h3>
-            <p class="text-gray-600 mt-2 font-light">{{ $description }}</p>
+            <h3 class="text-xl font-light text-gray-800 tracking-wide">@yield('auth-card-title')</h3>
+            <p class="text-gray-600 mt-2 font-light">@yield('auth-card-description')</p>
         </div>
 
         <!-- Tabs -->
@@ -21,7 +25,7 @@
             </div>
         </div>
 
-        {{ $slot }}
+        @yield('auth-card-content')
     </div>
     <div class="px-6 py-4">
         <p class="text-center text-xs text-gray-500 font-light">
@@ -33,3 +37,5 @@
         </p>
     </div>
 </div>
+@endsection
+

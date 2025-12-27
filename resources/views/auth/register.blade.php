@@ -1,9 +1,15 @@
-@extends('layouts.auth')
+@extends('layouts.auth-card')
+
+@php
+    $activeTab = 'register';
+@endphp
 
 @section('title', 'Register - VerseFountain')
 
-@section('auth-content')
-    <x-auth-card title="Welcome to VerseFountain" description="Create a new account to join our community" activeTab="register">
+@section('auth-card-title', 'Welcome to VerseFountain')
+@section('auth-card-description', 'Create a new account to join our community')
+
+@section('auth-card-content')
         <form method="POST" action="{{ route('register') }}" class="space-y-5">
             @csrf
 
@@ -65,5 +71,4 @@
                 </a>
             </div>
         </form>
-    </x-auth-card>
 @endsection

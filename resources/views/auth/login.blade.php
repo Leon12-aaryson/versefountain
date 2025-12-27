@@ -1,9 +1,15 @@
-@extends('layouts.auth')
+@extends('layouts.auth-card')
+
+@php
+    $activeTab = 'login';
+@endphp
 
 @section('title', 'Login - VerseFountain')
 
-@section('auth-content')
-    <x-auth-card title="Welcome to VerseFountain" description="Sign in to your account to continue" activeTab="login">
+@section('auth-card-title', 'Welcome to VerseFountain')
+@section('auth-card-description', 'Sign in to your account to continue')
+
+@section('auth-card-content')
         <!-- Session Status -->
         @if (session('status'))
             <div class="mb-4 p-4 bg-gray-50">
@@ -61,5 +67,4 @@
                 </div>
             @endif
         </form>
-    </x-auth-card>
 @endsection
