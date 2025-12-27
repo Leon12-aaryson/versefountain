@@ -10,12 +10,12 @@
         <!-- Tabs -->
         <div class="mb-6">
             <div class="flex bg-gray-100 rounded-md p-1">
-                <a href="{{ route('register') }}" 
-                   class="flex-1 text-center py-2 px-4 text-sm font-normal rounded-md {{ $activeTab === 'register' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors' }}">
+                <a href="{{ route('register') }}"
+                    class="flex-1 text-center py-2 px-4 text-sm font-normal rounded-md {{ $activeTab === 'register' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors' }}">
                     Register
                 </a>
-                <a href="{{ route('login') }}" 
-                   class="flex-1 text-center py-2 px-4 text-sm font-normal rounded-md {{ $activeTab === 'login' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors' }}">
+                <a href="{{ route('login') }}"
+                    class="flex-1 text-center py-2 px-4 text-sm font-normal rounded-md {{ $activeTab === 'login' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors' }}">
                     Login
                 </a>
             </div>
@@ -23,7 +23,7 @@
 
         {{ $slot }}
     </div>
-    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+    <div class="px-6 py-4">
         <p class="text-center text-xs text-gray-500 font-light">
             @if($activeTab === 'login')
                 By signing in, you agree to our Terms of Service and Privacy Policy.
@@ -32,4 +32,4 @@
             @endif
         </p>
     </div>
-</div> 
+</div>

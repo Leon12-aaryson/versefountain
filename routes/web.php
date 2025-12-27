@@ -38,7 +38,7 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 
 Route::get('/', function () {
     return view('index');
-});#1A3F7A#1A3F7A
+});
 
 Route::get('/poetry', [PoemController::class, 'index'])->name('poetry.index');
 
@@ -104,7 +104,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
-    
+
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
