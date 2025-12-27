@@ -104,18 +104,18 @@
                         <div class="flex space-x-3">
                             <button type="button" 
                                     data-preview-toggle
-                                    class="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:border-2 focus:border-blue-600">
+                                    class="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
                                 <span>Show Preview</span>
                             </button>
                         </div>
                         
                         <div class="flex space-x-3">
                             <a href="{{ route('poetry.show', $poem) }}" 
-                               class="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:border-2 focus:border-blue-600">
+                               class="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
                                 Cancel
                             </a>
                             <button type="submit" 
-                                    class="inline-flex items-center px-4 py-2 bg-blue-600 border-2 border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:border-blue-800 transition ease-in-out duration-150">
+                                    class="inline-flex items-center px-4 py-2 bg-blue-600 rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none transition ease-in-out duration-150">
                                 <span>Update Poem</span>
                             </button>
                         </div>

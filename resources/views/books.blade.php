@@ -21,7 +21,7 @@
                             Books</label>
                         <div class="relative">
                             <input type="text" id="search" placeholder="Search books, authors, or genres..."
-                                class="w-full pl-9 pr-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none">
+                                class="w-full pl-9 pr-3 py-2 border border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none">
                             <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
                                 <i class="bx bx-search text-base text-gray-400"></i>
                             </div>
@@ -33,7 +33,7 @@
                         <label for="genre"
                             class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Genre</label>
                         <select id="genre"
-                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 border border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="">All Genres</option>
                             <option value="fiction">Fiction</option>
                             <option value="non-fiction">Non-Fiction</option>
@@ -48,7 +48,7 @@
                         <label for="language"
                             class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Language</label>
                         <select id="language"
-                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 border border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="">All Languages</option>
                             <option value="english">English</option>
                             <option value="spanish">Spanish</option>

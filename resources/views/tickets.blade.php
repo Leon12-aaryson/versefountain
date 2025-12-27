@@ -149,7 +149,7 @@
                                 <div class="flex items-center justify-between">
                                     <span class="text-xs text-gray-500">{{ $event['date'] }}</span>
                                     <button
-                                        class="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-normal hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
+                                        class="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-normal hover:bg-blue-700 transition-colors focus:outline-none">
                                         Buy Ticket
                                     </button>
                                 </div>
@@ -196,7 +196,7 @@
                                     <div class="flex items-center justify-between">
                                         <span class="text-xs text-gray-500">{{ $event['date'] }}</span>
                                         <button
-                                            class="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-normal hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
+                                            class="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-normal hover:bg-blue-700 transition-colors focus:outline-none">
                                             Buy Ticket
                                         </button>
                                     </div>
@@ -272,7 +272,7 @@
             <!-- My Tickets Section -->
             <div class="mb-10 sm:mb-12">
                 <h2 class="text-xl sm:text-2xl font-light text-gray-800 mb-6 sm:mb-8 tracking-wide">My Tickets</h2>
-                <div class="bg-white border-2 border-gray-200 rounded-md p-4 sm:p-6">
+                <div class="bg-white shadow-sm rounded-md p-4 sm:p-6">
                     <div class="text-center py-8">
                         <svg class="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
@@ -284,7 +284,7 @@
                         <p class="text-sm sm:text-base text-gray-600 mb-4 font-light">Purchase tickets for upcoming events
                             to see them here.</p>
                         <button
-                            class="px-6 py-2.5 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
+                            class="px-6 py-2.5 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none">
                             Browse Events
                         </button>
                     </div>
@@ -293,7 +293,7 @@
 
             <!-- Load More Button -->
             <div class="text-center">
-                <button class="px-6 py-2.5 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
+                <button class="px-6 py-2.5 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none">
                     Load More Events
                 </button>
             </div>

@@ -21,7 +21,7 @@
                             Events</label>
                         <div class="relative">
                             <input type="text" id="search" placeholder="Search events, locations, or organizers..."
-                                class="w-full pl-9 pr-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none">
+                                class="w-full pl-9 pr-3 py-2 border border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none">
                             <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
                                 <i class="bx bx-search text-base text-gray-400"></i>
                             </div>
@@ -33,7 +33,7 @@
                         <label for="category"
                             class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Category</label>
                         <select id="category"
-                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 border border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="">All Categories</option>
                             <option value="poetry-reading">Poetry Reading</option>
                             <option value="workshop">Workshop</option>
@@ -47,7 +47,7 @@
                         <label for="date"
                             class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Date</label>
                         <select id="date"
-                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 border border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="">All Dates</option>
                             <option value="today">Today</option>
                             <option value="tomorrow">Tomorrow</option>

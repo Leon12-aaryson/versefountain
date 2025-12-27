@@ -39,7 +39,7 @@
             <!-- Remember Me -->
             <div class="flex items-center">
                 <input id="remember_me" type="checkbox" name="remember" 
-                       class="h-4 w-4 text-gray-800 focus:ring-gray-500 border-gray-300">
+                       class="h-4 w-4 text-gray-800 focus:ring-0 focus:ring-offset-0 border-gray-300">
                 <label for="remember_me" class="ml-2 block text-sm text-gray-600 font-light">
                     Remember me
                 </label>

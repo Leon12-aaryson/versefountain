@@ -15,7 +15,7 @@
                         @endforeach
                     </select>
                 @endforeach
-                <button class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-1 focus:ring-blue-800">
+                <button class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors focus:outline-none">
                     Search
                 </button>
             </div>

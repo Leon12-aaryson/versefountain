@@ -100,7 +100,7 @@
 
                         <!-- Save Button -->
                         <div class="flex justify-end">
-                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:border-2 focus:border-blue-800 text-sm sm:text-base font-medium border-2 border-transparent">
+                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none text-sm sm:text-base font-medium">
                                 Save Changes
                             </button>
                         </div>
@@ -142,7 +142,7 @@
 
                         <!-- Save Button -->
                         <div class="flex justify-end">
-                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:border-2 focus:border-blue-800 text-sm sm:text-base font-medium border-2 border-transparent">
+                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none text-sm sm:text-base font-medium">
                                 Update Password
                             </button>
                         </div>
@@ -188,7 +188,7 @@
                                         <div class="mt-4">
                                             <form method="post" action="{{ route('verification.send') }}">
                                                 @csrf
-                                                <button type="submit" class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-md text-sm font-medium hover:bg-yellow-200 focus:outline-none focus:border-2 focus:border-yellow-600 border-2 border-transparent">
+                                                <button type="submit" class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-md text-sm font-medium hover:bg-yellow-200 focus:outline-none">
                                                     Resend verification email
                                                 </button>
                                             </form>
@@ -204,7 +204,7 @@
                             <p class="text-sm text-red-700 mb-4">
                                 Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.
                             </p>
-                            <button type="button" onclick="openDeleteModal()" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:border-2 focus:border-red-800 text-sm sm:text-base font-medium border-2 border-transparent">
+                            <button type="button" onclick="openDeleteModal()" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none text-sm sm:text-base font-medium">
                                 Delete Account
                             </button>
                         </div>
@@ -242,10 +242,10 @@
                     </div>
                     
                     <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
-                        <button type="button" onclick="closeDeleteModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 focus:outline-none focus:border-2 focus:border-gray-600 text-sm sm:text-base font-medium border-2 border-transparent">
+                        <button type="button" onclick="closeDeleteModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 focus:outline-none text-sm sm:text-base font-medium">
                             Cancel
                         </button>
-                        <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:border-2 focus:border-red-800 text-sm sm:text-base font-medium border-2 border-transparent">
+                        <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none text-sm sm:text-base font-medium">
                             Delete Account
                         </button>
                     </div>

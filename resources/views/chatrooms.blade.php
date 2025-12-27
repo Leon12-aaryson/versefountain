@@ -25,7 +25,7 @@
                             Chatrooms</label>
                         <div class="relative">
                             <input type="text" id="search" placeholder="Search chatrooms or topics..."
-                                class="w-full pl-9 pr-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none">
+                                class="w-full pl-9 pr-3 py-2 border border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none">
                             <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
                                 <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -40,7 +40,7 @@
                         <label for="category"
                             class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Category</label>
                         <select id="category"
-                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 border border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="">All Categories</option>
                             <option value="general">General Discussion</option>
                             <option value="poetry">Poetry</option>
@@ -54,7 +54,7 @@
                         <label for="sort"
                             class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Sort By</label>
                         <select id="sort"
-                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 border border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="active">Most Active</option>
                             <option value="recent">Recently Created</option>
                             <option value="members">Most Members</option>
@@ -93,7 +93,7 @@
                                         @auth
                                             @if($room->members->contains(auth()->id()))
                                                 <a href="{{ route('chatroom.show', $room) }}"
-                                                    class="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-normal hover:bg-blue-700 focus:outline-none focus:border-2 focus:border-blue-800 transition-colors border-2 border-transparent">
+                                                    class="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-normal hover:bg-blue-700 focus:outline-none transition-colors">
                                                     Enter Chat
                                                 </a>
                                                 <button onclick="leaveChatroom({{ $room->id }})"
@@ -102,7 +102,7 @@
                                                 </button>
                                             @else
                                                 <button
-                                                    class="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-normal hover:bg-blue-700 focus:outline-none focus:border-2 focus:border-blue-800 transition-colors border-2 border-transparent"
+                                                    class="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-normal hover:bg-blue-700 focus:outline-none transition-colors"
                                                     data-room-id="{{ $room->id }}" onclick="joinChatroom({{ $room->id }})">
                                                     Join
                                                 </button>
@@ -164,11 +164,11 @@
                     // Update button to show joined state
                     button.outerHTML = `
                     <a href="${chatUrl}/${roomId}" 
-                       class="bg-blue-600 text-white px-3 py-1 rounded-md text-xs font-medium hover:bg-blue-700 focus:outline-none focus:border-2 focus:border-blue-800 transition-colors border-2 border-transparent">
+                       class="bg-blue-600 text-white px-3 py-1 rounded-md text-xs font-medium hover:bg-blue-700 focus:outline-none transition-colors">
                         Enter Chat
                     </a>
                     <button onclick="leaveChatroom(${roomId})" 
-                            class="bg-red-600 text-white px-3 py-1 rounded-md text-xs font-medium hover:bg-red-700 transition-colors" border-2 border-transparent focus:border-2 focus:border-red-800 focus:outline-none>
+                            class="bg-red-600 text-white px-3 py-1 rounded-md text-xs font-medium hover:bg-red-700 transition-colors focus:outline-none">
                         Leave
                     </button>
                 `;
@@ -290,7 +290,7 @@
                     if (chatroomCard) {
                         const buttonContainer = chatroomCard.querySelector('.flex.space-x-2');
                         buttonContainer.innerHTML = `
-                        <button class="bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-blue-700 transition-colors" border-2 border-transparent focus:border-2 focus:border-blue-800 focus:outline-none 
+                        <button class="bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-blue-700 transition-colors focus:outline-none" 
                                 data-room-id="${roomId}"
                                 onclick="joinChatroom(${roomId})">
                             Join

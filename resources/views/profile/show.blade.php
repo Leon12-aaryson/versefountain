@@ -76,7 +76,7 @@
                 <div>
                     <div class="flex items-center justify-between mb-6 sm:mb-8">
                         <h3 class="text-lg sm:text-xl font-light text-gray-800 tracking-wide">My Poems</h3>
-                        <a href="/poetry/create" class="px-3 sm:px-4 py-2 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
+                        <a href="/poetry/create" class="px-3 sm:px-4 py-2 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none">
                             Write New Poem
                         </a>
                     </div>
@@ -135,7 +135,7 @@
                         </svg>
                         <h3 class="text-lg font-light text-gray-800 mb-2 tracking-wide">No poems yet</h3>
                         <p class="text-gray-600 mb-4 font-light">Start your poetic journey by writing your first poem.</p>
-                        <a href="/poetry/create" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
+                        <a href="/poetry/create" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none">
                             Write Your First Poem
                         </a>
                     </div>
@@ -183,7 +183,7 @@
                         </svg>
                         <h3 class="text-lg font-light text-gray-800 mb-2 tracking-wide">No tickets yet</h3>
                         <p class="text-gray-600 mb-4 font-light">Purchase tickets for upcoming events to see them here.</p>
-                        <a href="/tickets" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
+                        <a href="/tickets" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none">
                             Browse Events
                         </a>
                     </div>

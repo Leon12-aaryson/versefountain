@@ -78,7 +78,7 @@
                         <form data-message-form class="flex space-x-3">
                             <div class="flex-1">
                                 <input data-message-input type="text" placeholder="Type your message..."
-                                    class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 bg-white focus:outline-none text-sm">
+                                    class="w-full px-3 py-2 border border-gray-300 focus:border-blue-600 bg-white focus:outline-none text-sm">
                             </div>
                             <button type="submit"
                                 class="px-4 py-2 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
@@ -101,7 +101,7 @@
                         <p class="text-gray-600 mb-4 font-light">You need to join this chatroom to participate in the
                             conversation.</p>
                         <button onclick="joinChatroom({{ $chatroom->id }})"
-                            class="px-6 py-2.5 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
+                            class="px-6 py-2.5 bg-blue-600 text-white text-sm font-normal hover:bg-blue-700 transition-colors focus:outline-none">
                             Join Chatroom
                         </button>
                     </div>

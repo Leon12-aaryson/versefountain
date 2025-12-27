@@ -22,7 +22,7 @@
                             Resources</label>
                         <div class="relative">
                             <input type="text" id="search" placeholder="Search papers, subjects, or authors..."
-                                class="w-full pl-9 pr-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none">
+                                class="w-full pl-9 pr-3 py-2 border border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none">
                             <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
                                 <i class="bx bx-search text-base text-gray-400"></i>
                             </div>
@@ -34,7 +34,7 @@
                         <label for="subject"
                             class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Subject</label>
                         <select id="subject"
-                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 border border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="">All Subjects</option>
                             <option value="literature">Literature</option>
                             <option value="history">History</option>
@@ -49,7 +49,7 @@
                         <label for="type"
                             class="block text-xs font-normal text-gray-600 mb-1.5 uppercase tracking-wide">Type</label>
                         <select id="type"
-                            class="w-full px-3 py-2 border-2 border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
+                            class="w-full px-3 py-2 border border-gray-300 focus:border-blue-600 text-sm bg-white focus:outline-none appearance-none cursor-pointer">
                             <option value="">All Types</option>
                             <option value="research-paper">Research Paper</option>
                             <option value="essay">Essay</option>

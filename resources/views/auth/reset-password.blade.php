@@ -51,7 +51,7 @@
 
                 <!-- Submit Button -->
                 <button type="submit" 
-                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md font-medium hover:bg-blue-700 focus:border-2 focus:border-blue-600 transition-colors focus:outline-none focus:border-2 focus:border-blue-800 border-2 border-transparent">
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md font-medium hover:bg-blue-700 transition-colors focus:outline-none">
                     Reset Password
                 </button>
             </form>
